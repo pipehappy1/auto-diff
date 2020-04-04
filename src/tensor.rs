@@ -22,7 +22,13 @@ enum TypedTensor {
 }
 impl TypedTensor {
     fn new() -> TypedTensor {
+	// Default value type is f32.
 	TypedTensor::Typef32(GenTensor::new())
+    }
+    fn to_f32(i: TypedTensor) {
+    }
+    fn to_f64(i: TypedTensor) {
+	
     }
 }
 impl fmt::Display for TypedTensor {
@@ -43,6 +49,14 @@ impl Tensor {
 	Tensor {
 	    v: TypedTensor::new(),
 	}
+    }
+    pub fn _raw() {}
+    pub fn from_vec_f32(i: &Vec<f32>) -> Tensor {
+	let mut ret = Tensor::new();
+	ret
+    }
+    pub fn from_vec_f64(i: &Vec<f64>) -> Tensor {
+	Tensor::new()
     }
     pub fn full() -> Tensor {
 	Tensor::new()
