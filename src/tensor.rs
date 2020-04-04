@@ -3,46 +3,79 @@ use std::fmt;
 struct GenTensor<T> {
     d: Vec<T>
 }
+impl<T> GenTensor<T> {
+    fn new() -> GenTensor<T> {
+	GenTensor {
+	    d: Vec::<T>::new(),
+	}
+    }
+}
+impl<T> fmt::Display for GenTensor<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+	write!(f, "0")
+    }
+}
+
+enum TypedTensor {
+    Typef32( GenTensor<f32>),
+    Typef64( GenTensor<f64>),
+}
+impl TypedTensor {
+    fn new() -> TypedTensor {
+	TypedTensor::Typef32(GenTensor::new())
+    }
+}
+impl fmt::Display for TypedTensor {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+	match self {
+	    TypedTensor::Typef32(v) => write!(f, "({}, )", v),
+	    TypedTensor::Typef64(v) => write!(f, "({}, )", v),
+	}
+
+    }
+}
 
 pub struct Tensor {
-    v: f64
+    v: TypedTensor,
 }
 impl Tensor {
     pub fn new() -> Tensor {
-	Tensor{v:0.}
+	Tensor {
+	    v: TypedTensor::new(),
+	}
     }
     pub fn full() -> Tensor {
-	Tensor{v:0.}
+	Tensor::new()
     }
     pub fn full_like() -> Tensor {
-	Tensor{v:0.}
+	Tensor::new()
     }
     pub fn empty() -> Tensor { // <- this will no work.
-	Tensor{v:0.}
+	Tensor::new()
     }
     pub fn new_ones(dim: &Vec<u32>) -> Tensor {
-	Tensor{v:0.}
+	Tensor::new()
     }
     pub fn new_zeros(dim: &Vec<u32>) -> Tensor {
-	Tensor{v:0.}
+	Tensor::new()
     }
     pub fn zeros_like(o: &Tensor) -> Tensor {
-	Tensor{v:0.}
+	Tensor::new()
     }
     pub fn ones_like(o: &Tensor) -> Tensor {
-    	Tensor{v:0.}
+    	Tensor::new()
     }
     pub fn range(start: f64, step: f64) -> Tensor {
-	Tensor{v:0.}
+	Tensor::new()
     }
     pub fn linespace(start: f64, end: f64, steps: u32) -> Tensor {
-	Tensor{v:0.}
+	Tensor::new()
     }
     pub fn logspace(start: f64, end: f64, steps: u32, base: f64) -> Tensor {
-	Tensor{v:0.}
+	Tensor::new()
     }
     pub fn eye(n: u32, m: u32) -> Tensor {
-	Tensor{v:0.}
+	Tensor::new()
     }
 
     pub fn cat() {}
