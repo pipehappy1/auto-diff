@@ -50,10 +50,14 @@ impl Tensor {
 	    v: TypedTensor::new(),
 	}
     }
-    pub fn _raw() {}
+
     pub fn from_vec_f32(i: &Vec<f32>) -> Tensor {
-	let mut ret = Tensor::new();
-	ret
+	let mut data = Vec::<f32>::new();
+
+	Tensor {
+	    v: TypedTensor::new(),
+	}
+
     }
     pub fn from_vec_f64(i: &Vec<f64>) -> Tensor {
 	Tensor::new()
