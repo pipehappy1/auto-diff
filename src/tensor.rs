@@ -17,6 +17,17 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             dim: new_dim,
         }
     }
+    
+    pub fn new_val(d: T, shape: &Vec<u32>) -> GenTensor<T> {
+        let mut dsize = 0;
+        for i in shape {
+            dsize += (*i) as usize;
+        }
+        GenTensor {
+            d: vec![d; dsize],
+            dim: shape.to_vec(),
+        }
+    }
     /// Right dimension changes fastest.
     /// Right dimension has the stride 1.
     ///
