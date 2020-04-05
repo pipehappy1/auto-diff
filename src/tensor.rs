@@ -41,15 +41,15 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     ///
     /// ```
     /// # use auto_diff::tensor::*;
-    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.], &vec![2,2]);
-    /// assert_eq!(m1.stride(), vec![10,2,1]);
+    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![2,3]);
+    /// assert_eq!(m1.get(&vec![1,1]), 5.);
     /// ```
     pub fn get(&self, o: &Vec<u32>) -> T {
         let stride = self.stride();
         let dsize = o.len();
         let mut index = 0;
         for i in 0..dsize {
-            index += stride[i]*o[i];
+            index += (stride[i]*o[i]) as usize;
         }
         self.d[index]
     }
@@ -60,6 +60,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
     /// let m2 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
     /// let m3 = m1.add(&m2);
+    /// assert_eq!(m3.get(&vec![0,0]), 2.);
+    /// assert_eq!(m3.get(&vec![1,1]), 8.);
     /// ```
     pub fn add(&self, o: &GenTensor<T>) -> GenTensor<T> {
         let mut ret = GenTensor {
