@@ -1,7 +1,12 @@
 use auto_diff::tensor::*;
 
 fn main() {
-    let a = vec![1,2,3];
-    let b = vec![2,3,4];
+    let a = &1;
+    let b = &2;
+
+    match (a, b) {
+        (1, 2) => println!(""),
+        _ => println!(""),
+    }
     
 }
