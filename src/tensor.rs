@@ -19,11 +19,39 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
     /// Right dimension changes fastest.
     /// Right dimension has the stride 1.
+    ///
+    /// ```
+    /// # use auto_diff::tensor::*;
+    /// let m1 = GenTensor::<f64>::new_raw(&vec![0.; 3*5*2], &vec![3,5,2]);
+    /// assert_eq!(m1.stride(), vec![10,2,1]);
+    /// ```
     pub fn stride(&self) -> Vec<u32> {
-        Vec::new()
+        let mut ret = vec![0; self.dim.len()];
+        let dsize = ret.len();
+        for i in 0..dsize {
+            if i == 0 {
+                ret[dsize-1] = 1;
+            } else {
+                ret[dsize-i-1] = ret[dsize-i]*self.dim[dsize-i];
+            }
+        }
+        ret
     }
+    /// Return value at the index of the tensor.
+    ///
+    /// ```
+    /// # use auto_diff::tensor::*;
+    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.], &vec![2,2]);
+    /// assert_eq!(m1.stride(), vec![10,2,1]);
+    /// ```
     pub fn get(&self, o: &Vec<u32>) -> T {
-        self.d[0]
+        let stride = self.stride();
+        let dsize = o.len();
+        let mut index = 0;
+        for i in 0..dsize {
+            index += stride[i]*o[i];
+        }
+        self.d[index]
     }
     /// element-wise add.
     ///
