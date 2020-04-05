@@ -51,13 +51,25 @@ impl Tensor {
 	}
     }
 
-    pub fn from_vec_f32(i: &Vec<f32>) -> Tensor {
+    ///
+    pub fn from_vec_f32(input: &Vec<f32>) -> Tensor {
 	let mut data = Vec::<f32>::new();
-
+        for item in input {
+            data.push(item.clone());
+        }
+        
 	Tensor {
-	    v: TypedTensor::new(),
+	    v: TypedTensor::Typef32(GenTensor{d:data}),
 	}
-
+    }
+    pub fn to_vec_f32(&mut self) -> Vec<f32> {
+        let mut data = Vec::<f32>::new();
+        if let TypedTensor::Typef32(gt) = &self.v {
+            for item in &gt.d {
+                data.push(item.clone());
+            }
+        }
+        data
     }
     pub fn from_vec_f64(i: &Vec<f64>) -> Tensor {
 	Tensor::new()
