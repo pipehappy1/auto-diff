@@ -51,7 +51,7 @@ impl Tensor {
 	}
     }
 
-    ///
+    /// 
     pub fn from_vec_f32(input: &Vec<f32>) -> Tensor {
 	let mut data = Vec::<f32>::new();
         for item in input {
