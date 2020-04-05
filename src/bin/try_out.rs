@@ -1,8 +1,6 @@
 use auto_diff::tensor::*;
 
-extern crate ndarray;
-extern crate ndarray_linalg;
-extern crate openblas_src; // or another backend of your choice
+
 
 use ndarray::*;
 use ndarray_linalg::*;

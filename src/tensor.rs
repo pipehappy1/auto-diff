@@ -1,3 +1,6 @@
+// extern crate ndarray;
+use ndarray;
+
 use std::fmt;
 use num_traits;
 
@@ -85,7 +88,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         ret
     }
-    fn sub(&self, o: GenTensor<T>) -> GenTensor<T> {
+    pub fn sub(&self, o: &GenTensor<T>) -> GenTensor<T> {
         let mut ret = GenTensor {
             d: Vec::with_capacity(self.d.len()),
             dim: self.dim.clone(),
@@ -96,7 +99,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         ret
     }
-    fn mul(&self, o: GenTensor<T>) -> GenTensor<T> {
+    pub fn mul(&self, o: &GenTensor<T>) -> GenTensor<T> {
         let mut ret = GenTensor {
             d: Vec::with_capacity(self.d.len()),
             dim: self.dim.clone(),
@@ -107,7 +110,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         ret
     }
-    fn div(&self, o: GenTensor<T>) -> GenTensor<T> {
+    pub fn div(&self, o: &GenTensor<T>) -> GenTensor<T> {
         let mut ret = GenTensor {
             d: Vec::with_capacity(self.d.len()),
             dim: self.dim.clone(),
@@ -119,7 +122,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         ret
     }
 
-    fn mm(&self, o: GenTensor<T>) {
+    pub fn mm(&self, o: GenTensor<T>) {
         
     }
 }
@@ -142,6 +145,14 @@ impl TypedTensor {
     fn to_f32(i: TypedTensor) {}
     fn to_f64(i: TypedTensor) {}
 
+    /// ```
+    /// # use auto_diff::tensor::*;
+    /// let m1 = TypedTensor::Typef64
+    /// let m2 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
+    /// let m3 = m1.add(&m2);
+    /// assert_eq!(m3.get(&vec![0,0]), 2.);
+    /// assert_eq!(m3.get(&vec![1,1]), 8.);
+    /// ```
     fn add(&self, o: &TypedTensor) -> TypedTensor {
         match (&self, o) {
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.add(v2))},
