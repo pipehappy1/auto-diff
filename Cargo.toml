@@ -9,4 +9,11 @@ edition = "2018"
 [dependencies]
 num-traits = "0.2"
 
+[dev-dependencies]
+criterion = "0.3"
+
 [features]
+
+[[bench]]
+name = "my_benchmark"
+harness = false
