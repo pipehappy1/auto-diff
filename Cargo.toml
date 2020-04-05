@@ -8,6 +8,11 @@ edition = "2018"
 
 [dependencies]
 num-traits = "0.2"
+# matrix library
+ndarray = "0.12"
+ndarray-linalg = "0.11"
+# one backend
+openblas-src = "0.9" # or another backend of your choice
 
 [dev-dependencies]
 criterion = "0.3"

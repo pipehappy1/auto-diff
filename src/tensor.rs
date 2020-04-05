@@ -17,6 +17,15 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             dim: new_dim,
         }
     }
+    /// Right dimension changes fastest.
+    /// Right dimension has the stride 1.
+    pub fn stride(&self) -> Vec<u32> {
+        Vec::new()
+    }
+    pub fn get(&self, o: &Vec<u32>) -> T {
+        self.d[0]
+    }
+    /// element-wise add.
     ///
     /// ```
     /// # use auto_diff::tensor::*;
