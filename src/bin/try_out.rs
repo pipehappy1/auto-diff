@@ -25,6 +25,12 @@ fn factorize() -> Result<(), error::LinalgError> {
 }
 
 
+macro_rules! mym {
+    () => {};
+    
+}
+
+
 fn main() {
     let a = &1;
     let b = &2;

@@ -133,6 +133,19 @@ impl<T> fmt::Display for GenTensor<T> {
     }
 }
 
+macro_rules! typed_tensor_method {
+    ($a:ident) => {
+        fn $a(&self, o: &TypedTensor) -> TypedTensor {
+            match (&self, o) {
+                (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.$a(v2))},
+                (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.$a(v2))},
+                _ => {panic!("should have same tensor type!");},
+            }
+        }
+    }
+    
+}
+
 enum TypedTensor {
     Typef32(GenTensor<f32>),
     Typef64(GenTensor<f64>),
@@ -153,16 +166,11 @@ impl TypedTensor {
     /// assert_eq!(m3.get(&vec![0,0]), 2.);
     /// assert_eq!(m3.get(&vec![1,1]), 8.);
     /// ```
-    fn add(&self, o: &TypedTensor) -> TypedTensor {
-        match (&self, o) {
-            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.add(v2))},
-            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.add(v2))},
-            _ => {panic!("should have same tensor type!");},
-        }
-    }
-    fn sub(&self, o: &TypedTensor) {}
-    fn mul(&self, o: &TypedTensor) {}
-    fn div(&self, o: &TypedTensor) {}
+    typed_tensor_method!(add);
+    typed_tensor_method!(sub);
+    typed_tensor_method!(mul);
+    typed_tensor_method!(div);
+
 }
 impl fmt::Display for TypedTensor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
