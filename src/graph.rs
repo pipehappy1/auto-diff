@@ -5,6 +5,7 @@ use std::fmt;
 use std::rc::Rc;
 
 use super::tensor::Tensor;
+use super::op::*;
 
 pub struct Module {
     net: Rc<RefCell<Net>>,
@@ -40,6 +41,19 @@ impl Module {
     pub fn grad(&self, og: &Vec<Tensor>) -> Result<u32, &'static str> {
 	Ok(0)
     }
+}
+
+macro_rules! var_op_method {
+    ($a:ident) => {
+        pub fn $a(&self, o: &Var) -> Var {
+            let result = self.new_attached();
+            self.net
+                .borrow_mut()
+                .connect(&vec![self.id, o.id], Box::new($a::new()), &vec![result.id]);
+            result
+        }
+    }
+    
 }
 
 /// Introduce variable to the system by creating Var
@@ -82,13 +96,7 @@ impl Var {
         self.net.borrow_mut().set_mark(&self.id);
     }
 
-    pub fn add(&self, o: &Var) -> Var {
-        let result = self.new_attached();
-        self.net
-            .borrow_mut()
-            .connect(&vec![self.id, o.id], Box::new(Add {}), &vec![result.id]);
-        result
-    }
+    var_op_method!(add);
 }
 
 impl fmt::Display for Var {
@@ -316,26 +324,3 @@ impl Net {
         }
     }
 }
-
-
-
-pub trait Op {
-    fn get_name(&self) -> &str;
-    fn apply(&self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>);
-    fn grad(&self, input: u32, output: u32);
-}
-
-pub struct Add {}
-
-impl Op for Add {
-    fn get_name(&self) -> &str {
-        "Add"
-    }
-    fn apply(&self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>) {
-        output[0].replace(input[0].borrow().add(&input[1].borrow()));
-    }
-    fn grad(&self, input: u32, output: u32) {
-        
-    }
-}
-
