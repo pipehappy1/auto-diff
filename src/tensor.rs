@@ -279,9 +279,21 @@ impl Tensor {
             v: self.v.add(&o.v),
         }
     }
-    pub fn sub() {}
-    pub fn mul() {}
-    pub fn div() {}
+    pub fn sub(&self, o: &Tensor) -> Tensor {
+        Tensor {
+            v: self.v.sub(&o.v),
+        }
+    }
+    pub fn mul(&self, o: &Tensor) -> Tensor {
+        Tensor {
+            v: self.v.mul(&o.v),
+        }
+    }
+    pub fn div(&self, o: &Tensor) -> Tensor {
+        Tensor {
+            v: self.v.div(&o.v),
+        }
+    }
 }
 
 impl fmt::Display for Tensor {
