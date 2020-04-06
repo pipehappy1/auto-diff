@@ -3,6 +3,18 @@ name = "auto-diff"
 version = "0.1.0"
 authors = ["yguan <yguan@example.com>"]
 edition = "2018"
+description = """
+A neural network library in Rust.
+
+
+"""
+documentation = "https://docs.rs/auto-diff"
+homepage = ""
+repository = ""
+readme = "README.md"
+license = "LGPL-2.1 AND MIT AND BSD-2-Clause"
+keywords = ["machine learning", "neural network", "deep learning"]
+exclude = ["/dev/**"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
