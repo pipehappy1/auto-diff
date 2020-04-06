@@ -198,6 +198,16 @@ impl<T> GenIndex<T> {
             Option::None
         }
     }
+
+    
+}
+
+impl<T> Iterator for GenIndex<T> {
+    type Item = NetIndex;
+    
+    fn next(&mut self) -> Option<NetIndex> {
+        Some(NetIndex::new(0,0))
+    }
 }
 
 /// The computation network.

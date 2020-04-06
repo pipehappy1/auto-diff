@@ -91,5 +91,5 @@ fn test_bf() {
     a.set(Tensor::new());
     b.set(Tensor::new());
     m.forward();
-    m.backward(&vec![-1.]);
+    m.backward(&vec![Tensor::new()]);
 }
