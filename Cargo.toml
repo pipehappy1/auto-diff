@@ -9,8 +9,8 @@ A neural network library in Rust.
 
 """
 documentation = "https://docs.rs/auto-diff"
-homepage = ""
-repository = ""
+homepage = "https://github.com/pipehappy1/auto-diff"
+repository = "https://github.com/pipehappy1/auto-diff"
 readme = "README.md"
 license = "LGPL-2.1 AND MIT AND BSD-2-Clause"
 keywords = ["machine learning", "neural network", "deep learning"]
