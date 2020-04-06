@@ -197,14 +197,8 @@ impl Tensor {
     /// let t1 = Tensor::from_vec_f32(&vec![0., 1., 2., 4.,], &vec![2,2]);
     /// ```
     pub fn from_vec_f32(input: &Vec<f32>, dim: &Vec<u32>) -> Tensor {
-        let mut data = Vec::<f32>::new();
-        for item in input {
-            data.push(item.clone());
-        }
-        let mut idim = Vec::<u32>::new();
-        for item in dim {
-            idim.push(item.clone());
-        }
+        let mut data = input.to_vec();
+        let mut idim = dim.to_vec();
 
         Tensor {
             v: TypedTensor::Typef32(GenTensor { d: data, dim: idim }),
@@ -280,8 +274,10 @@ impl Tensor {
     pub fn to_f64(&mut self) {}
     pub fn to_f32(&mut self) {}
 
-    pub fn add(&self, o: &Tensor) {
-        
+    pub fn add(&self, o: &Tensor) -> Tensor {
+        Tensor {
+            v: self.v.add(&o.v),
+        }
     }
     pub fn sub() {}
     pub fn mul() {}

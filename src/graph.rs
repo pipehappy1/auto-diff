@@ -332,24 +332,10 @@ impl Op for Add {
         "Add"
     }
     fn apply(&self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>) {
-        //output[0].borrow_mut().v = input[0].borrow().v + input[1].borrow().v;
+        output[0].replace(input[0].borrow().add(&input[1].borrow()));
     }
     fn grad(&self, input: u32, output: u32) {
         
-    }
-}
-
-impl Add {
-    fn func_add(inputs: Vec<&Var>) -> Var {
-	let mut input_ids = Vec::<NetIndex>::new();
-	for input in &inputs {
-	    input_ids.push(input.id);
-	}
-	let result = inputs.iter().next().expect("").new_attached();
-	inputs.iter().next().expect("").net
-            .borrow_mut()
-            .connect(&input_ids, Box::new(Add {}), &vec![result.id]);
-	result
     }
 }
 

@@ -62,3 +62,18 @@ fn test_add_repeat_vars() {
     m.eval();
     println!("{}", d);
 }
+
+#[test]
+fn test_add_in_fn() {
+    let mut m = Module::new();
+    let a = m.var();
+    let b = m.var();
+
+    fn my_add(a: &Var, b: &Var) -> Var {
+        a.add(b)
+    }
+    let c = my_add(&a, &b);
+    a.set(Tensor::new());
+    b.set(Tensor::new());
+    m.eval();
+}
