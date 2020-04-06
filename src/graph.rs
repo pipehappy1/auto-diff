@@ -209,7 +209,11 @@ struct Net {
     forward_op2data: GenIndex<Vec<NetIndex>>,
     backward_data2op: GenIndex<Vec<NetIndex>>,
     backward_op2data: GenIndex<Vec<NetIndex>>,
-    set_mark: BTreeSet<NetIndex>, // the NetIndex of var.
+    // the NetIndex of var which have been set input value.
+    set_mark: BTreeSet<NetIndex>,
+    // cache of output nodes
+    cache_output: BTreeSet<NetIndex>,
+    cache_grad: GenIndex<Rc<RefCell<Tensor>>>,
 }
 
 impl Net {
@@ -222,6 +226,8 @@ impl Net {
             backward_data2op: GenIndex::new(),
             backward_op2data: GenIndex::new(),
             set_mark: BTreeSet::new(),
+            cache_output: BTreeSet::new(),
+            cache_grad: GenIndex::new(),
         }
     }
 
@@ -333,5 +339,10 @@ impl Net {
                 }
             }
         }
+    }
+
+    /// build output node cache
+    pub fn build_output_cache(&mut self) {
+        
     }
 }
