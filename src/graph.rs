@@ -31,14 +31,22 @@ impl Module {
     }
 
     /// Try best evaluation of the computation graph.
-    pub fn eval(&self) -> Option<bool> {
+    pub fn eval(&self) {
         self.net.borrow_mut().eval();
-
-        Some(true)
+    }
+    
+    /// 
+    pub fn forward(&self) { 
+        self.net.borrow_mut().eval();
     }
 
     /// Back propagation
     pub fn grad(&self, og: &Vec<Tensor>) -> Result<u32, &'static str> {
+	Ok(0)
+    }
+
+    /// Back propagation
+    pub fn backward(&self, og: &Vec<Tensor>) -> Result<u32, &'static str> {
 	Ok(0)
     }
 }
