@@ -97,6 +97,9 @@ impl Var {
     }
 
     var_op_method!(add);
+    var_op_method!(sub);
+    var_op_method!(mul);
+    var_op_method!(div);
 }
 
 impl fmt::Display for Var {

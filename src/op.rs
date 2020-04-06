@@ -9,11 +9,16 @@ pub trait Op {
     fn grad(&self, input: u32, output: u32);
 }
 
+/// add
 pub struct add {}
-
+impl add {
+    pub fn new() -> add{
+        add{}
+    }
+}
 impl Op for add {
     fn get_name(&self) -> &str {
-        "Add"
+        "add"
     }
     fn apply(&self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>) {
         output[0].replace(input[0].borrow().add(&input[1].borrow()));
@@ -22,8 +27,30 @@ impl Op for add {
         
     }
 }
-impl add {
-    pub fn new() -> add{
-        add{}
+
+macro_rules! new_op {
+    ($a:ident, $b:expr, $c:tt) => {
+        pub struct $a {}
+        impl $a {
+            pub fn new() -> $a{
+                $a{}
+            }
+        }
+        impl Op for $a {
+            fn get_name(&self) -> &str {
+                $b
+            }
+            fn apply(&self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>) {
+                $c(input, output)
+            }
+            fn grad(&self, input: u32, output: u32) {
+                
+            }       
+        }
     }
 }
+
+
+new_op!(sub, "sub", (|a:&Vec<Rc<RefCell<Tensor>>>, b:&mut Vec<Rc<RefCell<Tensor>>>|{b[0].replace(a[0].borrow().add(&a[1].borrow()));}) );
+new_op!(mul, "mul", (|a:&Vec<Rc<RefCell<Tensor>>>, b:&mut Vec<Rc<RefCell<Tensor>>>|{b[0].replace(a[0].borrow().add(&a[1].borrow()));}) );
+new_op!(div, "div", (|a:&Vec<Rc<RefCell<Tensor>>>, b:&mut Vec<Rc<RefCell<Tensor>>>|{b[0].replace(a[0].borrow().add(&a[1].borrow()));}) );
