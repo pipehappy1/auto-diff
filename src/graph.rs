@@ -93,6 +93,15 @@ impl Var {
         &self.id
     }
 
+    /// Give the variable a value
+    ///
+    /// ```
+    /// # use auto_diff::graph::*;
+    /// # use auto_diff::tensor::*;
+    /// let mut m = Module::new();
+    /// let a = m.var();
+    /// a.set(Tensor::new());
+    /// ```
     pub fn set(&self, v: Tensor) {
         self.net
             .borrow_mut()

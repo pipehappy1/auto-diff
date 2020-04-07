@@ -4,6 +4,7 @@ use ndarray;
 use std::fmt;
 use num_traits;
 
+/// Naive tensor implementation, single thread, no check.
 pub struct GenTensor<T> {
     d: Vec<T>,
     dim: Vec<u32>,
@@ -12,6 +13,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     fn new() -> GenTensor<T> {
         GenTensor { d: Vec::<T>::new(), dim: Vec::new() }
     }
+
+    /// Create a tensor with given Vec.
     pub fn new_raw(data: &Vec<T>, shape: &Vec<u32>) -> GenTensor<T> {
         let mut new_data = data.to_vec();
         let mut new_dim = shape.to_vec();
@@ -20,8 +23,14 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             dim: new_dim,
         }
     }
-    
-    pub fn new_val(d: T, shape: &Vec<u32>) -> GenTensor<T> {
+
+    /// Create a tensor filled with the same value d
+    ///
+    /// ```
+    /// # use auto_diff::tensor::*;
+    /// let m1 = GenTensor::<f64>::new_full(1., &vec![3,5,2]);
+    /// ```
+    pub fn new_full(d: T, shape: &Vec<u32>) -> GenTensor<T> {
         let mut dsize = 0;
         for i in shape {
             dsize += (*i) as usize;
@@ -31,6 +40,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             dim: shape.to_vec(),
         }
     }
+    
     /// Right dimension changes fastest.
     /// Right dimension has the stride 1.
     ///
@@ -67,6 +77,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         self.d[index]
     }
+    
     /// element-wise add.
     ///
     /// ```
@@ -122,8 +133,57 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         ret
     }
 
-    pub fn mm(&self, o: GenTensor<T>) {
+    /// matrix multiplication
+    pub fn mm(&self, o: &GenTensor<T>) {
         
+    }
+
+    /// matrix multiplication of two tensor
+    pub fn matmul(&self, o: &GenTensor<T>) {
+        
+    }
+
+    /// Computes element-wise equality
+    ///
+    /// ```
+    /// # use auto_diff::tensor::*;
+    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
+    /// let m2 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
+    /// assert_eq!(m1.eq(&m2).get(&vec![0,0]), 1.);
+    /// assert_eq!(m1.eq(&m2).get(&vec![2,1]), 1.);
+    /// ```
+    pub fn eq(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        let mut cmp = Vec::<T>::with_capacity(self.d.len());
+        for (v1, v2) in self.d.iter().zip(o.d.iter()) {
+            if (*v1-*v2).abs() < T::min_positive_value().sqrt() {
+                cmp.push(T::one(),);
+            } else {
+                cmp.push(T::zero());
+            }
+        }
+        GenTensor {
+            d: cmp,
+            dim: self.dim.to_vec(),
+        }
+    }
+
+    /// true if two tensors have the same size and elements, false otherwise.
+    ///
+    /// ```
+    /// # use auto_diff::tensor::*;
+    /// let m1 = GenTensor::<f64>::new_full(1., &vec![3,5,2]);
+    /// let m2 = GenTensor::<f64>::new_full(1., &vec![3,5,2]);
+    /// assert_eq!(m1.equal(&m2), Ok(()))
+    /// ```
+    pub fn equal(&self, o: &GenTensor<T>) -> Result<(), ()> {
+        let mut same = Ok(());
+        for (v1, v2) in self.d.iter().zip(o.d.iter()) {
+            if (*v1-*v2).abs() > T::min_positive_value().sqrt() {
+                same = Err(());
+                break;
+            }
+        }
+        same
     }
 }
 
@@ -177,6 +237,17 @@ impl fmt::Display for TypedTensor {
         match self {
             TypedTensor::Typef32(v) => write!(f, "({}, )", v),
             TypedTensor::Typef64(v) => write!(f, "({}, )", v),
+        }
+    }
+}
+
+
+macro_rules! tensor_method {
+    ($a:ident) => {
+        pub fn $a(&self, o: &Tensor) -> Tensor {
+            Tensor {
+                v: self.v.$a(&o.v),
+            }
         }
     }
 }
@@ -274,26 +345,10 @@ impl Tensor {
     pub fn to_f64(&mut self) {}
     pub fn to_f32(&mut self) {}
 
-    pub fn add(&self, o: &Tensor) -> Tensor {
-        Tensor {
-            v: self.v.add(&o.v),
-        }
-    }
-    pub fn sub(&self, o: &Tensor) -> Tensor {
-        Tensor {
-            v: self.v.sub(&o.v),
-        }
-    }
-    pub fn mul(&self, o: &Tensor) -> Tensor {
-        Tensor {
-            v: self.v.mul(&o.v),
-        }
-    }
-    pub fn div(&self, o: &Tensor) -> Tensor {
-        Tensor {
-            v: self.v.div(&o.v),
-        }
-    }
+    tensor_method!(add);
+    tensor_method!(sub);
+    tensor_method!(mul);
+    tensor_method!(div);
 }
 
 impl fmt::Display for Tensor {
