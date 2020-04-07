@@ -280,8 +280,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     /// Permute the dimensions of this tensor.
     pub fn permute(&mut self, dims: &Vec<usize>) {
-        let stride = self.stride();
-        let d = Vec::with_capacity(self.d.len());
+        
         
     }
 
