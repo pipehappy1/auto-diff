@@ -4,10 +4,11 @@ use ndarray;
 use std::fmt;
 use num_traits;
 
+
 /// Naive tensor implementation, single thread, no check.
 pub struct GenTensor<T> {
     d: Vec<T>,
-    dim: Vec<u32>,
+    dim: Vec<usize>,
 }
 impl<T> GenTensor<T> where T: num_traits::Float {
     fn new() -> GenTensor<T> {
@@ -15,13 +16,17 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
 
     /// Create a tensor with given Vec.
-    pub fn new_raw(data: &Vec<T>, shape: &Vec<u32>) -> GenTensor<T> {
+    pub fn new_raw(data: &Vec<T>, shape: &Vec<usize>) -> GenTensor<T> {
         let mut new_data = data.to_vec();
         let mut new_dim = shape.to_vec();
         GenTensor {
             d: new_data,
             dim: new_dim,
         }
+    }
+    /// dump the underlying vec
+    pub fn get_raw(&mut self) -> Vec<T> {
+        self.d.to_vec()
     }
 
     /// Create a tensor filled with the same value d
@@ -30,10 +35,10 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// # use auto_diff::tensor::*;
     /// let m1 = GenTensor::<f64>::new_full(1., &vec![3,5,2]);
     /// ```
-    pub fn new_full(d: T, shape: &Vec<u32>) -> GenTensor<T> {
+    pub fn new_full(d: T, shape: &Vec<usize>) -> GenTensor<T> {
         let mut dsize = 0;
         for i in shape {
-            dsize += (*i) as usize;
+            dsize *= (*i);
         }
         GenTensor {
             d: vec![d; dsize],
@@ -49,7 +54,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// let m1 = GenTensor::<f64>::new_raw(&vec![0.; 3*5*2], &vec![3,5,2]);
     /// assert_eq!(m1.stride(), vec![10,2,1]);
     /// ```
-    pub fn stride(&self) -> Vec<u32> {
+    pub fn stride(&self) -> Vec<usize> {
         let mut ret = vec![0; self.dim.len()];
         let dsize = ret.len();
         for i in 0..dsize {
@@ -68,12 +73,12 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![2,3]);
     /// assert_eq!(m1.get(&vec![1,1]), 5.);
     /// ```
-    pub fn get(&self, o: &Vec<u32>) -> T {
+    pub fn get(&self, o: &Vec<usize>) -> T {
         let stride = self.stride();
         let dsize = o.len();
         let mut index = 0;
         for i in 0..dsize {
-            index += (stride[i]*o[i]) as usize;
+            index += (stride[i]*o[i]);
         }
         self.d[index]
     }
@@ -93,8 +98,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             d: Vec::with_capacity(self.d.len()),
             dim: self.dim.clone(),
         };
-        for item in self.d.iter().zip(o.d.iter()) {
-            let (v1, v2) = item;
+        for (v1, v2) in self.d.iter().zip(o.d.iter()) {
             ret.d.push(*v1 + *v2);
         }
         ret
@@ -104,8 +108,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             d: Vec::with_capacity(self.d.len()),
             dim: self.dim.clone(),
         };
-        for item in self.d.iter().zip(o.d.iter()) {
-            let (v1, v2) = item;
+        for (v1, v2) in self.d.iter().zip(o.d.iter()) {
             ret.d.push(*v1 - *v2);
         }
         ret
@@ -115,8 +118,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             d: Vec::with_capacity(self.d.len()),
             dim: self.dim.clone(),
         };
-        for item in self.d.iter().zip(o.d.iter()) {
-            let (v1, v2) = item;
+        for (v1, v2) in self.d.iter().zip(o.d.iter()) {
             ret.d.push(*v1 * *v2);
         }
         ret
@@ -126,33 +128,151 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             d: Vec::with_capacity(self.d.len()),
             dim: self.dim.clone(),
         };
-        for item in self.d.iter().zip(o.d.iter()) {
-            let (v1, v2) = item;
+        for (v1, v2) in self.d.iter().zip(o.d.iter()) {
             ret.d.push(*v1 / *v2);
         }
         ret
     }
 
     /// matrix multiplication
-    pub fn mm(&self, o: &GenTensor<T>) {
-        
+    ///
+    /// ```
+    /// # use auto_diff::tensor::*;
+    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
+    /// let m2 = GenTensor::<f64>::new_raw(&vec![2.,3.,4.,5.,6.,7.], &vec![2,3]);
+    /// let mut result = m1.mm(&m2);
+    /// assert!(result == GenTensor::<f64>::new_raw(&vec![12.,15.,18.,26.,33.,40.,40.,51.,62.,], &vec![3,3]), "");
+    /// ```
+    pub fn mm(&self, o: &GenTensor<T>) -> GenTensor<T>{
+        let ls = self.dim[0];
+        let rs = o.dim[1];
+        let mut ret = GenTensor {
+            d: Vec::with_capacity((ls*rs)),
+            dim: vec![ls, rs],
+        };
+        let lstride = self.stride();
+        let rstride = o.stride();
+        for i in 0..ls {
+            for j in 0..rs {
+                let mut tsum = T::zero();
+                for k in 0..self.dim[1] {
+                    tsum = tsum
+                        + self.d[i*lstride[0] + k] * o.d[k*rstride[0] + j];
+                }
+                ret.d.push(tsum);
+            }
+        }
+        ret
     }
 
     /// matrix multiplication of two tensor
-    pub fn matmul(&self, o: &GenTensor<T>) {
+    pub fn matmul(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        let inner = o.dim[0];
+        let mut cap = 1;
+        let mut odim = Vec::new();
+        let mut lloop = 1;
+        let mut rloop = 1;
+        for i in 0..self.dim.len()-1 {
+            cap *= self.dim[i];
+            odim.push(self.dim[i]);
+            lloop *= self.dim[i];
+        }
+        for i in 1..o.dim.len() {
+            cap *= o.dim[i];
+            odim.push(o.dim[i]);
+            rloop *= self.dim[i];
+        }
+        
+        let mut ret = GenTensor {
+            d: Vec::with_capacity(cap),
+            dim: odim,
+        };
+        
+        let lstride = self.stride();
+        let rstride = o.stride();
+        for i in 0..lloop {
+            for j in 0..rloop {
+                let mut tsum = T::zero();
+                for k in 0..inner {
+                    tsum = tsum
+                        + self.d[i*lstride[0] + k] * o.d[k*rstride[0] + j];
+                }
+                ret.d.push(tsum);
+            }
+        }
+        ret
+    }
+
+    /// Concatenates sequence of tensors along a new dimension.
+    ///
+    /// All tensors need to be of the same size.
+    pub fn stack(tensors: &Vec<&Self>, dim: usize) -> GenTensor<T> {
+        let cap = tensors.len()*tensors[0].d.len();
+        let mut odim = Vec::new();
+        for i in 0..tensors[0].dim.len() {
+            if i == dim {
+                odim.push(tensors.len());
+            }
+            odim.push(tensors[0].dim[i]);
+        }
+        if odim.len() == tensors[0].dim.len() {
+            odim.push(tensors.len());
+        }
+        
+        let mut ret = GenTensor {
+            d: Vec::with_capacity(cap),
+            dim: odim,
+        };
+        
+        if dim == 0 {
+            for i in 0..tensors.len() {
+                for j in 0..tensors[0].dim.len() {
+                    ret.d.push(tensors[i].d[j]);
+                }
+            }
+        } else if dim == tensors[0].dim.len() {
+            for j in 0..tensors[0].dim.len() {
+                for i in 0..tensors.len() {
+                    ret.d.push(tensors[i].d[j]);
+                }
+            }
+        } else {
+            let mut outter_loop = 1;
+            let mut inner_loop = 1;
+            for i in 0..tensors[0].dim.len() {
+                if i < dim {
+                    outter_loop *= tensors[0].dim[i];
+                } else {
+                    inner_loop *= tensors[0].dim[i];
+                }
+            }
+            for i in 0..outter_loop {
+                for j in 0..tensors.len() {
+                    for k in in 0..inner_loop {
+                        ret.d.push(tensors[j].d[k + i*inner_loop]);
+                    }
+                }
+            }
+        }
+        ret
+    }
+
+    /// Permute the dimensions of this tensor.
+    pub fn permute(&mut self, dims: &Vec<usize>) {
         
     }
 
     /// Computes element-wise equality
+    /// use eq_t instead, as eq is reserved for == overloading.
     ///
     /// ```
     /// # use auto_diff::tensor::*;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
     /// let m2 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
-    /// assert_eq!(m1.eq(&m2).get(&vec![0,0]), 1.);
-    /// assert_eq!(m1.eq(&m2).get(&vec![2,1]), 1.);
+    /// assert_eq!(m1.eq_t(&m2).get(&vec![0,0]), 1.);
+    /// assert_eq!(m1.eq_t(&m2).get(&vec![2,1]), 1.);
     /// ```
-    pub fn eq(&self, o: &GenTensor<T>) -> GenTensor<T> {
+    pub fn eq_t(&self, o: &GenTensor<T>) -> GenTensor<T> {
         let mut cmp = Vec::<T>::with_capacity(self.d.len());
         for (v1, v2) in self.d.iter().zip(o.d.iter()) {
             if (*v1-*v2).abs() < T::min_positive_value().sqrt() {
@@ -187,10 +307,35 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
 }
 
+/// ```
+/// # use auto_diff::tensor::*;
+/// let m1 = GenTensor::<f64>::new_full(1., &vec![3,5,2]);
+/// let m2 = GenTensor::<f64>::new_full(1., &vec![3,5,2]);
+/// assert_eq!(m1==m2, true)
+/// ```
+impl<T> PartialEq for GenTensor<T> where T: num_traits::Float {
+    fn eq(&self, other: &Self) -> bool {
+        if self.equal(other) == Ok(()) {
+            true
+        } else {
+            false
+        }
+    }
+}
+impl<T> Eq for GenTensor<T> where T: num_traits::Float {}
+
 impl<T> fmt::Display for GenTensor<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "0")
     }
+}
+
+
+
+
+enum TypedTensor {
+    Typef32(GenTensor<f32>),
+    Typef64(GenTensor<f64>),
 }
 
 macro_rules! typed_tensor_method {
@@ -206,10 +351,6 @@ macro_rules! typed_tensor_method {
     
 }
 
-enum TypedTensor {
-    Typef32(GenTensor<f32>),
-    Typef64(GenTensor<f64>),
-}
 impl TypedTensor {
     fn new() -> TypedTensor {
         // Default value type is f32.
@@ -267,7 +408,7 @@ impl Tensor {
     /// # use auto_diff::tensor::*;
     /// let t1 = Tensor::from_vec_f32(&vec![0., 1., 2., 4.,], &vec![2,2]);
     /// ```
-    pub fn from_vec_f32(input: &Vec<f32>, dim: &Vec<u32>) -> Tensor {
+    pub fn from_vec_f32(input: &Vec<f32>, dim: &Vec<usize>) -> Tensor {
         let mut data = input.to_vec();
         let mut idim = dim.to_vec();
 
