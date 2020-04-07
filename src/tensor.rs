@@ -248,7 +248,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             }
             for i in 0..outter_loop {
                 for j in 0..tensors.len() {
-                    for k in in 0..inner_loop {
+                    for k in 0..inner_loop {
                         ret.d.push(tensors[j].d[k + i*inner_loop]);
                     }
                 }
