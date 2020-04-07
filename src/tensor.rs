@@ -25,7 +25,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     /// dump the underlying vec
-    pub fn get_raw(&mut self) -> Vec<T> {
+    pub fn get_raw(&self) -> Vec<T> {
         self.d.to_vec()
     }
 
@@ -81,6 +81,16 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             index += (stride[i]*o[i]);
         }
         self.d[index]
+    }
+
+    /// Returns the size of the self tensor.
+    pub fn size(&self) -> Vec<usize> {
+        self.dim.to_vec()
+    }
+
+    /// Returns the total number of elements in the input tensor.
+    pub fn numel(&self) -> usize {
+        self.d.len()
     }
     
     /// element-wise add.
@@ -206,6 +216,17 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// Concatenates sequence of tensors along a new dimension.
     ///
     /// All tensors need to be of the same size.
+    /// ```
+    /// # use auto_diff::tensor::*;
+    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
+    /// let m2 = GenTensor::<f64>::new_raw(&vec![2.,3.,4.,5.,6.,7.], &vec![3,2]);
+    /// let result = GenTensor::<f64>::stack(&vec![&m1, &m2], 1);
+    /// let raw = result.get_raw();
+    /// for i in raw {
+    ///     println!("{}", i);
+    /// }
+    /// assert_eq!(result.size(), vec![3,2,2]);
+    /// ```
     pub fn stack(tensors: &Vec<&Self>, dim: usize) -> GenTensor<T> {
         let cap = tensors.len()*tensors[0].d.len();
         let mut odim = Vec::new();
