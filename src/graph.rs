@@ -113,6 +113,7 @@ impl Var {
         self.net.borrow_mut().set_mark(&self.id);
     }
 
+    // Convient method definition.
     var_op_method!(add);
     var_op_method!(sub);
     var_op_method!(mul);
