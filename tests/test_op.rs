@@ -7,7 +7,7 @@ use std::cell::RefCell;
 
 #[test]
 fn test_Linear() {
-    let op = Linear::new(None, None, true);
+    let mut op = Linear::new(None, None, true);
     let mut input = Tensor::fill(&vec![3,2], 1.);
     let mut output = Tensor::fill(&vec![3,1], 1.);
     op.apply(&mut vec![Rc::new(RefCell::new(input))],

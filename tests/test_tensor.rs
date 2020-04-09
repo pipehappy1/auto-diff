@@ -9,7 +9,7 @@ fn test_gentensor() {
     }
 
     {
-        let mut m1 = GenTensor::<f64>::new_fill(1., &vec![2, 3, 5]);
+        let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
         m1.permute(&vec![2, 0, 1]);
         assert_eq!(m1.size(), vec![5, 2, 3]);
 

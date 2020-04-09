@@ -348,7 +348,7 @@ impl Net {
                         self.ops
                             .get_mut(op)
                             .expect("")
-                            .borrow()
+                            .borrow_mut()
                             .apply(&mut inputs, &mut outputs);
 
                         for output in self.forward_op2data.get(op).expect("").iter() {
