@@ -6,7 +6,7 @@ use super::tensor::Tensor;
 
 pub trait Op {
     fn get_name(&self) -> &str;
-    fn apply(&self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>);
+    fn apply(&mut self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>);
     fn grad(&self, input: u32, output: u32);
 }
 
@@ -22,7 +22,7 @@ macro_rules! new_binary_op {
             fn get_name(&self) -> &str {
                 $b
             }
-            fn apply(&self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>) {
+            fn apply(&mut self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>) {
                 $c(input, output)
             }
             fn grad(&self, input: u32, output: u32) {
@@ -53,21 +53,46 @@ pub struct Linear {
 }
 impl Linear {
     pub fn new(in_features: Option<usize>, out_features: Option<usize>, bias: bool) -> Linear{
-        Linear{
+        let mut ret = Linear {
             in_fea: in_features,
             out_fea: out_features,
             bias_option: bias,
             weight: Tensor::new(),
             bias: Tensor::new(),
+        };
+        if ret.in_fea != Option::None && ret.out_fea != Option::None {
+            ret._new();
         }
+        ret
+    }
+    fn _new(&mut self) {
+        self.weight = Tensor::fill(&vec![self.in_fea.unwrap(), self.out_fea.unwrap()], 0.);
+        self.bias = Tensor::fill(&vec![self.out_fea.unwrap(), 1], 0.);
     }
 }
 impl Op for Linear {
     fn get_name(&self) -> &str {
         "Linear"
     }
-    fn apply(&self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>) {
-        
+    fn apply(&mut self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>) {
+        if self.in_fea == None || self.out_fea == None {
+            if self.in_fea == None {
+                let in_size = input[0].borrow().size();
+                self.in_fea = Some(in_size[in_size.len()-1]);
+            }
+            if self.out_fea == None {
+                let out_size = output[0].borrow().size();
+                self.out_fea = Some(out_size[0]);
+            }
+            self._new();
+        }
+        if self.bias_option {
+            
+        } else {
+            output[0].replace(input[0].borrow().matmul(&self.weight));            
+        }
+
+
     }
     fn grad(&self, input: u32, output: u32) {
         

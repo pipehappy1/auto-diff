@@ -1,4 +1,5 @@
 // extern crate ndarray;
+// Default value type is f32.
 use ndarray;
 
 use std::fmt;
@@ -29,9 +30,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     ///
     /// ```
     /// # use auto_diff::tensor::*;
-    /// let m1 = GenTensor::<f64>::new_fill(1., &vec![3,5,2]);
+    /// let m1 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
     /// ```
-    pub fn new_fill(d: T, shape: &Vec<usize>) -> GenTensor<T> {
+    pub fn fill(d: T, shape: &Vec<usize>) -> GenTensor<T> {
         let mut dsize = 1;
         for i in shape {
             dsize *= *i;
@@ -278,7 +279,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     ///
     /// ```
     /// # use auto_diff::tensor::*;
-    /// let mut m1 = GenTensor::<f64>::new_fill(1., &vec![2, 3, 5]);
+    /// let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
     /// m1.permute(&vec![2, 0, 1]);
     /// ```
     pub fn permute(&mut self, dims: &Vec<usize>) {
@@ -353,8 +354,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     ///
     /// ```
     /// # use auto_diff::tensor::*;
-    /// let m1 = GenTensor::<f64>::new_fill(1., &vec![3,5,2]);
-    /// let m2 = GenTensor::<f64>::new_fill(1., &vec![3,5,2]);
+    /// let m1 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
+    /// let m2 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
     /// assert_eq!(m1.equal(&m2), Ok(()))
     /// ```
     pub fn equal(&self, o: &GenTensor<T>) -> Result<(), ()> {
@@ -371,8 +372,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
 /// ```
 /// # use auto_diff::tensor::*;
-/// let m1 = GenTensor::<f64>::new_fill(1., &vec![3,5,2]);
-/// let m2 = GenTensor::<f64>::new_fill(1., &vec![3,5,2]);
+/// let m1 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
+/// let m2 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
 /// assert_eq!(m1==m2, true)
 /// ```
 impl<T> PartialEq for GenTensor<T> where T: num_traits::Float {
@@ -393,11 +394,22 @@ impl<T> fmt::Display for GenTensor<T> {
 }
 
 
-
-
 enum TypedTensor {
     Typef32(GenTensor<f32>),
     Typef64(GenTensor<f64>),
+}
+
+macro_rules! typed_tensor_method_single {
+    ($a:ident, $b:ty) => {
+        fn $a(&self) -> $b {
+            match (&self) {
+                (TypedTensor::Typef32(v1)) => {v1.$a()},
+                (TypedTensor::Typef64(v1)) => {v1.$a()},
+                _ => {panic!("should have same tensor type!");},
+            }
+        }
+    }
+    
 }
 
 macro_rules! typed_tensor_method {
@@ -418,8 +430,15 @@ impl TypedTensor {
         // Default value type is f32.
         TypedTensor::Typef32(GenTensor::new())
     }
+
+    typed_tensor_method_single!(size, Vec<usize>);
+    
     fn to_f32(i: TypedTensor) {}
     fn to_f64(i: TypedTensor) {}
+
+    fn fill(size: &Vec<usize>, fill_value: f32) -> TypedTensor {
+        TypedTensor::Typef32(GenTensor::fill(fill_value, size))
+    }
 
     /// ```
     /// # use auto_diff::tensor::*;
@@ -470,6 +489,12 @@ impl Tensor {
     pub fn is_empty() -> bool {
         true
     }
+    
+    /// Returns the size of the self tensor.
+    /// The returned value is a Vec..
+    pub fn size(&self) -> Vec<usize> {
+        self.v.size()
+    }
 
     /// Create a tensor from a Vec,
     /// ```
@@ -498,14 +523,17 @@ impl Tensor {
     pub fn from_vec_f64(i: &Vec<f64>) -> Tensor {
         Tensor::new()
     }
-    pub fn full() -> Tensor {
-        Tensor::new()
+    /// Returns a tensor of size size filled with fill_value.
+    pub fn fill(size: &Vec<usize>, fill_value: f32) -> Tensor {
+        Tensor {
+            v: TypedTensor::fill(size, fill_value),
+        }
     }
-    pub fn full_like() -> Tensor {
+    pub fn fill_like() -> Tensor {
         Tensor::new()
     }
     pub fn empty() -> Tensor {
-        // <- this will no work.
+        // <- this will no work. As there must be sth.
         Tensor::new()
     }
     pub fn new_ones(dim: &Vec<u32>) -> Tensor {
