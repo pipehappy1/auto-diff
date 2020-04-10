@@ -6,7 +6,7 @@ use super::tensor::Tensor;
 
 pub trait Op {
     fn get_name(&self) -> &str;
-    fn apply(&mut self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>);
+    fn apply(&mut self, input: &Vec<Tensor>, output: &mut Vec<Tensor>);
     fn grad(&self, input: u32, output: u32);
 }
 
@@ -22,7 +22,7 @@ macro_rules! new_binary_op {
             fn get_name(&self) -> &str {
                 $b
             }
-            fn apply(&mut self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>) {
+            fn apply(&mut self, input: &Vec<Tensor>, output: &mut Vec<Tensor>) {
                 $c(input, output)
             }
             fn grad(&self, input: u32, output: u32) {
@@ -33,13 +33,16 @@ macro_rules! new_binary_op {
 }
 
 new_binary_op!(add, "add",
-               (|a:&Vec<Rc<RefCell<Tensor>>>, b:&mut Vec<Rc<RefCell<Tensor>>>|{b[0].replace(a[0].borrow().add(&a[1].borrow()));}) );
+               (|a:&Vec<Tensor>, b:&mut Vec<Tensor>|
+                b[0] = a[0].add(&a[1])
+               )
+);
 new_binary_op!(sub, "sub",
-               (|a:&Vec<Rc<RefCell<Tensor>>>, b:&mut Vec<Rc<RefCell<Tensor>>>|{b[0].replace(a[0].borrow().sub(&a[1].borrow()));}) );
+               (|a:&Vec<Tensor>, b:&mut Vec<Tensor>|b[0] = a[0].sub(&a[1])) );
 new_binary_op!(mul, "mul",
-               (|a:&Vec<Rc<RefCell<Tensor>>>, b:&mut Vec<Rc<RefCell<Tensor>>>|{b[0].replace(a[0].borrow().mul(&a[1].borrow()));}) );
+               (|a:&Vec<Tensor>, b:&mut Vec<Tensor>|b[0] = a[0].mul(&a[1])) );
 new_binary_op!(div, "div",
-               (|a:&Vec<Rc<RefCell<Tensor>>>, b:&mut Vec<Rc<RefCell<Tensor>>>|{b[0].replace(a[0].borrow().div(&a[1].borrow()));}) );
+               (|a:&Vec<Tensor>, b:&mut Vec<Tensor>|b[0] = a[0].div(&a[1])) );
 
 
 // Identity
@@ -67,29 +70,33 @@ impl Linear {
     }
     fn _new(&mut self) {
         self.weight = Tensor::fill(&vec![self.in_fea.unwrap(), self.out_fea.unwrap()], 0.);
-        self.bias = Tensor::fill(&vec![self.out_fea.unwrap(), 1], 0.);
+        self.bias = Tensor::fill(&vec![self.out_fea.unwrap(),], 0.);
     }
 }
 impl Op for Linear {
     fn get_name(&self) -> &str {
         "Linear"
     }
-    fn apply(&mut self, input: &Vec<Rc<RefCell<Tensor>>>, output: &mut Vec<Rc<RefCell<Tensor>>>) {
+    fn apply(&mut self, input: &Vec<Tensor>, output: &mut Vec<Tensor>) {
         if self.in_fea == None || self.out_fea == None {
             if self.in_fea == None {
-                let in_size = input[0].borrow().size();
+                let in_size = input[0].size();
                 self.in_fea = Some(in_size[in_size.len()-1]);
             }
             if self.out_fea == None {
-                let out_size = output[0].borrow().size();
+                let out_size = output[0].size();
                 self.out_fea = Some(out_size[0]);
             }
             self._new();
         }
+
+        output[0] = input[0].matmul(&self.weight);
+        
         if self.bias_option {
-            
-        } else {
-            output[0].replace(input[0].borrow().matmul(&self.weight));            
+            let mut shape = output[0].size();
+            let dsize = shape.len();
+            shape[dsize-1] = 0;
+            output[0].add(&self.bias.broadcast(&shape));
         }
 
 

@@ -24,7 +24,7 @@ fn test_gen_index() {
     let a2 = a.remove(&index2);
     let tv_none = a.get(&index2);
     assert_eq!(tv_none.is_none(), true);
-    assert_eq!(a2.is_some(), true);
+    assert_eq!(a2, true);
 
     let index3 = a.insert(A { v: 30 });
     assert_eq!(index3, NetIndex::new(1, 1));

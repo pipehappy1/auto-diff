@@ -1,5 +1,8 @@
 // extern crate ndarray;
 // Default value type is f32.
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use ndarray;
 
 use std::fmt;
@@ -368,6 +371,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         same
     }
+
 }
 
 /// ```
@@ -471,19 +475,20 @@ macro_rules! tensor_method {
     ($a:ident) => {
         pub fn $a(&self, o: &Tensor) -> Tensor {
             Tensor {
-                v: self.v.$a(&o.v),
+                v: Rc::new(RefCell::new(self.v.borrow().$a(&o.v.borrow()))),
             }
         }
     }
 }
 
+#[derive(Clone)]
 pub struct Tensor {
-    v: TypedTensor,
+    v: Rc<RefCell<TypedTensor>>,
 }
 impl Tensor {
     pub fn new() -> Tensor {
         Tensor {
-            v: TypedTensor::new(),
+            v: Rc::new(RefCell::new(TypedTensor::new())),
         }
     }
     pub fn is_empty() -> bool {
@@ -493,7 +498,7 @@ impl Tensor {
     /// Returns the size of the self tensor.
     /// The returned value is a Vec..
     pub fn size(&self) -> Vec<usize> {
-        self.v.size()
+        self.v.borrow().size()
     }
 
     /// Create a tensor from a Vec,
@@ -506,19 +511,20 @@ impl Tensor {
         let idim = dim.to_vec();
 
         Tensor {
-            v: TypedTensor::Typef32(GenTensor { d: data, dim: idim }),
+            v: Rc::new(RefCell::new(TypedTensor::Typef32(GenTensor { d: data, dim: idim }))),
         }
     }
     pub fn to_vec_f32(&mut self) -> Vec<f32> {
-        let mut data = Vec::<f32>::new();
-        if let TypedTensor::Typef32(gt) = &self.v {
-            for item in &gt.d {
-                data.push(item.clone())
-            }
-        } else {
-            ()
-        }
-        data
+        //let mut data = Vec::<f32>::new();
+        //if let TypedTensor::Typef32(gt) = *self.v.borrow() {
+        //    for item in &gt.d {
+        //        data.push(item.clone())
+        //    }
+        //} else {
+        //    ()
+        //}
+        //data
+        Vec::new()
     }
     pub fn from_vec_f64(i: &Vec<f64>) -> Tensor {
         Tensor::new()
@@ -526,7 +532,7 @@ impl Tensor {
     /// Returns a tensor of size size filled with fill_value.
     pub fn fill(size: &Vec<usize>, fill_value: f32) -> Tensor {
         Tensor {
-            v: TypedTensor::fill(size, fill_value),
+            v: Rc::new(RefCell::new(TypedTensor::fill(size, fill_value))),
         }
     }
     pub fn fill_like() -> Tensor {
@@ -579,6 +585,10 @@ impl Tensor {
     pub fn unsqueeze() {}
     pub fn condition() {} // this is pytorch where
 
+    pub fn broadcast(&self, o: &Vec<usize>) -> Tensor {
+        Tensor::new()
+    }
+
     pub fn to_f64(&mut self) {}
     pub fn to_f32(&mut self) {}
 
@@ -593,6 +603,6 @@ impl Tensor {
 
 impl fmt::Display for Tensor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, )", self.v)
+        write!(f, "({}, )", self.v.borrow())
     }
 }

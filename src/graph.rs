@@ -106,9 +106,7 @@ impl Var {
         self.net
             .borrow_mut()
             .data
-            .get(&self.id)
-            .expect("")
-            .replace(v);
+            .replace(&self.id, v);
 
         self.net.borrow_mut().set_mark(&self.id);
     }
@@ -126,7 +124,7 @@ impl fmt::Display for Var {
             f,
             "({}, {})",
             self.id,
-            self.net.borrow().data.get(&self.id).expect("").borrow()
+            self.net.borrow().data.get(&self.id).expect("")
         )
     }
 }
@@ -153,6 +151,7 @@ impl fmt::Display for NetIndex {
 /// A simple generational index implementation.
 /// The data is stored in a read-only manner,
 /// Use RefCell to get mutability.
+/// Not secure, no index validity check.
 pub struct GenIndex<T> {
     data: Vec<T>,
     generation: Vec<usize>,
@@ -199,17 +198,19 @@ impl<T> GenIndex<T> {
         ret
     }
 
-    pub fn remove(&mut self, index: &NetIndex) -> Option<bool> {
+    pub fn remove(&mut self, index: &NetIndex) -> bool {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             self.generation[index.id] += 1;
             self.available.push(index.id);
-            Option::Some(true)
+            true
         } else {
-            Option::None
+            false
         }
     }
 
-    
+    pub fn replace(&mut self, index: &NetIndex, val: T) {
+        self.data[index.id] = val;
+    }
 }
 
 impl<T> Iterator for GenIndex<T> {
@@ -223,7 +224,7 @@ impl<T> Iterator for GenIndex<T> {
 /// The computation network.
 /// Connection has duplication.
 struct Net {
-    data: GenIndex<Rc<RefCell<Tensor>>>,
+    data: GenIndex<Tensor>,
     ops: GenIndex<RefCell<Box<dyn Op>>>,
     forward_data2op: GenIndex<Vec<NetIndex>>,
     forward_op2data: GenIndex<Vec<NetIndex>>,
@@ -253,7 +254,7 @@ impl Net {
 
     /// Insert an empty var into the network.
     fn init_var(&mut self, var: &mut Var) {
-        let id = self.data.insert(Rc::new(RefCell::new(Tensor::new())));
+        let id = self.data.insert(Tensor::new());
         let fid = self.forward_data2op.insert(Vec::new());
         let bid = self.backward_data2op.insert(Vec::new());
         assert!(id == fid);
@@ -333,16 +334,16 @@ impl Net {
                         .all(|dt| jobs.contains(dt))
                     {
                         // do real stuff
-                        let mut inputs: Vec<Rc<RefCell<Tensor>>> = Vec::new();
+                        let mut inputs: Vec<Tensor> = Vec::new();
                         for input in self.backward_op2data.get(op).expect("").iter() {
-                            let a = Rc::clone(self.data.get(input).expect(""));
-                            inputs.push(a);
+                            let a = self.data.get(input).expect("");
+                            inputs.push(a.clone());
                         }
 
-                        let mut outputs: Vec<Rc<RefCell<Tensor>>> = Vec::new();
+                        let mut outputs: Vec<Tensor> = Vec::new();
                         for output in self.forward_op2data.get(op).expect("").iter() {
-                            let a = Rc::clone(self.data.get(output).expect(""));
-                            outputs.push(a);
+                            let a = self.data.get(output).expect("");
+                            outputs.push(a.clone());
                         }
 
                         self.ops
