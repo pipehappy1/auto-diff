@@ -1,12 +1,10 @@
 /// Only NCWH format is supported.
-use std::cell::RefCell;
-use std::rc::Rc;
 
 use super::tensor::Tensor;
 
 pub trait Op {
     fn get_name(&self) -> &str;
-    fn apply(&mut self, input: &Vec<Tensor>, output: &mut Vec<Tensor>);
+    fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>);
     fn grad(&self, input: u32, output: u32);
 }
 
@@ -22,7 +20,7 @@ macro_rules! new_binary_op {
             fn get_name(&self) -> &str {
                 $b
             }
-            fn apply(&mut self, input: &Vec<Tensor>, output: &mut Vec<Tensor>) {
+            fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>) {
                 $c(input, output)
             }
             fn grad(&self, input: u32, output: u32) {
@@ -33,16 +31,22 @@ macro_rules! new_binary_op {
 }
 
 new_binary_op!(add, "add",
-               (|a:&Vec<Tensor>, b:&mut Vec<Tensor>|
-                b[0] = a[0].add(&a[1])
+               (|a:&Vec<&Tensor>, b:& Vec<&Tensor>|
+                b[0].swap(a[0].add(&a[1]))
                )
 );
 new_binary_op!(sub, "sub",
-               (|a:&Vec<Tensor>, b:&mut Vec<Tensor>|b[0] = a[0].sub(&a[1])) );
+               (|a:&Vec<&Tensor>, b:&Vec<&Tensor>|
+                b[0].swap(a[0].sub(a[1])))
+);
 new_binary_op!(mul, "mul",
-               (|a:&Vec<Tensor>, b:&mut Vec<Tensor>|b[0] = a[0].mul(&a[1])) );
+               (|a:&Vec<&Tensor>, b:&Vec<&Tensor>|
+                b[0].swap(a[0].mul(a[1])))
+);
 new_binary_op!(div, "div",
-               (|a:&Vec<Tensor>, b:&mut Vec<Tensor>|b[0] = a[0].div(&a[1])) );
+               (|a:&Vec<&Tensor>, b:&Vec<&Tensor>|
+                b[0].swap(a[0].div(a[1])))
+);
 
 
 // Identity
@@ -72,12 +76,19 @@ impl Linear {
         self.weight = Tensor::fill(&vec![self.in_fea.unwrap(), self.out_fea.unwrap()], 0.);
         self.bias = Tensor::fill(&vec![self.out_fea.unwrap(),], 0.);
     }
+
+    pub fn weight(&self) -> &Tensor {
+        &self.weight
+    }
+    pub fn bias(&self) -> &Tensor {
+        &self.bias
+    }
 }
 impl Op for Linear {
     fn get_name(&self) -> &str {
         "Linear"
     }
-    fn apply(&mut self, input: &Vec<Tensor>, output: &mut Vec<Tensor>) {
+    fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>) {
         if self.in_fea == None || self.out_fea == None {
             if self.in_fea == None {
                 let in_size = input[0].size();
@@ -90,20 +101,44 @@ impl Op for Linear {
             self._new();
         }
 
-        output[0] = input[0].matmul(&self.weight);
-        
+        output[0].swap(input[0].matmul(&self.weight));
+
         if self.bias_option {
             let mut shape = output[0].size();
             let dsize = shape.len();
             shape[dsize-1] = 0;
-            output[0].add(&self.bias.broadcast(&shape));
+            output[0].add(&self.bias);
         }
 
 
     }
     fn grad(&self, input: u32, output: u32) {
         
-    }       
+    }
+
 }
 
 // Bilinear
+
+//
+// Common Cost function
+//
+enum Reduction{
+    None,
+    Mean,
+    Sum,
+}
+
+pub struct loss_mse {
+    reduction: Reduction,
+}
+impl Op for loss_mse {
+        fn get_name(&self) -> &str {
+        "MSE"
+    }
+    fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>) {
+    }
+    fn grad(&self, input: u32, output: u32) {
+        
+    }
+}

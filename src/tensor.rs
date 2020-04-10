@@ -1,5 +1,6 @@
 // extern crate ndarray;
 // Default value type is f32.
+// Right dimension of the tensor changes fastest.
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -106,8 +107,12 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     pub fn numel(&self) -> usize {
         self.d.len()
     }
+
+    pub fn unsqueeze(&self, dim: &Vec<usize>) {
+        
+    }
     
-    /// element-wise add.
+    /// element-wise add with right-hand broadcast.
     ///
     /// ```
     /// # use auto_diff::tensor::*;
@@ -122,9 +127,34 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             d: Vec::with_capacity(self.d.len()),
             dim: self.dim.clone(),
         };
-        for (v1, v2) in self.d.iter().zip(o.d.iter()) {
-            ret.d.push(*v1 + *v2);
+        if self.d.len() == o.d.len() {
+            for (v1, v2) in self.d.iter().zip(o.d.iter()) {
+                ret.d.push(*v1 + *v2);
+            }            
+        } else if self.d.len() > o.d.len() {
+            if self.dim.len() <= o.dim.len() {
+                panic!("unmatched dimension.");
+            } else {
+                for i in 0..o.dim.len() {
+                    if o.dim[o.dim.len()-i-1] != self.dim[self.dim.len()-i-1] {
+                        panic!("unmatched size.");
+                    }
+                }
+                // do repeat add
+                let mut index = 0;
+                for i in 0..self.d.len() {
+                    ret.d.push(self.d[i] + o.d[index]);
+                    index += 1;
+                    if index >= o.d.len() {
+                        index = 0;
+                    }
+                }
+            }
+        } else {
+            // as right-hand broadcast is easier.
+            panic!("right-hand broadcast only.");
         }
+
         ret
     }
     pub fn sub(&self, o: &GenTensor<T>) -> GenTensor<T> {
@@ -391,9 +421,16 @@ impl<T> PartialEq for GenTensor<T> where T: num_traits::Float {
 }
 impl<T> Eq for GenTensor<T> where T: num_traits::Float {}
 
-impl<T> fmt::Display for GenTensor<T> {
+impl fmt::Display for GenTensor<f32> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "0")
+        write!(f, "{:?}", self.dim);
+        write!(f, "{:?}", self.d)
+    }
+}
+impl fmt::Display for GenTensor<f64> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.dim);
+        write!(f, "{:?}", self.d)
     }
 }
 
@@ -444,6 +481,14 @@ impl TypedTensor {
         TypedTensor::Typef32(GenTensor::fill(fill_value, size))
     }
 
+    fn unsqueeze(&mut self, dim: &Vec<usize>) {
+        match (&self) {
+            (TypedTensor::Typef32(v1)) => {v1.unsqueeze(dim)},
+            (TypedTensor::Typef64(v1)) => {v1.unsqueeze(dim)},
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
+
     /// ```
     /// # use auto_diff::tensor::*;
     /// let m1 = TypedTensor::Typef64
@@ -471,12 +516,12 @@ impl fmt::Display for TypedTensor {
 }
 
 
+
 macro_rules! tensor_method {
     ($a:ident) => {
         pub fn $a(&self, o: &Tensor) -> Tensor {
             Tensor {
                 v: Rc::new(RefCell::new(self.v.borrow().$a(&o.v.borrow()))),
-                broadcast_shape: Vec::new(),
             }
         }
     }
@@ -485,13 +530,11 @@ macro_rules! tensor_method {
 #[derive(Clone)]
 pub struct Tensor {
     v: Rc<RefCell<TypedTensor>>,
-    broadcast_shape: Vec<usize>,
 }
 impl Tensor {
     pub fn new() -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(TypedTensor::new())),
-            broadcast_shape: Vec::new(),
         }
     }
     pub fn is_empty() -> bool {
@@ -515,7 +558,6 @@ impl Tensor {
 
         Tensor {
             v: Rc::new(RefCell::new(TypedTensor::Typef32(GenTensor { d: data, dim: idim }))),
-            broadcast_shape: Vec::new(),
         }
     }
     pub fn to_vec_f32(&mut self) -> Vec<f32> {
@@ -533,11 +575,15 @@ impl Tensor {
     pub fn from_vec_f64(i: &Vec<f64>) -> Tensor {
         Tensor::new()
     }
+
+    pub fn swap(&self, o: Tensor) {
+        self.v.swap(&o.v);
+    }
+    
     /// Returns a tensor of size size filled with fill_value.
     pub fn fill(size: &Vec<usize>, fill_value: f32) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(TypedTensor::fill(size, fill_value))),
-            broadcast_shape: Vec::new(),
         }
     }
     pub fn fill_like() -> Tensor {
@@ -587,15 +633,20 @@ impl Tensor {
     pub fn take() {}
     pub fn transpose() {}
     pub fn unbind() {}
-    pub fn unsqueeze() {}
+    
+    /// Returns a new tensor with a dimension of size one inserted at the specified position.
+    /// 
+    /// The returned tensor shares the same underlying data with this tensor.
+    ///
+    /// 
+    pub fn unsqueeze(&mut self, dim: &Vec<usize>) -> &Tensor {
+        self.v.borrow_mut().unsqueeze(dim);
+        self
+    }
+    
     pub fn condition() {} // this is pytorch where
 
-    pub fn broadcast(&self, o: &Vec<usize>) -> Tensor {
-        let ret = Tensor::new();
-        
-        ret
-    }
-
+    
     pub fn to_f64(&mut self) {}
     pub fn to_f32(&mut self) {}
 

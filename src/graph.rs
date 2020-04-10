@@ -334,16 +334,16 @@ impl Net {
                         .all(|dt| jobs.contains(dt))
                     {
                         // do real stuff
-                        let mut inputs: Vec<Tensor> = Vec::new();
+                        let mut inputs: Vec<&Tensor> = Vec::new();
                         for input in self.backward_op2data.get(op).expect("").iter() {
                             let a = self.data.get(input).expect("");
-                            inputs.push(a.clone());
+                            inputs.push(a);
                         }
 
-                        let mut outputs: Vec<Tensor> = Vec::new();
+                        let mut outputs: Vec<&Tensor> = Vec::new();
                         for output in self.forward_op2data.get(op).expect("").iter() {
                             let a = self.data.get(output).expect("");
-                            outputs.push(a.clone());
+                            outputs.push(a);
                         }
 
                         self.ops
