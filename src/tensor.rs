@@ -476,6 +476,7 @@ macro_rules! tensor_method {
         pub fn $a(&self, o: &Tensor) -> Tensor {
             Tensor {
                 v: Rc::new(RefCell::new(self.v.borrow().$a(&o.v.borrow()))),
+                broadcast_shape: Vec::new(),
             }
         }
     }
@@ -484,11 +485,13 @@ macro_rules! tensor_method {
 #[derive(Clone)]
 pub struct Tensor {
     v: Rc<RefCell<TypedTensor>>,
+    broadcast_shape: Vec<usize>,
 }
 impl Tensor {
     pub fn new() -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(TypedTensor::new())),
+            broadcast_shape: Vec::new(),
         }
     }
     pub fn is_empty() -> bool {
@@ -512,6 +515,7 @@ impl Tensor {
 
         Tensor {
             v: Rc::new(RefCell::new(TypedTensor::Typef32(GenTensor { d: data, dim: idim }))),
+            broadcast_shape: Vec::new(),
         }
     }
     pub fn to_vec_f32(&mut self) -> Vec<f32> {
@@ -533,6 +537,7 @@ impl Tensor {
     pub fn fill(size: &Vec<usize>, fill_value: f32) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(TypedTensor::fill(size, fill_value))),
+            broadcast_shape: Vec::new(),
         }
     }
     pub fn fill_like() -> Tensor {
@@ -586,7 +591,9 @@ impl Tensor {
     pub fn condition() {} // this is pytorch where
 
     pub fn broadcast(&self, o: &Vec<usize>) -> Tensor {
-        Tensor::new()
+        let ret = Tensor::new();
+        
+        ret
     }
 
     pub fn to_f64(&mut self) {}
