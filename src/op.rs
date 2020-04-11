@@ -100,14 +100,12 @@ impl Op for Linear {
             }
             self._new();
         }
-
-        output[0].swap(input[0].matmul(&self.weight));
+        let ret = input[0].matmul(&self.weight);
+        output[0].swap(ret);
 
         if self.bias_option {
-            let mut shape = output[0].size();
-            let dsize = shape.len();
-            shape[dsize-1] = 0;
-            output[0].add(&self.bias);
+            let ret = output[0].add(&self.bias);
+            output[0].swap(ret);
         }
 
 
@@ -129,14 +127,22 @@ enum Reduction{
     Sum,
 }
 
-pub struct loss_mse {
+pub struct MSELoss {
     reduction: Reduction,
 }
-impl Op for loss_mse {
-        fn get_name(&self) -> &str {
+impl MSELoss {
+    
+}
+impl Op for MSELoss {
+    fn get_name(&self) -> &str {
         "MSE"
     }
     fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>) {
+        if input[0].size().iter().zip(input[1].size().iter()).all(|x|x.0==x.1) {
+            
+        } else {
+            panic!("MSELoss sees two input differ in shape.");
+        }
     }
     fn grad(&self, input: u32, output: u32) {
         

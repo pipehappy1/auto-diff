@@ -234,9 +234,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         for i in 1..o.dim.len() {
             cap *= o.dim[i];
             odim.push(o.dim[i]);
-            rloop *= self.dim[i];
+            rloop *= o.dim[i];
         }
-        
+
         let mut ret = GenTensor {
             d: Vec::with_capacity(cap),
             dim: odim,
@@ -514,6 +514,16 @@ impl fmt::Display for TypedTensor {
         }
     }
 }
+impl PartialEq for TypedTensor {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (TypedTensor::Typef32(v), TypedTensor::Typef32(v2)) => v.eq(v2),
+            (TypedTensor::Typef64(v), TypedTensor::Typef64(v2)) => v.eq(v2),
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
+}
+impl Eq for TypedTensor {}
 
 
 
@@ -664,3 +674,14 @@ impl fmt::Display for Tensor {
         write!(f, "({}, )", self.v.borrow())
     }
 }
+impl fmt::Debug for Tensor {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, )", self.v.borrow())
+    }
+}
+impl PartialEq for Tensor {
+    fn eq(&self, other: &Self) -> bool {
+        self.v.eq(&other.v)
+    }
+}
+impl Eq for Tensor {}
