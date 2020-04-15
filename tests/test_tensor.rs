@@ -1,4 +1,5 @@
 use auto_diff::tensor::*;
+use auto_diff::tensor::gen_tensor::*;
 
 #[test]
 fn test_gentensor() {
