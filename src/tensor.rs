@@ -18,17 +18,28 @@ enum TypedTensor {
     Typef64(GenTensor<f64>),
 }
 
-macro_rules! typed_tensor_method_single {
+macro_rules! typed_tensor_method_single_same_return {
     ($a:ident, $b:ty) => {
         fn $a(&self) -> $b {
-            match (&self) {
-                (TypedTensor::Typef32(v1)) => {v1.$a()},
-                (TypedTensor::Typef64(v1)) => {v1.$a()},
+            match &self {
+                TypedTensor::Typef32(v1) => {v1.$a()},
+                TypedTensor::Typef64(v1) => {v1.$a()},
                 _ => {panic!("should have same tensor type!");},
             }
         }
     }
-    
+}
+
+macro_rules! typed_tensor_method_single_tensor_return {
+    ($a:ident) => {
+        fn $a(&self) -> TypedTensor {
+            match &self {
+                TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.$a())},
+                TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.$a())},
+                _ => {panic!("should have same tensor type!");},
+            }
+        }
+    }
 }
 
 macro_rules! typed_tensor_method {
@@ -50,16 +61,15 @@ impl TypedTensor {
         TypedTensor::Typef32(GenTensor::new())
     }
 
-    typed_tensor_method_single!(size, Vec<usize>);
-    typed_tensor_method_single!(numel, usize);
+    typed_tensor_method_single_same_return!(size, Vec<usize>);
+    typed_tensor_method_single_same_return!(numel, usize);
 
-    fn sum(&self) -> TypedTensor {
-        match (&self) {
-            (TypedTensor::Typef32(v1)) => {TypedTensor::Typef32(v1.sum())},
-            (TypedTensor::Typef64(v1)) => {TypedTensor::Typef64(v1.sum())},
-            _ => {panic!("should have same tensor type!");},
-        }
-    }    
+    typed_tensor_method_single_tensor_return!(sum);
+    typed_tensor_method_single_tensor_return!(get_N);
+    typed_tensor_method_single_tensor_return!(get_C);
+    typed_tensor_method_single_tensor_return!(get_D);
+    typed_tensor_method_single_tensor_return!(get_H);
+    typed_tensor_method_single_tensor_return!(get_W);
     
     fn to_f32(i: TypedTensor) {}
     fn to_f64(i: TypedTensor) {}
@@ -69,9 +79,9 @@ impl TypedTensor {
     }
 
     fn unsqueeze(&mut self, dim: &Vec<usize>) {
-        match (&self) {
-            (TypedTensor::Typef32(v1)) => {v1.unsqueeze(dim)},
-            (TypedTensor::Typef64(v1)) => {v1.unsqueeze(dim)},
+        match &self {
+            TypedTensor::Typef32(v1) => {v1.unsqueeze(dim)},
+            TypedTensor::Typef64(v1) => {v1.unsqueeze(dim)},
             _ => {panic!("should have same tensor type!");},
         }
     }
@@ -126,10 +136,20 @@ macro_rules! tensor_method {
     }
 }
 
-macro_rules! tensor_method_single {
+macro_rules! tensor_method_single_same_return {
     ($a:ident, $b:ty) => {
         pub fn $a(&self) -> $b {
             self.v.borrow().$a()
+        }
+    }
+}
+
+macro_rules! tensor_method_single_tensor_return {
+    ($a:ident) => {
+        pub fn $a(&self) -> Tensor {
+            Tensor {
+                v: Rc::new(RefCell::new(self.v.borrow().$a())),
+            }
         }
     }
 }
@@ -150,14 +170,15 @@ impl Tensor {
     }
     
 
-    tensor_method_single!(size, Vec<usize>);
-    tensor_method_single!(numel, usize);
+    tensor_method_single_same_return!(size, Vec<usize>);
+    tensor_method_single_same_return!(numel, usize);
     
-    //pub fn sum(&self) -> Tensor {
-    //    Tensor {
-    //        v: self.v.sum(),
-    //    }
-    //}
+    tensor_method_single_tensor_return!(sum);
+    tensor_method_single_tensor_return!(get_N);
+    tensor_method_single_tensor_return!(get_C);
+    tensor_method_single_tensor_return!(get_D);
+    tensor_method_single_tensor_return!(get_H);
+    tensor_method_single_tensor_return!(get_W);
 
 
     /// Create a tensor from a Vec,

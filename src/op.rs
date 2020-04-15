@@ -127,6 +127,8 @@ enum Reduction{
     Sum,
 }
 
+/// MSELoss
+/// The left-most dimension is the N.
 pub struct MSELoss {
     reduction: Reduction,
 }
@@ -138,11 +140,9 @@ impl Op for MSELoss {
         "MSE"
     }
     fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>) {
-        if input[0].size().iter().zip(input[1].size().iter()).all(|x|x.0==x.1) {
-            
-        } else {
-            panic!("MSELoss sees two input differ in shape.");
-        }
+        let tmp = input[0].sub(input[1]);
+        let tmp2 = tmp.mul(&tmp);
+        let ret = tmp2.sum().div(&tmp2.get_N());
     }
     fn grad(&self, input: u32, output: u32) {
         

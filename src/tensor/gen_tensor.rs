@@ -96,6 +96,66 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             panic!("Only one element tensor can get_scale()");
         }
     }
+    
+    // get NCHW elements
+    /// get NCHW elements, always return the size of left most dimension.
+    pub fn get_N(&self) -> GenTensor<T> {
+        GenTensor {
+            d: vec![T::from(self.dim[0]).expect("N")],
+            dim: vec![],
+        }
+    }
+    /// get NCHW elements, always return the size of second left most dimension.
+    pub fn get_C(&self) -> GenTensor<T> {
+        GenTensor {
+            d: vec![T::from(self.dim[1]).expect("N")],
+            dim: vec![],
+        }
+    }
+    /// get NCDHW elements, will require the self.dim has 5 dimensions.
+    pub fn get_D(&self) -> GenTensor<T> {
+        if self.dim.len() == 5 {
+            GenTensor {
+                d: vec![T::from(self.dim[2]).expect("N")],
+                dim: vec![],
+            }            
+        } else {
+            panic!("Bad shape for get_D");
+        }
+
+    }
+    /// get NCDHW elements, will require the self.dim has 5 dimensions or 4 dimensions.
+    pub fn get_H(&self) -> GenTensor<T> {
+        if self.dim.len() == 5 {
+            GenTensor {
+                d: vec![T::from(self.dim[3]).expect("N")],
+                dim: vec![],
+            }
+        } else if self.dim.len() == 4 {
+            GenTensor {
+                d: vec![T::from(self.dim[2]).expect("N")],
+                dim: vec![],
+            }
+        } else {
+            panic!("Bad shape for get_D");
+        }
+    }
+    /// get NCDHW elements, will require the self.dim has 5 dimensions or 4 dimensions.
+    pub fn get_W(&self) -> GenTensor<T> {
+        if self.dim.len() == 5 {
+            GenTensor {
+                d: vec![T::from(self.dim[4]).expect("N")],
+                dim: vec![],
+            }
+        } else if self.dim.len() == 4 {
+            GenTensor {
+                d: vec![T::from(self.dim[3]).expect("N")],
+                dim: vec![],
+            }
+        } else {
+            panic!("Bad shape for get_D");
+        }
+    }
 
     /// Returns the size of the self tensor.
     pub fn size(&self) -> Vec<usize> {
