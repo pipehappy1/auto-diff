@@ -121,7 +121,7 @@ impl Op for Linear {
 //
 // Common Cost function
 //
-enum Reduction{
+pub enum Reduction{
     None,
     Mean,
     Sum,
@@ -133,7 +133,11 @@ pub struct MSELoss {
     reduction: Reduction,
 }
 impl MSELoss {
-    
+    pub fn new() -> MSELoss {
+        MSELoss {
+            reduction: Reduction::None,
+        }
+    }
 }
 impl Op for MSELoss {
     fn get_name(&self) -> &str {
@@ -142,7 +146,9 @@ impl Op for MSELoss {
     fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>) {
         let tmp = input[0].sub(input[1]);
         let tmp2 = tmp.mul(&tmp);
+        
         let ret = tmp2.sum().div(&tmp2.get_N());
+        output[0].swap(ret);
     }
     fn grad(&self, input: u32, output: u32) {
         

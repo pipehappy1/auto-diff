@@ -509,3 +509,12 @@ impl fmt::Display for GenTensor<f64> {
         write!(f, "{:?}", self.d)
     }
 }
+
+impl<T> Clone for GenTensor<T> where T: num_traits::Float {
+    fn clone(&self) -> Self {
+        GenTensor {
+            d: self.d.to_vec(),
+            dim: self.dim.to_vec(),
+        }
+    }
+}

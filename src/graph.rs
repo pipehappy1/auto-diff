@@ -110,6 +110,9 @@ impl Var {
 
         self.net.borrow_mut().set_mark(&self.id);
     }
+    pub fn get(&self) -> Tensor {
+        self.net.borrow().data.get(&self.id).expect("").clone()
+    }
 
     // Convient method definition.
     var_op_method!(add);
@@ -128,6 +131,13 @@ impl fmt::Display for Var {
         )
     }
 }
+
+pub fn MSELoss(a: &Var, b: &Var) -> Var {
+    let result = a.new_attached();
+    a.net.borrow_mut().connect(&vec![a.id, b.id], Box::new(MSELoss::new()), &vec![result.id]);
+    result
+}
+
 
 /// NetIndex index used for generational index.
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Copy, Clone)]

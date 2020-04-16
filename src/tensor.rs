@@ -124,6 +124,16 @@ impl PartialEq for TypedTensor {
 }
 impl Eq for TypedTensor {}
 
+impl Clone for TypedTensor {
+    fn clone(&self) -> Self {
+        match self {
+            TypedTensor::Typef32(v) => TypedTensor::Typef32(v.clone()),
+            TypedTensor::Typef64(v) => TypedTensor::Typef64(v.clone()),
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
+}
+
 
 
 macro_rules! tensor_method {
@@ -155,7 +165,7 @@ macro_rules! tensor_method_single_tensor_return {
 }
 
 
-#[derive(Clone)]
+
 pub struct Tensor {
     v: Rc<RefCell<TypedTensor>>,
 }
@@ -168,7 +178,6 @@ impl Tensor {
     pub fn is_empty() -> bool {
         true
     }
-    
 
     tensor_method_single_same_return!(size, Vec<usize>);
     tensor_method_single_same_return!(numel, usize);
@@ -310,3 +319,11 @@ impl PartialEq for Tensor {
     }
 }
 impl Eq for Tensor {}
+
+impl Clone for Tensor {
+    fn clone(&self) -> Self {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().clone())),
+        }
+    }
+}
