@@ -1,5 +1,6 @@
 use auto_diff::graph::*;
 use auto_diff::tensor::*;
+use auto_diff::collection::generational_index::*;
 
 #[test]
 fn test_gen_index() {
