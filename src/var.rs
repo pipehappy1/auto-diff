@@ -97,7 +97,7 @@ impl Var {
     /// Give the variable a value
     ///
     /// ```
-    /// # use auto_diff::graph::*;
+    /// # use auto_diff::var::*;
     /// # use auto_diff::tensor::*;
     /// let mut m = Module::new();
     /// let a = m.var();
