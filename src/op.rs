@@ -144,6 +144,7 @@ impl Op for MSELoss {
         "MSE"
     }
     fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>) {
+        // TODO: wait for Tensor to have lazy evaluation for elemwise operation.
         let tmp = input[0].sub(input[1]);
         let tmp2 = tmp.mul(&tmp);
         

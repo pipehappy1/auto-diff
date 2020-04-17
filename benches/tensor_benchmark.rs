@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput, BenchmarkId};
 use std::iter;
 
-use auto_diff::tensor::*;
+use auto_diff::tensor::gen_tensor::*;
 
 extern crate ndarray;
 extern crate ndarray_linalg;

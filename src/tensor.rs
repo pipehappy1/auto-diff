@@ -4,11 +4,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use ndarray;
-
 use std::fmt;
-use num_traits;
-
 
 pub mod gen_tensor;
 use gen_tensor::*;

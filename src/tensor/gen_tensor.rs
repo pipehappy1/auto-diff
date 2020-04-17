@@ -333,6 +333,17 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         ret
     }
 
+    pub fn squared_error(t1: &Self, t2: &Self) -> GenTensor<T> {
+        let mut ret = GenTensor {
+            d: Vec::with_capacity(t1.d.len()),
+            dim: t1.dim.to_vec(),
+        };
+        for (v1, v2) in t1.d.iter().zip(t2.d.iter()) {
+            ret.d.push((*v1 - *v2)*(*v1 - *v2));
+        }
+        ret
+    }
+
     /// Concatenates sequence of tensors along a new dimension.
     ///
     /// All tensors need to be of the same size.
