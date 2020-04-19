@@ -11,7 +11,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
 
     /// Create a tensor with given Vec.
-    pub fn new_raw(data: &Vec<T>, shape: &Vec<usize>) -> GenTensor<T> {
+    pub fn new_raw(data: &[T], shape: &[usize]) -> GenTensor<T> {
         let new_data = data.to_vec();
         let new_dim = shape.to_vec();
         GenTensor {
@@ -26,7 +26,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// # use auto_diff::tensor::gen_tensor::*;
     /// let m1 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
     /// ```
-    pub fn fill(d: T, shape: &Vec<usize>) -> GenTensor<T> {
+    pub fn fill(d: T, shape: &[usize]) -> GenTensor<T> {
         let mut dsize = 1;
         for i in shape {
             dsize *= *i;
@@ -64,7 +64,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![2,3]);
     /// assert_eq!(m1.get(&vec![1,1]), 5.);
     /// ```
-    pub fn get(&self, o: &Vec<usize>) -> T {
+    pub fn get(&self, o: &[usize]) -> T {
         let stride = self.stride();
         let dsize = o.len();
         let mut index = 0;
@@ -73,7 +73,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         self.d[index]
     }
-    pub fn get_mut(&mut self, o: &Vec<usize>) -> &mut T {
+    pub fn get_mut(&mut self, o: &[usize]) -> &mut T {
         let stride = self.stride();
         let dsize = o.len();
         let mut index = 0;
@@ -184,7 +184,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
-    pub fn unsqueeze(&self, dim: &Vec<usize>) {
+    pub fn unsqueeze(&self, dim: &[usize]) {
         
     }
     
@@ -358,7 +358,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// }
     /// assert_eq!(result.size(), vec![3,2,2]);
     /// ```
-    pub fn stack(tensors: &Vec<&Self>, dim: usize) -> GenTensor<T> {
+    pub fn stack(tensors: &[&Self], dim: usize) -> GenTensor<T> {
         let cap = tensors.len()*tensors[0].d.len();
         let mut odim = Vec::new();
         for i in 0..tensors[0].dim.len() {
@@ -402,7 +402,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
     /// m1.permute(&vec![2, 0, 1]);
     /// ```
-    pub fn permute(&mut self, dims: &Vec<usize>) {
+    pub fn permute(&mut self, dims: &[usize]) {
         let dim_len = self.dim.len();
         let mut target_dim = vec![0; dim_len];
         for i in 0..dim_len {
