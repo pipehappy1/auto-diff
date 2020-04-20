@@ -70,11 +70,11 @@ impl TypedTensor {
     fn to_f32(i: TypedTensor) {}
     fn to_f64(i: TypedTensor) {}
 
-    fn fill(size: &Vec<usize>, fill_value: f32) -> TypedTensor {
+    fn fill(size: &[usize], fill_value: f32) -> TypedTensor {
         TypedTensor::Typef32(GenTensor::fill(fill_value, size))
     }
 
-    fn unsqueeze(&mut self, dim: &Vec<usize>) {
+    fn unsqueeze(&mut self, dim: &[usize]) {
         match &self {
             TypedTensor::Typef32(v1) => {v1.unsqueeze(dim)},
             TypedTensor::Typef64(v1) => {v1.unsqueeze(dim)},
@@ -191,7 +191,7 @@ impl Tensor {
     /// # use auto_diff::tensor::*;
     /// let t1 = Tensor::from_vec_f32(&vec![0., 1., 2., 4.,], &vec![2,2]);
     /// ```
-    pub fn from_vec_f32(input: &Vec<f32>, dim: &Vec<usize>) -> Tensor {
+    pub fn from_vec_f32(input: &[f32], dim: &[usize]) -> Tensor {
         let data = input.to_vec();
         let idim = dim.to_vec();
 
@@ -212,7 +212,7 @@ impl Tensor {
         //data
         Vec::new()
     }
-    pub fn from_vec_f64(i: &Vec<f64>) -> Tensor {
+    pub fn from_vec_f64(i: &[f64]) -> Tensor {
         Tensor::new()
     }
 
@@ -221,7 +221,7 @@ impl Tensor {
     }
     
     /// Returns a tensor of size size filled with fill_value.
-    pub fn fill(size: &Vec<usize>, fill_value: f32) -> Tensor {
+    pub fn fill(size: &[usize], fill_value: f32) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(TypedTensor::fill(size, fill_value))),
         }
@@ -233,10 +233,10 @@ impl Tensor {
         // <- this will no work. As there must be sth.
         Tensor::new()
     }
-    pub fn new_ones(dim: &Vec<u32>) -> Tensor {
+    pub fn new_ones(dim: &[u32]) -> Tensor {
         Tensor::new()
     }
-    pub fn new_zeros(dim: &Vec<u32>) -> Tensor {
+    pub fn new_zeros(dim: &[u32]) -> Tensor {
         Tensor::new()
     }
     pub fn zeros_like(o: &Tensor) -> Tensor {
@@ -279,7 +279,7 @@ impl Tensor {
     /// The returned tensor shares the same underlying data with this tensor.
     ///
     /// 
-    pub fn unsqueeze(&mut self, dim: &Vec<usize>) -> &Tensor {
+    pub fn unsqueeze(&mut self, dim: &[usize]) -> &Tensor {
         self.v.borrow_mut().unsqueeze(dim);
         self
     }

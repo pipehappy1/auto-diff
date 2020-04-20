@@ -42,12 +42,12 @@ impl Module {
     }
 
     /// Back propagation
-    pub fn grad(&self, og: &Vec<Tensor>) -> Result<u32, &'static str> {
+    pub fn grad(&self, og: &[Tensor]) -> Result<u32, &'static str> {
 	Ok(0)
     }
 
     /// Back propagation
-    pub fn backward(&self, og: &Vec<Tensor>) -> Result<u32, &'static str> {
+    pub fn backward(&self, og: &[Tensor]) -> Result<u32, &'static str> {
 	Ok(0)
     }
 }
@@ -195,7 +195,7 @@ impl Net {
     }
 
     /// Build input-operator-output relation, with given components.
-    fn connect(&mut self, input: &Vec<NetIndex>, op: Box<dyn Op>, output: &Vec<NetIndex>) {
+    fn connect(&mut self, input: &[NetIndex], op: Box<dyn Op>, output: &Vec<NetIndex>) {
         let opid = self.init_op(op);
         for val in input {
             self.backward_op2data.get_mut(&opid).expect("").push(*val);

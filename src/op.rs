@@ -4,7 +4,7 @@ use super::tensor::Tensor;
 
 pub trait Op {
     fn get_name(&self) -> &str;
-    fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>);
+    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
     fn grad(&self, input: u32, output: u32);
 }
 
@@ -20,7 +20,7 @@ macro_rules! new_binary_op {
             fn get_name(&self) -> &str {
                 $b
             }
-            fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>) {
+            fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
                 $c(input, output)
             }
             fn grad(&self, input: u32, output: u32) {
@@ -31,20 +31,20 @@ macro_rules! new_binary_op {
 }
 
 new_binary_op!(add, "add",
-               (|a:&Vec<&Tensor>, b:& Vec<&Tensor>|
+               (|a:&[&Tensor], b:&[&Tensor]|
                 b[0].swap(a[0].add(&a[1]))
                )
 );
 new_binary_op!(sub, "sub",
-               (|a:&Vec<&Tensor>, b:&Vec<&Tensor>|
+               (|a:&[&Tensor], b:&[&Tensor]|
                 b[0].swap(a[0].sub(a[1])))
 );
 new_binary_op!(mul, "mul",
-               (|a:&Vec<&Tensor>, b:&Vec<&Tensor>|
+               (|a:&[&Tensor], b:&[&Tensor]|
                 b[0].swap(a[0].mul(a[1])))
 );
 new_binary_op!(div, "div",
-               (|a:&Vec<&Tensor>, b:&Vec<&Tensor>|
+               (|a:&[&Tensor], b:&[&Tensor]|
                 b[0].swap(a[0].div(a[1])))
 );
 
@@ -88,7 +88,7 @@ impl Op for Linear {
     fn get_name(&self) -> &str {
         "Linear"
     }
-    fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>) {
+    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         if self.in_fea == None || self.out_fea == None {
             if self.in_fea == None {
                 let in_size = input[0].size();
@@ -143,7 +143,7 @@ impl Op for MSELoss {
     fn get_name(&self) -> &str {
         "MSE"
     }
-    fn apply(&mut self, input: &Vec<&Tensor>, output: &Vec<&Tensor>) {
+    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         // TODO: wait for Tensor to have lazy evaluation for elemwise operation.
         let tmp = input[0].sub(input[1]);
         let tmp2 = tmp.mul(&tmp);

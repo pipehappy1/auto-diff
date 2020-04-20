@@ -22,6 +22,17 @@ impl Graph {
             backward_op_dt: BTreeMap::new(),
         }
     }
+
+    /// Add a data node.
+    /// ```
+    /// # use auto_diff::collection::graph::*;
+    /// # use auto_diff::collection::generational_index::*;
+    /// let mut g = Graph::new();
+    /// let data1 = NetIndex::new(0,0);
+    /// let data2 = NetIndex::new(1,0);
+    /// g.add_data(&data1);
+    /// g.add_data(&data2);
+    /// ```
     pub fn add_data(&mut self, id: &NetIndex) -> Result<NetIndex, &str> {
         if !self.data.contains(id) {
             self.data.insert(*id);
@@ -32,6 +43,7 @@ impl Graph {
             Err("data is exits!")
         }
     }
+    
     pub fn del_data(&mut self, id: &NetIndex) -> Result<NetIndex, &str> {
         if self.data.contains(id) {
             self.data.remove(id);
@@ -77,20 +89,24 @@ impl Graph {
         }
 
     }
-    
-    pub fn connect(&mut self, dti: &Vec<NetIndex>,
-                   dto: &Vec<NetIndex>,
+
+    /// Connect input data, output data and operation
+    pub fn connect(&mut self, dti: &[&NetIndex],
+                   dto: &[&NetIndex],
                    op: &NetIndex) -> Result<NetIndex, &str> {
         let mut valid_ids = true;
 
+        // make sure pre-exist
         if !self.op.contains(op) {
             valid_ids = false;
         }
+        // make sure input data pre-exist
         for i in dti {
             if !self.data.contains(i) {
                 valid_ids = false;
             }
         }
+        // make sure output data pre-exist
         for i in dto {
             if !self.data.contains(i) {
                 valid_ids = false;
@@ -100,10 +116,10 @@ impl Graph {
         if valid_ids {
             for i in dti {
                 self.forward_dt_op.get_mut(i).expect("").insert(op.clone());
-                self.backward_op_dt.get_mut(op).expect("").insert(i.clone());
+                self.backward_op_dt.get_mut(op).expect("").insert(*i.clone());
             }
             for i in dto {
-                self.forward_op_dt.get_mut(op).expect("").insert(i.clone());
+                self.forward_op_dt.get_mut(op).expect("").insert(*i.clone());
                 self.backward_dt_op.get_mut(i).expect("").insert(op.clone());
             }
             Ok(op.clone())
@@ -112,9 +128,12 @@ impl Graph {
         }
     }
 
-    pub fn walk(&mut self, start_set: &Vec<NetIndex>,
-                forward: bool,
-                closure: &Fn(&Vec<NetIndex>, &Vec<NetIndex>, &NetIndex)) {
+    /// Walk through the graph with a starting set of data nodes.
+    /// Go through backwards if forward is false.
+    pub fn walk<F>(&mut self, start_set: &[&NetIndex],
+                   forward: bool,
+                   closure: F)
+    where F: Fn(&[NetIndex], &[NetIndex], &NetIndex) {
         let mut fdo = &self.forward_dt_op;
         let mut fod = &self.forward_op_dt;
         let mut bdo = &self.backward_dt_op;
@@ -132,7 +151,7 @@ impl Graph {
         let mut done = BTreeSet::<NetIndex>::new(); // ops done.
 
         for index in start_set {
-            jobs.insert(*index);
+            jobs.insert(**index);
         }
 
         while jobs.len() > 0 {
