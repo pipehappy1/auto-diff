@@ -130,10 +130,10 @@ impl Graph {
 
     /// Walk through the graph with a starting set of data nodes.
     /// Go through backwards if forward is false.
-    pub fn walk<F>(&mut self, start_set: &[&NetIndex],
+    pub fn walk<F>(&mut self, start_set: &[NetIndex],
                    forward: bool,
-                   closure: F)
-    where F: Fn(&[NetIndex], &[NetIndex], &NetIndex) {
+                   closure: F) -> Result<(), BTreeSet<NetIndex>>
+    where F: Fn(&[NetIndex], &[NetIndex], &NetIndex)  {
         let mut fdo = &self.forward_dt_op;
         let mut fod = &self.forward_op_dt;
         let mut bdo = &self.backward_dt_op;
@@ -151,48 +151,67 @@ impl Graph {
         let mut done = BTreeSet::<NetIndex>::new(); // ops done.
 
         for index in start_set {
-            jobs.insert(**index);
+            jobs.insert(*index);
         }
+        
+        loop {
+            let mut made_progress = false;
 
-        while jobs.len() > 0 {
-            let job = jobs.iter().next().expect("").clone();
-
-            let undone_ops: Vec<&NetIndex> = fdo
-                .get(&job)
-                .expect("")
-                .iter()
-                .filter(|op| !done.contains(op))
-                .collect();
-
-            if undone_ops.len() <= 0 {
-                jobs.remove(&job);
-            } else {
-                for op in undone_ops {
-                    if bod
-                        .get(op)
-                        .expect("")
-                        .iter()
-                        .all(|dt| jobs.contains(dt)) {
-                            // do real stuff
-                            let mut inputs: Vec<NetIndex> = Vec::new();
-                            for input in bod.get(op).expect("").iter() {
-                                inputs.push(input.clone());
-                            }
-
-                            let mut outputs: Vec<NetIndex> = Vec::new();
-                            for output in fod.get(op).expect("").iter() {
-                                outputs.push(output.clone());
-                            }
-
-                            closure(&inputs, &outputs, &op);
-
-                            for output in fod.get(op).expect("").iter() {
-                                jobs.insert(*output);
-                            }
-                            done.insert(*op);
-                        }
+            // collect ops needs to do
+            let mut edge_op = BTreeSet::<NetIndex>::new();
+            for dt in &jobs {
+                for op_candidate in &fdo[dt] {
+                    edge_op.insert(op_candidate.clone());
                 }
             }
+
+            // process op if possible
+            for op_candidate in edge_op {
+                if bod[&op_candidate]
+                    .iter()
+                    .all(|dt| jobs.contains(dt)) {
+
+                        let mut inputs = Vec::<NetIndex>::new();
+                        for input in bod[&op_candidate].iter() {
+                            inputs.push(input.clone());
+                        }
+                        let mut outputs = Vec::<NetIndex>::new();
+                        for output in fod[&op_candidate].iter() {
+                            outputs.push(output.clone());
+                        }
+
+                        closure(&inputs, &outputs, &op_candidate);
+
+                        // maintain the list
+                        // the following line should go before the rest.
+                        done.insert(op_candidate); 
+                        for input in bod[&op_candidate].iter() {
+                            if fdo[input]
+                                .iter()
+                                .all(|op| done.contains(op)) {
+                                    jobs.remove(input);
+                                }
+                        }
+                        for output in fod[&op_candidate].iter() {
+                            // don't add to jobs if it's the final data node.
+                            if fdo[output].len() > 0 {
+                                jobs.insert(*output);                                
+                            }
+                        }
+                        
+                        made_progress = true;
+                    }
+            }
+
+            if ! made_progress {
+                break;
+            }
+        }
+
+        if jobs.len() > 0 {
+            Err(jobs)
+        } else {
+            Ok(())
         }
     }
 }

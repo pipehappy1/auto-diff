@@ -26,7 +26,7 @@ fn test_graph() {
         g.connect(&[&data_A, &data_B], &[&data_C,], &op_A);
 
         g.walk(
-            &[&data_A, &data_B],
+            &[data_A, data_B],
             true,
             |input, output, op| {
                 println!("forward: {:?}, {:?}, {}", input, output, op);
@@ -39,7 +39,7 @@ fn test_graph() {
         );
 
         g.walk(
-            &[&data_C],
+            &[data_C],
             false,
             |input, output, op| {
                 println!("backward: {:?}, {:?}, {}", input, output, op);
@@ -62,6 +62,33 @@ fn test_graph() {
     //     |
     //     E
     {
+        let mut g = Graph::new();
         
+        let data_A = NetIndex::new(0,0);
+        let data_B = NetIndex::new(1,0);
+        let data_C = NetIndex::new(2,0);
+        let data_D = NetIndex::new(3,0);
+        let data_E = NetIndex::new(4,0);
+        g.add_data(&data_A);
+        g.add_data(&data_B);
+        g.add_data(&data_C);
+        g.add_data(&data_D);
+        g.add_data(&data_E);
+        
+        let op1 = NetIndex::new(0,0);
+        g.add_op(&op1);
+        let op2 = NetIndex::new(1,0);
+        g.add_op(&op2);
+
+        g.connect(&[&data_A, &data_B], &[&data_C,], &op1);
+        g.connect(&[&data_C, &data_D], &[&data_E,], &op2);
+
+        g.walk(
+            &[data_A, data_B],
+            true,
+            |input, output, op| {
+                println!("forward: {:?}, {:?}, {}", input, output, op);
+            }
+        );
     }
 }
