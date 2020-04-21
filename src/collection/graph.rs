@@ -91,8 +91,8 @@ impl Graph {
     }
 
     /// Connect input data, output data and operation
-    pub fn connect(&mut self, dti: &[&NetIndex],
-                   dto: &[&NetIndex],
+    pub fn connect(&mut self, dti: &[NetIndex],
+                   dto: &[NetIndex],
                    op: &NetIndex) -> Result<NetIndex, &str> {
         let mut valid_ids = true;
 
@@ -116,10 +116,10 @@ impl Graph {
         if valid_ids {
             for i in dti {
                 self.forward_dt_op.get_mut(i).expect("").insert(op.clone());
-                self.backward_op_dt.get_mut(op).expect("").insert(*i.clone());
+                self.backward_op_dt.get_mut(op).expect("").insert(i.clone());
             }
             for i in dto {
-                self.forward_op_dt.get_mut(op).expect("").insert(*i.clone());
+                self.forward_op_dt.get_mut(op).expect("").insert(i.clone());
                 self.backward_dt_op.get_mut(i).expect("").insert(op.clone());
             }
             Ok(op.clone())
@@ -130,7 +130,7 @@ impl Graph {
 
     /// Walk through the graph with a starting set of data nodes.
     /// Go through backwards if forward is false.
-    pub fn walk<F>(&mut self, start_set: &[NetIndex],
+    pub fn walk<F>(&self, start_set: &[NetIndex],
                    forward: bool,
                    closure: F) -> Result<(), BTreeSet<NetIndex>>
     where F: Fn(&[NetIndex], &[NetIndex], &NetIndex)  {

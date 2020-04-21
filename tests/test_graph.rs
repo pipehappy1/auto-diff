@@ -23,7 +23,7 @@ fn test_graph() {
         let op_A = NetIndex::new(0,0);
         g.add_op(&op_A);
 
-        g.connect(&[&data_A, &data_B], &[&data_C,], &op_A);
+        g.connect(&[data_A, data_B], &[data_C,], &op_A);
 
         g.walk(
             &[data_A, data_B],
@@ -80,8 +80,8 @@ fn test_graph() {
         let op2 = NetIndex::new(1,0);
         g.add_op(&op2);
 
-        g.connect(&[&data_A, &data_B], &[&data_C,], &op1);
-        g.connect(&[&data_C, &data_D], &[&data_E,], &op2);
+        g.connect(&[data_A, data_B], &[data_C,], &op1);
+        g.connect(&[data_C, data_D], &[data_E,], &op2);
 
         g.walk(
             &[data_A, data_B],

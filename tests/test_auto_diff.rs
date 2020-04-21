@@ -42,7 +42,7 @@ fn test_add_2vars() {
     a.set(Tensor::new());
     b.set(Tensor::new());
     m.eval();
-    println!("{}", c);
+    assert_eq!(NetIndex::new(2, 0), *c._id());
 }
 
 #[test]
@@ -106,7 +106,8 @@ fn test_op_mse() {
     a.set(Tensor::from_vec_f32(&vec![1., 2., 3., 4., 5., 6.,], &vec![3, 2]));
     b.set(Tensor::from_vec_f32(&vec![2., 3., 4., 5., 6., 7.,], &vec![3, 2]));
     m.forward();
-    println!("c: {}", c);
+    println!("test_op_mse, c: {}", c);
     
     assert_eq!(c.get() , Tensor::from_vec_f32(&vec![2., ], &vec![]));
+    println!("hehe");
 }

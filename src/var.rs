@@ -4,6 +4,7 @@ use std::fmt;
 use std::rc::Rc;
 
 use super::collection::generational_index::*;
+use super::collection::graph::Graph;
 use super::tensor::Tensor;
 use super::op::*;
 
@@ -146,15 +147,8 @@ pub fn MSELoss(a: &Var, b: &Var) -> Var {
 struct Net {
     data: GenIndex<Tensor>,
     ops: GenIndex<RefCell<Box<dyn Op>>>,
-    forward_data2op: GenIndex<Vec<NetIndex>>,
-    forward_op2data: GenIndex<Vec<NetIndex>>,
-    backward_data2op: GenIndex<Vec<NetIndex>>,
-    backward_op2data: GenIndex<Vec<NetIndex>>,
-    // the NetIndex of var which have been set input value.
     set_mark: BTreeSet<NetIndex>,
-    // cache of output nodes
-    cache_output: BTreeSet<NetIndex>,
-    cache_grad: GenIndex<Rc<RefCell<Tensor>>>,
+    graph: Graph,
 }
 
 impl Net {
@@ -162,23 +156,15 @@ impl Net {
         Net {
             data: GenIndex::new(),
             ops: GenIndex::new(),
-            forward_data2op: GenIndex::new(),
-            forward_op2data: GenIndex::new(),
-            backward_data2op: GenIndex::new(),
-            backward_op2data: GenIndex::new(),
             set_mark: BTreeSet::new(),
-            cache_output: BTreeSet::new(),
-            cache_grad: GenIndex::new(),
+            graph: Graph::new(),
         }
     }
 
     /// Insert an empty var into the network.
     fn init_var(&mut self, var: &mut Var) {
         let id = self.data.insert(Tensor::new());
-        let fid = self.forward_data2op.insert(Vec::new());
-        let bid = self.backward_data2op.insert(Vec::new());
-        assert!(id == fid);
-        assert!(id == bid);
+        self.graph.add_data(&id);
         var.id = id;
     }
 
@@ -187,24 +173,14 @@ impl Net {
     /// Insert operator into the network.
     fn init_op(&mut self, op: Box<dyn Op>) -> NetIndex {
         let id = self.ops.insert(RefCell::new(op));
-        let fid = self.forward_op2data.insert(Vec::new());
-        let bid = self.backward_op2data.insert(Vec::new());
-        assert!(id == fid);
-        assert!(id == bid);
+        self.graph.add_op(&id);
         id
     }
 
     /// Build input-operator-output relation, with given components.
-    fn connect(&mut self, input: &[NetIndex], op: Box<dyn Op>, output: &Vec<NetIndex>) {
+    fn connect(&mut self, input: &[NetIndex], op: Box<dyn Op>, output: &[NetIndex]) {
         let opid = self.init_op(op);
-        for val in input {
-            self.backward_op2data.get_mut(&opid).expect("").push(*val);
-            self.forward_data2op.get_mut(val).expect("").push(opid);
-        }
-        for val in output {
-            self.forward_op2data.get_mut(&opid).expect("").push(*val);
-            self.backward_data2op.get_mut(val).expect("").push(opid);
-        }
+        self.graph.connect(input, output, &opid);
     }
 
     /// set the set_mark, set_mark is used to label var with input value with it.
@@ -215,75 +191,45 @@ impl Net {
         self.set_mark.remove(did);
     }
 
-    /// Merge
+    /// Merge two computation graph
     fn merge(&self, o: &Net) -> Net {
         Net::new()
     }
 
     /// Forward evaluate the computaiton graph.
-    fn eval(&mut self) {
-        // vars has a value and
-        let mut jobs = BTreeSet::<NetIndex>::new();
-        let mut done = BTreeSet::<NetIndex>::new(); // ops done.
-
-        for index in self.set_mark.iter() {
-            jobs.insert(*index);
+    fn eval(&mut self) -> Result<(), BTreeSet<NetIndex>> {
+        let mut all_input = Vec::new();
+        for i in &self.set_mark {
+            all_input.push(i.clone());
         }
+        
+        self.graph
+            .walk(
+                &all_input[..],
+                true,
+                |input, output, op| {
+                    let mut inputs: Vec<&Tensor> = Vec::new();
+                    for input_id in input {
+                        let a = self.data.get(input_id).expect("");
+                        inputs.push(a);
+                    }
 
-        while jobs.len() > 0 {
-            let job = jobs.iter().next().expect("").clone();
-            // println!("current job: {}", job);
+                    let mut outputs: Vec<&Tensor> = Vec::new();
+                    for output_id in output {
+                        let a = self.data.get(output_id).expect("");
+                        outputs.push(a);
+                    }
 
-            let undone_ops: Vec<&NetIndex> = self
-                .forward_data2op
-                .get(&job)
-                .expect("")
-                .iter()
-                .filter(|op| !done.contains(op))
-                .collect();
-
-            if undone_ops.len() <= 0 {
-                jobs.remove(&job);
-            } else {
-                for op in undone_ops {
-                    if self
-                        .backward_op2data
+                    self.ops
                         .get(op)
                         .expect("")
-                        .iter()
-                        .all(|dt| jobs.contains(dt))
-                    {
-                        // do real stuff
-                        let mut inputs: Vec<&Tensor> = Vec::new();
-                        for input in self.backward_op2data.get(op).expect("").iter() {
-                            let a = self.data.get(input).expect("");
-                            inputs.push(a);
-                        }
-
-                        let mut outputs: Vec<&Tensor> = Vec::new();
-                        for output in self.forward_op2data.get(op).expect("").iter() {
-                            let a = self.data.get(output).expect("");
-                            outputs.push(a);
-                        }
-
-                        self.ops
-                            .get_mut(op)
-                            .expect("")
-                            .borrow_mut()
-                            .apply(&mut inputs, &mut outputs);
-
-                        for output in self.forward_op2data.get(op).expect("").iter() {
-                            jobs.insert(*output);
-                        }
-                        done.insert(*op);
-                    }
+                        .borrow_mut()
+                        .apply(&inputs, &outputs);
                 }
-            }
-        }
+            )?;
+
+        Ok(())
     }
 
-    /// build output node cache
-    pub fn build_output_cache(&mut self) {
-        
-    }
+    
 }
