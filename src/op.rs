@@ -1,9 +1,42 @@
 /// Only NCWH format is supported.
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use super::tensor::Tensor;
 
-pub trait Op {
-    fn get_name(&self) -> &str;
+pub struct Op {
+    o: Rc<RefCell<Box<dyn OpTrait>>>,
+}
+impl Op {
+    pub fn new(o: Box<dyn OpTrait>) -> Self {
+        Op {
+            o: Rc::new(RefCell::new(o)),
+        }
+    }
+
+    pub fn swap() {}
+
+    pub fn get_name(&self) -> String {
+        self.o.borrow_mut().get_name()
+    }
+    pub fn apply(&self, input: &[&Tensor], output: &[&Tensor]) {
+        self.o.borrow_mut().apply(input, output)
+    }
+    pub fn grad(&self, input: &[&Tensor], output: &[&Tensor]) {
+        self.o.borrow_mut().grad(0, 0)
+    }
+}
+impl Clone for Op {
+    fn clone(&self) -> Self {
+        Op {
+            o: Rc::clone(&self.o),
+        }
+    }
+}
+
+
+pub trait OpTrait {
+    fn get_name(&self) -> String;
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
     fn grad(&self, input: u32, output: u32);
 }
@@ -16,9 +49,9 @@ macro_rules! new_binary_op {
                 $a{}
             }
         }
-        impl Op for $a {
-            fn get_name(&self) -> &str {
-                $b
+        impl OpTrait for $a {
+            fn get_name(&self) -> String {
+                ($b).to_string()
             }
             fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
                 $c(input, output)
@@ -84,9 +117,9 @@ impl Linear {
         &self.bias
     }
 }
-impl Op for Linear {
-    fn get_name(&self) -> &str {
-        "Linear"
+impl OpTrait for Linear {
+    fn get_name(&self) -> String {
+        "Linear".to_string()
     }
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         if self.in_fea == None || self.out_fea == None {
@@ -139,9 +172,9 @@ impl MSELoss {
         }
     }
 }
-impl Op for MSELoss {
-    fn get_name(&self) -> &str {
-        "MSE"
+impl OpTrait for MSELoss {
+    fn get_name(&self) -> String {
+        "MSE".to_string()
     }
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         // TODO: wait for Tensor to have lazy evaluation for elemwise operation.

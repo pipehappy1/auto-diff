@@ -104,7 +104,7 @@ impl TypedTensor {
 impl fmt::Display for TypedTensor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TypedTensor::Typef32(v) => write!(f, "({}, )", v),
+            TypedTensor::Typef32(v) => write!(f, "{}", v),
             TypedTensor::Typef64(v) => write!(f, "({}, )", v),
         }
     }
@@ -258,6 +258,9 @@ impl Tensor {
         Tensor::new()
     }
 
+
+
+
     pub fn cat() {}
     pub fn chunk() {}
     pub fn gather() {}
@@ -301,7 +304,7 @@ impl Tensor {
 
 impl fmt::Display for Tensor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, )", self.v.borrow())
+        write!(f, "{}", self.v.borrow())
     }
 }
 impl fmt::Debug for Tensor {

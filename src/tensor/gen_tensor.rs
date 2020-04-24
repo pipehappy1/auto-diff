@@ -510,8 +510,20 @@ impl<T> Eq for GenTensor<T> where T: num_traits::Float {}
 
 impl fmt::Display for GenTensor<f32> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.dim);
-        write!(f, "{:?}", self.d)
+        if self.dim.len() == 2 {
+            write!(f, "[");
+            for i in 0..self.dim[0] {
+                write!(f, "[");
+                for j in 0..self.dim[1] {
+                    write!(f, "{}, ", self.get(&vec![i, j]));
+                }
+                write!(f, "]\n");
+            }
+            write!(f, "]\n")
+        } else {
+            write!(f, "{:?}\n", self.dim);
+            write!(f, "{:?}", self.d)            
+        }
     }
 }
 impl fmt::Display for GenTensor<f64> {

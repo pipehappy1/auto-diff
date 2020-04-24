@@ -111,3 +111,32 @@ fn test_op_mse() {
     assert_eq!(c.get() , Tensor::from_vec_f32(&vec![2., ], &vec![]));
     println!("hehe");
 }
+
+#[test]
+fn test_linear_regression() {
+    
+//    fn func(input: &Tensor) -> Tensor {
+//        input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1]))
+//    }
+//
+//    let mut m = Module::new();
+//    m.set_seed(123);
+//    let x = m.normal(&vec![100, 2], 0., 2.);
+//
+//    //println!("LR: {}, {:?}", x.numel(), x.size());
+//    println!("LR x: {}", x);
+//
+//    let y = func(&x);
+//    println!("LR: {}", y);
+//
+//
+//    let mut m = Module::new();
+//    let input = m.var();
+//    let a = Linear(&input);
+//    let b = m.var();
+//
+//    let c = MSELoss(&a, &b);
+//    m.forward();
+//    m.backward_scale(-1.);
+    
+}

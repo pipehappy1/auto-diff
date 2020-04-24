@@ -3,6 +3,9 @@ use std::collections::BTreeSet;
 use std::fmt;
 use std::rc::Rc;
 
+use rand::prelude::*;
+use rand_distr::{Normal, Distribution, LogNormal};
+
 use super::collection::generational_index::*;
 use super::collection::graph::Graph;
 use super::tensor::Tensor;
@@ -11,6 +14,7 @@ use super::op::*;
 
 pub struct Module {
     net: Rc<RefCell<Net>>,
+    rng: StdRng,
 }
 
 /// Network holder.
@@ -18,6 +22,7 @@ impl Module {
     pub fn new() -> Module {
         Module {
             net: Rc::new(RefCell::new(Net::new())),
+            rng: StdRng::seed_from_u64(671),
         }
     }
 
@@ -43,13 +48,45 @@ impl Module {
     }
 
     /// Back propagation
-    pub fn grad(&self, og: &[Tensor]) -> Result<u32, &'static str> {
+    pub fn backward(&self, og: &[Tensor]) -> Result<u32, &'static str> {
 	Ok(0)
     }
 
-    /// Back propagation
-    pub fn backward(&self, og: &[Tensor]) -> Result<u32, &'static str> {
+    pub fn backward_scale(&self, og: f32) -> Result<u32, &'static str> {
 	Ok(0)
+    }
+
+
+    // random init
+    
+    pub fn set_seed(&mut self, seed: u64) {
+        self.rng = StdRng::seed_from_u64(seed);
+    }
+    
+    pub fn bernoulli() {}
+    pub fn cauchy() {}
+    pub fn exponential() {}
+    pub fn geometric() {}
+    pub fn log_normal() {}
+    
+    pub fn normal(&mut self, dim: &[usize], mean: f32, std: f32) -> Tensor {
+        let mut elem = 1;
+        for i in dim {
+            elem *= i;
+        }
+        let mut dta = Vec::<f32>::with_capacity(elem);
+        let normal = Normal::new(mean, std).expect("");
+        for i in 0..elem {
+            dta.push(normal.sample(&mut self.rng));
+        }
+        Tensor::from_vec_f32(&dta, dim)
+    }
+    
+    //pub fn random() {}
+    
+    pub fn uniform<F>(dim: &[usize], from: F, to: F) -> Tensor
+    where F: num_traits::Float {
+        Tensor::new()
     }
 }
 
@@ -59,7 +96,7 @@ macro_rules! var_op_method {
             let result = self.new_attached();
             self.net
                 .borrow_mut()
-                .connect(&vec![self.id, o.id], Box::new($a::new()), &vec![result.id]);
+                .connect(&vec![self.id, o.id], Op::new(Box::new($a::new())), &vec![result.id]);
             result
         }
     }
@@ -112,8 +149,17 @@ impl Var {
 
         self.net.borrow_mut().set_mark(&self.id);
     }
+
+    /// Get the underlying tensor.
     pub fn get(&self) -> Tensor {
         self.net.borrow().data.get(&self.id).expect("").clone()
+    }
+
+    /// apply the var to pre-faburacated op.
+    pub fn to(&self, op: &OpTrait) -> Var {
+        let result = self.new_attached();
+        //self.net.borrow_mut().connect(&vec![self.id], Box::new(op), &vec![result.id]);
+        result
     }
 
     // Convient method definition.
@@ -136,7 +182,7 @@ impl fmt::Display for Var {
 
 pub fn MSELoss(a: &Var, b: &Var) -> Var {
     let result = a.new_attached();
-    a.net.borrow_mut().connect(&vec![a.id, b.id], Box::new(MSELoss::new()), &vec![result.id]);
+    a.net.borrow_mut().connect(&vec![a.id, b.id], Op::new(Box::new(MSELoss::new())), &vec![result.id]);
     result
 }
 
@@ -146,7 +192,7 @@ pub fn MSELoss(a: &Var, b: &Var) -> Var {
 /// Connection has duplication.
 struct Net {
     data: GenIndex<Tensor>,
-    ops: GenIndex<RefCell<Box<dyn Op>>>,
+    ops: GenIndex<Op>,
     set_mark: BTreeSet<NetIndex>,
     graph: Graph,
 }
@@ -171,14 +217,14 @@ impl Net {
     fn del_var(&mut self, var: &NetIndex) {}
 
     /// Insert operator into the network.
-    fn init_op(&mut self, op: Box<dyn Op>) -> NetIndex {
-        let id = self.ops.insert(RefCell::new(op));
+    fn init_op(&mut self, op: Op) -> NetIndex {
+        let id = self.ops.insert(op.clone());
         self.graph.add_op(&id);
         id
     }
 
     /// Build input-operator-output relation, with given components.
-    fn connect(&mut self, input: &[NetIndex], op: Box<dyn Op>, output: &[NetIndex]) {
+    fn connect(&mut self, input: &[NetIndex], op: Op, output: &[NetIndex]) {
         let opid = self.init_op(op);
         self.graph.connect(input, output, &opid);
     }
@@ -223,7 +269,6 @@ impl Net {
                     self.ops
                         .get(op)
                         .expect("")
-                        .borrow_mut()
                         .apply(&inputs, &outputs);
                 }
             )?;
@@ -231,5 +276,4 @@ impl Net {
         Ok(())
     }
 
-    
 }
