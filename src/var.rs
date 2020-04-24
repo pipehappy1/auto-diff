@@ -156,10 +156,18 @@ impl Var {
     }
 
     /// apply the var to pre-faburacated op.
-    pub fn to(&self, op: &OpTrait) -> Var {
+    pub fn to(&self, op: &Op) -> Var {
         let result = self.new_attached();
-        //self.net.borrow_mut().connect(&vec![self.id], Box::new(op), &vec![result.id]);
+        self.net.borrow_mut().connect(&vec![self.id], op.clone(), &vec![result.id]);
         result
+    }
+
+    // uplift method from Tensor to Var
+    pub fn size(&self) -> Vec<usize> {
+        self.net.borrow().data.get(&self.id).expect("").size()
+    }
+    pub fn numel(&self) -> usize {
+        self.net.borrow().data.get(&self.id).expect("").numel()
     }
 
     // Convient method definition.
@@ -180,6 +188,7 @@ impl fmt::Display for Var {
     }
 }
 
+// uplift loss function from op to here.
 pub fn MSELoss(a: &Var, b: &Var) -> Var {
     let result = a.new_attached();
     a.net.borrow_mut().connect(&vec![a.id, b.id], Op::new(Box::new(MSELoss::new())), &vec![result.id]);
@@ -254,6 +263,8 @@ impl Net {
                 &all_input[..],
                 true,
                 |input, output, op| {
+                    println!("op: {}", self.ops.get(op).expect("").get_name());
+                    
                     let mut inputs: Vec<&Tensor> = Vec::new();
                     for input_id in input {
                         let a = self.data.get(input_id).expect("");
@@ -270,6 +281,9 @@ impl Net {
                         .get(op)
                         .expect("")
                         .apply(&inputs, &outputs);
+                    
+                    println!("var.rs: {:?}", outputs[0].size());
+                    
                 }
             )?;
 

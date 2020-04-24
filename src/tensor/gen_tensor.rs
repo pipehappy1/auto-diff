@@ -1,6 +1,6 @@
 use std::fmt;
 
-/// Naive tensor implementation, single thread, no check.
+/// Naive tensor implementation, single thread
 pub struct GenTensor<T> {
     d: Vec<T>,
     dim: Vec<usize>,
@@ -102,14 +102,14 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     pub fn get_N(&self) -> GenTensor<T> {
         GenTensor {
             d: vec![T::from(self.dim[0]).expect("N")],
-            dim: vec![],
+            dim: vec![1],
         }
     }
     /// get NCHW elements, always return the size of second left most dimension.
     pub fn get_C(&self) -> GenTensor<T> {
         GenTensor {
             d: vec![T::from(self.dim[1]).expect("N")],
-            dim: vec![],
+            dim: vec![1],
         }
     }
     /// get NCDHW elements, will require the self.dim has 5 dimensions.
@@ -117,7 +117,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if self.dim.len() == 5 {
             GenTensor {
                 d: vec![T::from(self.dim[2]).expect("N")],
-                dim: vec![],
+                dim: vec![1],
             }            
         } else {
             panic!("Bad shape for get_D");
@@ -129,12 +129,12 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if self.dim.len() == 5 {
             GenTensor {
                 d: vec![T::from(self.dim[3]).expect("N")],
-                dim: vec![],
+                dim: vec![1],
             }
         } else if self.dim.len() == 4 {
             GenTensor {
                 d: vec![T::from(self.dim[2]).expect("N")],
-                dim: vec![],
+                dim: vec![1],
             }
         } else {
             panic!("Bad shape for get_D");
@@ -145,12 +145,12 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if self.dim.len() == 5 {
             GenTensor {
                 d: vec![T::from(self.dim[4]).expect("N")],
-                dim: vec![],
+                dim: vec![1],
             }
         } else if self.dim.len() == 4 {
             GenTensor {
                 d: vec![T::from(self.dim[3]).expect("N")],
-                dim: vec![],
+                dim: vec![1],
             }
         } else {
             panic!("Bad shape for get_D");
@@ -180,7 +180,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         GenTensor {
             d: vec![sum],
-            dim: vec![],
+            dim: vec![1],
         }
     }
 
@@ -274,6 +274,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// assert!(result == GenTensor::<f64>::new_raw(&vec![12.,15.,18.,26.,33.,40.,40.,51.,62.,], &vec![3,3]), "");
     /// ```
     pub fn mm(&self, o: &GenTensor<T>) -> GenTensor<T>{
+        if self.dim.len() != 2 || o.dim.len() != 2 {
+            panic!("Not a matrix input.");
+        }
         let ls = self.dim[0];
         let rs = o.dim[1];
         let mut ret = GenTensor {

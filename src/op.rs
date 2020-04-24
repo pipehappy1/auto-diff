@@ -133,6 +133,7 @@ impl OpTrait for Linear {
             }
             self._new();
         }
+
         let ret = input[0].matmul(&self.weight);
         output[0].swap(ret);
 
@@ -140,8 +141,6 @@ impl OpTrait for Linear {
             let ret = output[0].add(&self.bias);
             output[0].swap(ret);
         }
-
-
     }
     fn grad(&self, input: u32, output: u32) {
         
@@ -180,8 +179,8 @@ impl OpTrait for MSELoss {
         // TODO: wait for Tensor to have lazy evaluation for elemwise operation.
         let tmp = input[0].sub(input[1]);
         let tmp2 = tmp.mul(&tmp);
-        
-        let ret = tmp2.sum().div(&tmp2.get_N());
+        let tmp3 = tmp2.sum();
+        let ret = tmp3.div(&input[0].get_N().mul(&input[0].get_C()));
         output[0].swap(ret);
     }
     fn grad(&self, input: u32, output: u32) {

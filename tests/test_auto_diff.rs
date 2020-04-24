@@ -1,6 +1,7 @@
 use auto_diff::var::*;
 use auto_diff::tensor::*;
 use auto_diff::collection::generational_index::*;
+use auto_diff::op::{Op, Linear};
 
 #[test]
 fn test_gen_index() {
@@ -108,35 +109,45 @@ fn test_op_mse() {
     m.forward();
     println!("test_op_mse, c: {}", c);
     
-    assert_eq!(c.get() , Tensor::from_vec_f32(&vec![2., ], &vec![]));
+    assert_eq!(c.get() , Tensor::from_vec_f32(&vec![1., ], &vec![1]));
     println!("hehe");
 }
 
 #[test]
 fn test_linear_regression() {
+
+    println!("The beginning of  linear regression");
+
+    fn func(input: &Tensor) -> Tensor {
+        input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1]))
+    }
+
+    let N = 100;
+    let mut m = Module::new();
+    m.set_seed(123);
+    let x = m.normal(&vec![N, 2], 0., 2.);
+
+    //println!("LR: {}, {:?}", x.numel(), x.size());
+    // println!("LR x: {}", x);
+
+    let y = func(&x);
+    // println!("LR: {}", y);
+
+
+    let input = m.var();
+    let output = input.to(&Op::new(Box::new(Linear::new(Some(2), Some(1), true))));
+    let label = m.var();
+
+    let loss = MSELoss(&output, &label);
+
+    input.set(x);
+    label.set(y);
     
-//    fn func(input: &Tensor) -> Tensor {
-//        input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1]))
-//    }
-//
-//    let mut m = Module::new();
-//    m.set_seed(123);
-//    let x = m.normal(&vec![100, 2], 0., 2.);
-//
-//    //println!("LR: {}, {:?}", x.numel(), x.size());
-//    println!("LR x: {}", x);
-//
-//    let y = func(&x);
-//    println!("LR: {}", y);
-//
-//
-//    let mut m = Module::new();
-//    let input = m.var();
-//    let a = Linear(&input);
-//    let b = m.var();
-//
-//    let c = MSELoss(&a, &b);
-//    m.forward();
-//    m.backward_scale(-1.);
+    m.forward();
+    println!("LR: {:?}", output.size());
+    println!("LR: {:?}", loss.size());
     
+    m.backward_scale(-1.);
+
+    println!("End of linear regression");
 }
