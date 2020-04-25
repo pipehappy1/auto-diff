@@ -3,8 +3,7 @@ use std::collections::BTreeSet;
 use std::fmt;
 use std::rc::Rc;
 
-use rand::prelude::*;
-use rand_distr::{Normal, Distribution, LogNormal};
+
 
 use super::collection::generational_index::*;
 use super::collection::graph::Graph;
@@ -14,7 +13,7 @@ use super::op::*;
 
 pub struct Module {
     net: Rc<RefCell<Net>>,
-    rng: StdRng,
+
 }
 
 /// Network holder.
@@ -22,7 +21,6 @@ impl Module {
     pub fn new() -> Module {
         Module {
             net: Rc::new(RefCell::new(Net::new())),
-            rng: StdRng::seed_from_u64(671),
         }
     }
 
@@ -54,39 +52,6 @@ impl Module {
 
     pub fn backward_scale(&self, og: f32) -> Result<u32, &'static str> {
 	Ok(0)
-    }
-
-
-    // random init
-    
-    pub fn set_seed(&mut self, seed: u64) {
-        self.rng = StdRng::seed_from_u64(seed);
-    }
-    
-    pub fn bernoulli() {}
-    pub fn cauchy() {}
-    pub fn exponential() {}
-    pub fn geometric() {}
-    pub fn log_normal() {}
-    
-    pub fn normal(&mut self, dim: &[usize], mean: f32, std: f32) -> Tensor {
-        let mut elem = 1;
-        for i in dim {
-            elem *= i;
-        }
-        let mut dta = Vec::<f32>::with_capacity(elem);
-        let normal = Normal::new(mean, std).expect("");
-        for i in 0..elem {
-            dta.push(normal.sample(&mut self.rng));
-        }
-        Tensor::from_vec_f32(&dta, dim)
-    }
-    
-    //pub fn random() {}
-    
-    pub fn uniform<F>(dim: &[usize], from: F, to: F) -> Tensor
-    where F: num_traits::Float {
-        Tensor::new()
     }
 }
 

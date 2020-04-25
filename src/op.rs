@@ -4,6 +4,15 @@ use std::rc::Rc;
 
 use super::tensor::Tensor;
 
+/// All op is OpTrait
+pub trait OpTrait {
+    fn get_name(&self) -> String;
+    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
+    fn grad(&self, input: u32, output: u32);
+}
+
+
+
 pub struct Op {
     o: Rc<RefCell<Box<dyn OpTrait>>>,
 }
@@ -35,11 +44,7 @@ impl Clone for Op {
 }
 
 
-pub trait OpTrait {
-    fn get_name(&self) -> String;
-    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
-    fn grad(&self, input: u32, output: u32);
-}
+
 
 macro_rules! new_binary_op {
     ($a:ident, $b:expr, $c:tt) => {

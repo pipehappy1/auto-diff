@@ -2,6 +2,7 @@ use auto_diff::var::*;
 use auto_diff::tensor::*;
 use auto_diff::collection::generational_index::*;
 use auto_diff::op::{Op, Linear};
+use auto_diff::rand::*;
 
 #[test]
 fn test_gen_index() {
@@ -124,18 +125,19 @@ fn test_linear_regression() {
 
     let N = 100;
     let mut m = Module::new();
-    m.set_seed(123);
-    let x = m.normal(&vec![N, 2], 0., 2.);
+    let mut rng = RNG::new();
+    rng.set_seed(123);
+    let x = rng.normal(&vec![N, 2], 0., 2.);
 
     //println!("LR: {}, {:?}", x.numel(), x.size());
     // println!("LR x: {}", x);
 
     let y = func(&x);
     // println!("LR: {}", y);
-
+    let op = Linear::new(Some(2), Some(1), true);
 
     let input = m.var();
-    let output = input.to(&Op::new(Box::new(Linear::new(Some(2), Some(1), true))));
+    let output = input.to(&Op::new(Box::new(op)));
     let label = m.var();
 
     let loss = MSELoss(&output, &label);
