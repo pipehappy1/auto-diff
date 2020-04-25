@@ -45,4 +45,12 @@ impl RNG {
         Tensor::new()
     }
 
+    //// in place operation
+    pub fn normal_(&mut self, o: &Tensor, mean: f32, std: f32) {
+        
+    }
+
+    pub fn uniform_(&mut self, o: &Tensor, from: f32, to: f32) {
+        
+    }
 }
