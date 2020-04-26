@@ -162,12 +162,12 @@ impl Graph {
     where F: Fn(&[NetIndex], &[NetIndex], &NetIndex)  {
         let mut fdo = &self.forward_dt_op;
         let mut fod = &self.forward_op_dt;
-        let mut bdo = &self.backward_dt_op;
+        //let mut bdo = &self.backward_dt_op;
         let mut bod = &self.backward_op_dt;
         if !forward {
             fdo = &self.backward_dt_op;
             fod = &self.backward_op_dt;
-            bdo = &self.forward_dt_op;
+            //bdo = &self.forward_dt_op;
             bod = &self.forward_op_dt;
         }
 
@@ -255,7 +255,7 @@ mod tests {
     
     #[test]
     fn new() {
-        let g = Graph::new();
+        let _g = Graph::new();
     }
 
     // A   B
@@ -263,18 +263,18 @@ mod tests {
     //   Op
     //   |
     //   C
-    fn setup_Y(g: &mut Graph) {
-        let data_A = NetIndex::new(0,0);
-        let data_B = NetIndex::new(1,0);
-        let data_C = NetIndex::new(2,0);
-        g.add_data(&data_A);
-        g.add_data(&data_B);
-        g.add_data(&data_C);
+    fn setup_y(g: &mut Graph) {
+        let data_a = NetIndex::new(0,0);
+        let data_b = NetIndex::new(1,0);
+        let data_c = NetIndex::new(2,0);
+        g.add_data(&data_a).expect("");
+        g.add_data(&data_b).expect("");
+        g.add_data(&data_c).expect("");
         
-        let op_A = NetIndex::new(0,0);
-        g.add_op(&op_A);
+        let op_a = NetIndex::new(0,0);
+        g.add_op(&op_a).expect("");
 
-        g.connect(&[data_A, data_B], &[data_C,], &op_A);
+        g.connect(&[data_a, data_b], &[data_c,], &op_a).expect("");
     }
 
     // A   B
@@ -286,46 +286,46 @@ mod tests {
     //     Op2
     //     |
     //     E
-    fn setup_YY(g: &mut Graph) {
-        let data_A = NetIndex::new(0,0);
-        let data_B = NetIndex::new(1,0);
-        let data_C = NetIndex::new(2,0);
-        let data_D = NetIndex::new(3,0);
-        let data_E = NetIndex::new(4,0);
-        g.add_data(&data_A);
-        g.add_data(&data_B);
-        g.add_data(&data_C);
-        g.add_data(&data_D);
-        g.add_data(&data_E);
+    fn setup_yy(g: &mut Graph) {
+        let data_a = NetIndex::new(0,0);
+        let data_b = NetIndex::new(1,0);
+        let data_c = NetIndex::new(2,0);
+        let data_d = NetIndex::new(3,0);
+        let data_e = NetIndex::new(4,0);
+        g.add_data(&data_a).expect("");
+        g.add_data(&data_b).expect("");
+        g.add_data(&data_c).expect("");
+        g.add_data(&data_d).expect("");
+        g.add_data(&data_e).expect("");
         
         let op1 = NetIndex::new(0,0);
-        g.add_op(&op1);
+        g.add_op(&op1).expect("");
         let op2 = NetIndex::new(1,0);
-        g.add_op(&op2);
+        g.add_op(&op2).expect("");
 
-        g.connect(&[data_A, data_B], &[data_C,], &op1);
-        g.connect(&[data_C, data_D], &[data_E,], &op2);
+        g.connect(&[data_a, data_b], &[data_c,], &op1).expect("");
+        g.connect(&[data_c, data_d], &[data_e,], &op2).expect("");
     }
 
     #[test]
     fn test_get_input_cache() {
         let mut g = Graph::new();
-        setup_Y(&mut g);
+        setup_y(&mut g);
         assert_eq!(g.get_input_cache().len(), 2);
 
         let mut g = Graph::new();
-        setup_YY(&mut g);
+        setup_yy(&mut g);
         assert_eq!(g.get_input_cache().len(), 3);
     }
 
     #[test]
     fn test_get_output_cache() {
         let mut g = Graph::new();
-        setup_Y(&mut g);
+        setup_y(&mut g);
         assert_eq!(g.get_output_cache().len(), 1);
 
         let mut g = Graph::new();
-        setup_YY(&mut g);
+        setup_yy(&mut g);
         assert_eq!(g.get_output_cache().len(), 1);
     }
 }
