@@ -46,12 +46,12 @@ impl Module {
     }
 
     /// Back propagation
-    pub fn backward(&self, og: &[Tensor]) -> Result<u32, &'static str> {
+    pub fn backward_vector(&self, og: &[Tensor]) -> Result<u32, &'static str> {
 	Ok(0)
     }
 
-    pub fn backward_scale(&self, og: f32) -> Result<u32, &'static str> {
-	Ok(0)
+    pub fn backward(&self, og: f32) {
+	self.net.borrow_mut().bptt(og);
     }
 }
 
@@ -253,6 +253,10 @@ impl Net {
             )?;
 
         Ok(())
+    }
+
+    fn bptt(&mut self, r: f32) {
+        
     }
 
 }

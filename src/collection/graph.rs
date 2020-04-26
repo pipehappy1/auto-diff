@@ -43,7 +43,8 @@ impl Graph {
             Err("data is exits!")
         }
     }
-    
+
+    /// Remove a data node, op node and downstream data/op node are removed.
     pub fn del_data(&mut self, id: &NetIndex) -> Result<NetIndex, &str> {
         if self.data.contains(id) {
             self.data.remove(id);
@@ -61,7 +62,8 @@ impl Graph {
             Err("data id is not found!")
         }
     }
-    
+
+    /// Add a danglging op node.
     pub fn add_op(&mut self, id: &NetIndex) -> Result<NetIndex, &str> {
         if !self.op.contains(id) {
             self.op.insert(*id);
@@ -72,6 +74,8 @@ impl Graph {
             Err("op id exists.")
         }
     }
+
+    /// Remvoe an op node, input data node and downstream data/op node are removed.
     pub fn del_op(&mut self, id: &NetIndex) -> Result<NetIndex, &str> {
         if self.op.contains(id) {
             self.op.remove(id);
@@ -88,6 +92,28 @@ impl Graph {
             Err("op id is not found!")
         }
 
+    }
+
+    /// list data node without upstream op node in a set.
+    pub fn get_input_cache(&self) -> BTreeSet<NetIndex> {
+        let mut jobs = BTreeSet::<NetIndex>::new();
+        for i in &self.data {
+            if self.backward_dt_op.get(i).expect("").len() <= 0 {
+                jobs.insert(i.clone());
+            }
+        }
+        jobs
+    }
+
+    /// list data node without downstream op node in a set.
+    pub fn get_output_cache(&self) -> BTreeSet<NetIndex> {
+        let mut jobs = BTreeSet::<NetIndex>::new();
+        for i in &self.data {
+            if self.forward_dt_op.get(i).expect("").len() <= 0 {
+                jobs.insert(i.clone());
+            }
+        }
+        jobs
     }
 
     /// Connect input data, output data and operation
@@ -157,7 +183,7 @@ impl Graph {
         loop {
             let mut made_progress = false;
 
-            // collect ops needs to do
+            // collect ops needs to do given the data in jobs.
             let mut edge_op = BTreeSet::<NetIndex>::new();
             for dt in &jobs {
                 for op_candidate in &fdo[dt] {
@@ -171,20 +197,24 @@ impl Graph {
                     .iter()
                     .all(|dt| jobs.contains(dt)) {
 
+                        // collect input ids.
                         let mut inputs = Vec::<NetIndex>::new();
                         for input in bod[&op_candidate].iter() {
                             inputs.push(input.clone());
                         }
+                        // collect output ids.
                         let mut outputs = Vec::<NetIndex>::new();
                         for output in fod[&op_candidate].iter() {
                             outputs.push(output.clone());
                         }
 
+                        // all the closure
                         closure(&inputs, &outputs, &op_candidate);
 
                         // maintain the list
                         // the following line should go before the rest.
-                        done.insert(op_candidate); 
+                        done.insert(op_candidate);
+                        // remove the data from jobs if all its downstream op is done.
                         for input in bod[&op_candidate].iter() {
                             if fdo[input]
                                 .iter()
@@ -192,13 +222,15 @@ impl Graph {
                                     jobs.remove(input);
                                 }
                         }
+                        // add the output back to the jobs.
                         for output in fod[&op_candidate].iter() {
                             // don't add to jobs if it's the final data node.
                             if fdo[output].len() > 0 {
                                 jobs.insert(*output);                                
                             }
                         }
-                        
+
+                        // flag there is sth done.
                         made_progress = true;
                     }
             }
@@ -213,5 +245,87 @@ impl Graph {
         } else {
             Ok(())
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn new() {
+        let g = Graph::new();
+    }
+
+    // A   B
+    //  \ /
+    //   Op
+    //   |
+    //   C
+    fn setup_Y(g: &mut Graph) {
+        let data_A = NetIndex::new(0,0);
+        let data_B = NetIndex::new(1,0);
+        let data_C = NetIndex::new(2,0);
+        g.add_data(&data_A);
+        g.add_data(&data_B);
+        g.add_data(&data_C);
+        
+        let op_A = NetIndex::new(0,0);
+        g.add_op(&op_A);
+
+        g.connect(&[data_A, data_B], &[data_C,], &op_A);
+    }
+
+    // A   B
+    //  \ /
+    //   Op1
+    //   |
+    //   C   D
+    //    \ /
+    //     Op2
+    //     |
+    //     E
+    fn setup_YY(g: &mut Graph) {
+        let data_A = NetIndex::new(0,0);
+        let data_B = NetIndex::new(1,0);
+        let data_C = NetIndex::new(2,0);
+        let data_D = NetIndex::new(3,0);
+        let data_E = NetIndex::new(4,0);
+        g.add_data(&data_A);
+        g.add_data(&data_B);
+        g.add_data(&data_C);
+        g.add_data(&data_D);
+        g.add_data(&data_E);
+        
+        let op1 = NetIndex::new(0,0);
+        g.add_op(&op1);
+        let op2 = NetIndex::new(1,0);
+        g.add_op(&op2);
+
+        g.connect(&[data_A, data_B], &[data_C,], &op1);
+        g.connect(&[data_C, data_D], &[data_E,], &op2);
+    }
+
+    #[test]
+    fn test_get_input_cache() {
+        let mut g = Graph::new();
+        setup_Y(&mut g);
+        assert_eq!(g.get_input_cache().len(), 2);
+
+        let mut g = Graph::new();
+        setup_YY(&mut g);
+        assert_eq!(g.get_input_cache().len(), 3);
+    }
+
+    #[test]
+    fn test_get_output_cache() {
+        let mut g = Graph::new();
+        setup_Y(&mut g);
+        assert_eq!(g.get_output_cache().len(), 1);
+
+        let mut g = Graph::new();
+        setup_YY(&mut g);
+        assert_eq!(g.get_output_cache().len(), 1);
     }
 }

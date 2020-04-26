@@ -5,8 +5,6 @@ use auto_diff::var::{Module, MSELoss};
 
 fn main() {
 
-    println!("The beginning of  linear regression");
-
     fn func(input: &Tensor) -> Tensor {
         input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1]))
     }
@@ -39,7 +37,6 @@ fn main() {
     println!("LR: {}", output);
     println!("LR: {}", loss);
     
-    m.backward_scale(-1.);
+    m.backward(-1.);
 
-    println!("End of linear regression");
 }
