@@ -38,6 +38,12 @@ impl<T> GenIndex<T> {
         }
     }
 
+    pub fn clear(&mut self) {
+        self.data = Vec::new();
+        self.generation = Vec::new();
+        self.available = Vec::new();
+    }
+
     pub fn get(&self, index: &NetIndex) -> Option<&T> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             Option::Some(&self.data[index.id])

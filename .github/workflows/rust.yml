@@ -17,3 +17,7 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Run examples
+      run: cargo run --verbose --example linear_regression
+    - name: Run benchmark
+      run: cargo bench --verbose
