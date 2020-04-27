@@ -4,7 +4,6 @@ use std::fmt;
 use std::rc::Rc;
 
 
-
 use super::collection::generational_index::*;
 use super::collection::graph::Graph;
 use super::tensor::Tensor;
@@ -231,7 +230,7 @@ impl Net {
                 &all_input[..],
                 true,
                 |input, output, op| {
-                    println!("op: {}", self.ops.get(op).expect("").get_name());
+                    //println!("op: {}", self.ops.get(op).expect("").get_name());
                     
                     let mut inputs: Vec<&Tensor> = Vec::new();
                     for input_id in input {
@@ -250,7 +249,7 @@ impl Net {
                         .expect("")
                         .apply(&inputs, &outputs);
                     
-                    println!("var.rs: {:?}", outputs[0].size());
+                    //println!("var.rs: {:?}", outputs[0].size());
                     
                 }
             )?;
@@ -299,7 +298,7 @@ impl Net {
                     self.ops
                         .get(op)
                         .expect("")
-                        .apply(&inputs, &outputs);
+                        .grad(&inputs, &outputs);
                     
                     println!("var.rs: {:?}", outputs[0].size());
                     

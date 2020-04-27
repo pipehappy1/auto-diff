@@ -30,6 +30,7 @@ pub struct GenIndex<T> {
 }
 
 impl<T> GenIndex<T> {
+    /// Create an empty GenIndex
     pub fn new() -> GenIndex<T> {
         GenIndex::<T> {
             data: Vec::new(),
@@ -38,12 +39,14 @@ impl<T> GenIndex<T> {
         }
     }
 
+    /// Clear the GenIndex
     pub fn clear(&mut self) {
         self.data = Vec::new();
         self.generation = Vec::new();
         self.available = Vec::new();
     }
 
+    /// Return the registered item
     pub fn get(&self, index: &NetIndex) -> Option<&T> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             Option::Some(&self.data[index.id])
@@ -52,6 +55,7 @@ impl<T> GenIndex<T> {
         }
     }
 
+    /// Return a mut reference.
     pub fn get_mut(&mut self, index: &NetIndex) -> Option<&mut T> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             Option::Some(&mut self.data[index.id])
@@ -60,6 +64,13 @@ impl<T> GenIndex<T> {
         }
     }
 
+    /// Number of item in the list.
+    pub fn len(&self) -> usize {
+        let mut total = self.data.len();
+        1
+    }
+
+    /// Add a new item to the list.
     pub fn insert(&mut self, val: T) -> NetIndex {
         let mut ret = NetIndex::new(0, 0);
         if self.available.len() <= 0 {
@@ -75,18 +86,25 @@ impl<T> GenIndex<T> {
         ret
     }
 
-    pub fn remove(&mut self, index: &NetIndex) -> bool {
+    /// Remove an item from the list.
+    pub fn remove(&mut self, index: &NetIndex) -> Result<(), ()> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             self.generation[index.id] += 1;
             self.available.push(index.id);
-            true
+            Ok(())
         } else {
-            false
+            Err(())
         }
     }
 
-    pub fn replace(&mut self, index: &NetIndex, val: T) {
-        self.data[index.id] = val;
+    /// Replace the item of the index with a new one.
+    pub fn replace(&mut self, index: &NetIndex, val: T) -> Result<(), ()> {
+        if index.id < self.data.len() && self.generation[index.id] == index.gen {
+            self.data[index.id] = val;
+            Ok(())
+        } else {
+            Err(())
+        }
     }
 }
 
@@ -95,5 +113,55 @@ impl<T> Iterator for GenIndex<T> {
     
     fn next(&mut self) -> Option<NetIndex> {
         Some(NetIndex::new(0,0))
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn genindex_new_add_del() {
+        let mut g = GenIndex::<f32>::new();
+        let index1 = g.insert(1.);
+        assert_eq!(g.remove(&index1).expect(""), ());
+
+        let index2 = g.insert(2.);
+        let index3 = g.insert(3.);
+
+        assert_eq!(*g.get(&index2).expect(""), 2.);
+        assert_eq!(*g.get(&index3).expect(""), 3.);
+
+        g.clear();
+    }
+
+    #[test]
+    fn test_gen_index() {
+        #[derive(Debug, Copy, Clone)]
+        struct A {
+            v: u32,
+        };
+        let mut a = GenIndex::<A>::new();
+    
+        let index1 = a.insert(A { v: 10 });
+        assert_eq!(index1, NetIndex::new(0, 0));
+        let index2 = a.insert(A { v: 20 });
+        assert_eq!(index2, NetIndex::new(1, 0));
+    
+        let tv1 = a.get(&index1).unwrap().v;
+        assert_eq!(tv1, 10);
+        let tv2 = a.get(&index2).unwrap().v;
+        assert_eq!(tv2, 20);
+        let tv_none = a.get(&NetIndex::new(0, 1));
+        assert_eq!(tv_none.is_none(), true);
+    
+        let a2 = a.remove(&index2);
+        let tv_none = a.get(&index2);
+        assert_eq!(tv_none.is_none(), true);
+        assert_eq!(a2.expect(""), ());
+    
+        let index3 = a.insert(A { v: 30 });
+        assert_eq!(index3, NetIndex::new(1, 1));
     }
 }
