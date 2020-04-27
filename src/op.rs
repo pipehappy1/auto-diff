@@ -68,20 +68,20 @@ macro_rules! new_binary_op {
     }
 }
 
-new_binary_op!(add, "add",
+new_binary_op!(Add, "add",
                (|a:&[&Tensor], b:&[&Tensor]|
                 b[0].swap(a[0].add(&a[1]))
                )
 );
-new_binary_op!(sub, "sub",
+new_binary_op!(Sub, "sub",
                (|a:&[&Tensor], b:&[&Tensor]|
                 b[0].swap(a[0].sub(a[1])))
 );
-new_binary_op!(mul, "mul",
+new_binary_op!(Mul, "mul",
                (|a:&[&Tensor], b:&[&Tensor]|
                 b[0].swap(a[0].mul(a[1])))
 );
-new_binary_op!(div, "div",
+new_binary_op!(Div, "div",
                (|a:&[&Tensor], b:&[&Tensor]|
                 b[0].swap(a[0].div(a[1])))
 );

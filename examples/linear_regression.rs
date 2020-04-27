@@ -1,7 +1,7 @@
 use auto_diff::tensor::Tensor;
 use auto_diff::rand::RNG;
 use auto_diff::op::{Linear, Op};
-use auto_diff::var::{Module, MSELoss};
+use auto_diff::var::{Module, mseloss};
 
 fn main() {
 
@@ -28,7 +28,7 @@ fn main() {
     let output = input.to(&Op::new(Box::new(op)));
     let label = m.var();
 
-    let loss = MSELoss(&output, &label);
+    let loss = mseloss(&output, &label);
 
     input.set(x);
     label.set(y);

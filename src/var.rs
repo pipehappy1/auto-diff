@@ -45,8 +45,8 @@ impl Module {
     }
 
     /// Back propagation
-    pub fn backward_vector(&self, og: &[Tensor]) -> Result<u32, &'static str> {
-	Ok(0)
+    pub fn backward_vector(&self, og: &BTreeMap<NetIndex, Tensor>) {
+	self.net.borrow_mut().bptt(og);
     }
 
     pub fn backward(&self, og: f32) {
@@ -56,12 +56,12 @@ impl Module {
 }
 
 macro_rules! var_op_method {
-    ($a:ident) => {
+    ($a:ident, $b:ident) => {
         pub fn $a(&self, o: &Var) -> Var {
             let result = self.new_attached();
             self.net
                 .borrow_mut()
-                .connect(&vec![self.id, o.id], Op::new(Box::new($a::new())), &vec![result.id]);
+                .connect(&vec![self.id, o.id], Op::new(Box::new($b::new())), &vec![result.id]);
             result
         }
     }
@@ -110,7 +110,7 @@ impl Var {
         self.net
             .borrow_mut()
             .data
-            .replace(&self.id, v);
+            .replace(&self.id, v).expect("");
 
         self.net.borrow_mut().set_mark(&self.id);
     }
@@ -136,10 +136,10 @@ impl Var {
     }
 
     // Convient method definition.
-    var_op_method!(add);
-    var_op_method!(sub);
-    var_op_method!(mul);
-    var_op_method!(div);
+    var_op_method!(add, Add);
+    var_op_method!(sub, Sub);
+    var_op_method!(mul, Mul);
+    var_op_method!(div, Div);
 }
 
 impl fmt::Display for Var {
@@ -154,7 +154,7 @@ impl fmt::Display for Var {
 }
 
 // uplift loss function from op to here.
-pub fn MSELoss(a: &Var, b: &Var) -> Var {
+pub fn mseloss(a: &Var, b: &Var) -> Var {
     let result = a.new_attached();
     a.net.borrow_mut().connect(&vec![a.id, b.id], Op::new(Box::new(MSELoss::new())), &vec![result.id]);
     result
@@ -190,7 +190,10 @@ impl Net {
         var.id = id;
     }
 
-    fn del_var(&mut self, var: &NetIndex) {}
+    fn del_var(&mut self, var: &Var) {
+        self.data.remove(&var.id).expect("");
+        self.graph.del_data(&var.id).expect("");
+    }
 
     /// Insert operator into the network.
     fn init_op(&mut self, op: Op) -> NetIndex {
@@ -202,7 +205,7 @@ impl Net {
     /// Build input-operator-output relation, with given components.
     fn connect(&mut self, input: &[NetIndex], op: Op, output: &[NetIndex]) {
         let opid = self.init_op(op);
-        self.graph.connect(input, output, &opid);
+        self.graph.connect(input, output, &opid).expect("");
     }
 
     /// set the set_mark, set_mark is used to label var with input value with it.
@@ -304,8 +307,14 @@ impl Net {
                     
                 }
             ).expect("");
-
-
     }
+}
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn genindex_new_add_del() {
+    }
 }

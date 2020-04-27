@@ -66,8 +66,7 @@ impl<T> GenIndex<T> {
 
     /// Number of item in the list.
     pub fn len(&self) -> usize {
-        let mut total = self.data.len();
-        1
+        self.data.len() - self.available.len()
     }
 
     /// Add a new item to the list.
@@ -124,12 +123,14 @@ mod tests {
     #[test]
     fn genindex_new_add_del() {
         let mut g = GenIndex::<f32>::new();
+        assert_eq!(g.len(), 0);
         let index1 = g.insert(1.);
+        assert_eq!(g.len(), 1);
         assert_eq!(g.remove(&index1).expect(""), ());
 
         let index2 = g.insert(2.);
         let index3 = g.insert(3.);
-
+        assert_eq!(g.len(), 2);
         assert_eq!(*g.get(&index2).expect(""), 2.);
         assert_eq!(*g.get(&index3).expect(""), 3.);
 

@@ -67,7 +67,7 @@ fn test_bf() {
     a.set(Tensor::new());
     b.set(Tensor::new());
     m.forward();
-    m.backward_vector(&vec![Tensor::new()]);
+    m.backward(-1.);
 }
 
 
@@ -77,7 +77,7 @@ fn test_op_mse() {
     let a = m.var();
     let b = m.var();
 
-    let c = MSELoss(&a, &b);
+    let c = mseloss(&a, &b);
     a.set(Tensor::from_vec_f32(&vec![1., 2., 3., 4., 5., 6.,], &vec![3, 2]));
     b.set(Tensor::from_vec_f32(&vec![2., 3., 4., 5., 6., 7.,], &vec![3, 2]));
     m.forward();

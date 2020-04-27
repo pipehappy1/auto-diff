@@ -14,7 +14,7 @@ macro_rules! typed_tensor_method_single_same_return {
             match &self {
                 TypedTensor::Typef32(v1) => {v1.$a()},
                 TypedTensor::Typef64(v1) => {v1.$a()},
-                _ => {panic!("should have same tensor type!");},
+                //_ => {panic!("should have same tensor type!");},
             }
         }
     }
@@ -26,7 +26,7 @@ macro_rules! typed_tensor_method_single_tensor_return {
             match &self {
                 TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.$a())},
                 TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.$a())},
-                _ => {panic!("should have same tensor type!");},
+                //_ => {panic!("should have same tensor type!");},
             }
         }
     }
@@ -72,7 +72,7 @@ impl TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {v1.unsqueeze(dim)},
             TypedTensor::Typef64(v1) => {v1.unsqueeze(dim)},
-            _ => {panic!("should have same tensor type!");},
+            //_ => {panic!("should have same tensor type!");},
         }
     }
 
@@ -119,7 +119,7 @@ impl Clone for TypedTensor {
         match self {
             TypedTensor::Typef32(v) => TypedTensor::Typef32(v.clone()),
             TypedTensor::Typef64(v) => TypedTensor::Typef64(v.clone()),
-            _ => {panic!("should have same tensor type!");},
+            //_ => {panic!("should have same tensor type!");},
         }
     }
 }

@@ -1,5 +1,5 @@
 use rand::prelude::*;
-use rand_distr::{Normal, Distribution, LogNormal};
+use rand_distr::{Normal, Distribution};
 
 use super::tensor::*;
 
