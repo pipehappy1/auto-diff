@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, BTreeMap};
 use std::fmt;
 use std::rc::Rc;
 
@@ -37,12 +37,12 @@ impl Module {
 
     /// Try best evaluation of the computation graph.
     pub fn eval(&self) {
-        self.net.borrow_mut().eval();
+        self.net.borrow_mut().eval().expect("");
     }
     
     /// 
     pub fn forward(&self) { 
-        self.net.borrow_mut().eval();
+        self.net.borrow_mut().eval().expect("");
     }
 
     /// Back propagation
@@ -51,7 +51,8 @@ impl Module {
     }
 
     pub fn backward(&self, og: f32) {
-	self.net.borrow_mut().bptt(og);
+        
+	self.net.borrow_mut().bptt_scale(og);
     }
 }
 
@@ -169,6 +170,7 @@ struct Net {
     ops: GenIndex<Op>,
     set_mark: BTreeSet<NetIndex>,
     graph: Graph,
+    data_grad: BTreeMap<NetIndex, Tensor>,
 }
 
 impl Net {
@@ -178,13 +180,14 @@ impl Net {
             ops: GenIndex::new(),
             set_mark: BTreeSet::new(),
             graph: Graph::new(),
+            data_grad: BTreeMap::new(),
         }
     }
 
     /// Insert an empty var into the network.
     fn init_var(&mut self, var: &mut Var) {
         let id = self.data.insert(Tensor::new());
-        self.graph.add_data(&id);
+        self.graph.add_data(&id).expect("");
         var.id = id;
     }
 
@@ -193,7 +196,7 @@ impl Net {
     /// Insert operator into the network.
     fn init_op(&mut self, op: Op) -> NetIndex {
         let id = self.ops.insert(op.clone());
-        self.graph.add_op(&id);
+        self.graph.add_op(&id).expect("");
         id
     }
 
@@ -255,8 +258,55 @@ impl Net {
         Ok(())
     }
 
-    fn bptt(&mut self, r: f32) {
+    fn bptt_scale(&mut self, r: f32) {
+        let output = self.graph.get_output_cache();
+        let mut output_grad = BTreeMap::new();
+        for i in &output {
+            output_grad.insert(i.clone(),
+                               Tensor::fill(&self.data.get(i).expect("").size(),
+                                            r));
+        }
+        self.bptt(&output_grad);
+    }
+
+    fn bptt(&mut self, output_grad: &BTreeMap<NetIndex, Tensor>) {
+        let mut output = Vec::new();
+        self.data_grad.clear();
+        for (k, v) in output_grad {
+            output.push(k.clone());
+            self.data_grad.insert(k.clone(), v.clone());
+        }
         
+        self.graph
+            .walk(
+                &output[..],
+                false,
+                |input, output, op| {
+                    println!("op: {}", self.ops.get(op).expect("").get_name());
+                    
+                    let mut inputs: Vec<&Tensor> = Vec::new();
+                    for input_id in input {
+                        let a = self.data.get(input_id).expect("");
+                        inputs.push(a);
+                    }
+
+                    let mut outputs: Vec<&Tensor> = Vec::new();
+                    for output_id in output {
+                        let a = self.data.get(output_id).expect("");
+                        outputs.push(a);
+                    }
+
+                    self.ops
+                        .get(op)
+                        .expect("")
+                        .apply(&inputs, &outputs);
+                    
+                    println!("var.rs: {:?}", outputs[0].size());
+                    
+                }
+            ).expect("");
+
+
     }
 
 }
