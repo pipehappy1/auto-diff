@@ -89,8 +89,6 @@ impl TypedTensor {
     typed_tensor_method!(mul);
     typed_tensor_method!(div);
 
-
-
     typed_tensor_method!(mm);
     typed_tensor_method!(matmul);
 

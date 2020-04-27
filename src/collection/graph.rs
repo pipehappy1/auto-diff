@@ -23,6 +23,23 @@ impl Graph {
         }
     }
 
+    pub fn list_data(&self) -> Vec<NetIndex> {
+        let mut ret = Vec::new();
+
+        for i in &self.data {
+            ret.push(i.clone());
+        }
+        ret
+    }
+    pub fn list_op(&self) -> Vec<NetIndex> {
+        let mut ret = Vec::new();
+
+        for i in &self.op {
+            ret.push(i.clone());
+        }
+        ret
+    }
+
     /// Add a data node.
     /// ```
     /// # use auto_diff::collection::graph::*;

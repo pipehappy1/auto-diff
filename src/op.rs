@@ -8,7 +8,7 @@ use super::tensor::Tensor;
 pub trait OpTrait {
     fn get_name(&self) -> String;
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
-    fn grad(&self, input: u32, output: u32);
+    fn grad(&self, output: &[&Tensor], input: &[&Tensor]);
 }
 
 
@@ -31,8 +31,8 @@ impl Op {
     pub fn apply(&self, input: &[&Tensor], output: &[&Tensor]) {
         self.o.borrow_mut().apply(input, output)
     }
-    pub fn grad(&self, input: &[&Tensor], output: &[&Tensor]) {
-        self.o.borrow_mut().grad(0, 0)
+    pub fn grad(&self, output: &[&Tensor], input: &[&Tensor]) {
+        //self.o.borrow_mut().grad(0, 0);
     }
 }
 impl Clone for Op {
@@ -61,7 +61,7 @@ macro_rules! new_binary_op {
             fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
                 $c(input, output)
             }
-            fn grad(&self, input: u32, output: u32) {
+            fn grad(&self, output: &[&Tensor], input: &[&Tensor]) {
                 
             }       
         }
@@ -147,7 +147,7 @@ impl OpTrait for Linear {
             output[0].swap(ret);
         }
     }
-    fn grad(&self, input: u32, output: u32) {
+    fn grad(&self, output: &[&Tensor], input: &[&Tensor]) {
         
     }
 
@@ -188,7 +188,7 @@ impl OpTrait for MSELoss {
         let ret = tmp3.div(&input[0].get_N().mul(&input[0].get_C()));
         output[0].swap(ret);
     }
-    fn grad(&self, input: u32, output: u32) {
+    fn grad(&self, output: &[&Tensor], input: &[&Tensor]) {
         
     }
 }

@@ -278,6 +278,10 @@ impl Net {
             output.push(k.clone());
             self.data_grad.insert(k.clone(), v.clone());
         }
+
+        for i in self.graph.list_data() {
+            self.data_grad.insert(i, Tensor::new());
+        }
         
         self.graph
             .walk(
@@ -285,16 +289,17 @@ impl Net {
                 false,
                 |input, output, op| {
                     println!("op: {}", self.ops.get(op).expect("").get_name());
-                    
+
+                    // get the output tensor ready (forward view).
                     let mut inputs: Vec<&Tensor> = Vec::new();
                     for input_id in input {
-                        let a = self.data.get(input_id).expect("");
+                        let a = self.data_grad.get(input_id).expect("");
                         inputs.push(a);
                     }
-
+                    // get the input tensor ready (forward view).
                     let mut outputs: Vec<&Tensor> = Vec::new();
                     for output_id in output {
-                        let a = self.data.get(output_id).expect("");
+                        let a = self.data_grad.get(output_id).expect("");
                         outputs.push(a);
                     }
 

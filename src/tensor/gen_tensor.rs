@@ -36,7 +36,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             dim: shape.to_vec(),
         }
     }
-    
+
     /// Right dimension changes fastest.
     /// Right dimension has the stride 1.
     ///
