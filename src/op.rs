@@ -35,7 +35,7 @@ impl Op {
         self.o.borrow_mut().apply(input, output)
     }
     pub fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        //self.o.borrow_mut().grad(0, 0);
+        self.o.borrow_mut().grad(input, output_grad, input_grad);
     }
 }
 impl Clone for Op {
@@ -65,7 +65,7 @@ macro_rules! new_binary_op {
                 $c(input, output)
             }
             fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-                
+                println!("binary op grad");
             }       
         }
     }
@@ -192,6 +192,7 @@ impl OpTrait for MSELoss {
         output[0].swap(ret);
     }
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+        
         if input.len() < 2 {
             panic!("MSELoss expect two input, get {}", input.len());
         }
@@ -205,6 +206,8 @@ impl OpTrait for MSELoss {
             panic!("MSELoss expect two input have the same shape, get {:?}, {:?}", input[0].size(), input[1].size());
         }
 
+
+        // TODO: divide by N, multiple output_grad
         input_grad[0].swap(input[0].sub(input[1]));
         input_grad[1].swap(input[1].sub(input[0]));
     }

@@ -57,6 +57,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         ret
     }
+    
     /// Return value at the index of the tensor.
     ///
     /// ```
@@ -187,25 +188,16 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     pub fn unsqueeze(&self, dim: &[usize]) {
         
     }
-    
-    /// element-wise add with right-hand broadcast.
-    ///
-    /// ```
-    /// # use auto_diff::tensor::gen_tensor::*;
-    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
-    /// let m2 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
-    /// let m3 = m1.add(&m2);
-    /// assert_eq!(m3.get(&vec![0,0]), 2.);
-    /// assert_eq!(m3.get(&vec![1,1]), 8.);
-    /// ```
-    pub fn add(&self, o: &GenTensor<T>) -> GenTensor<T> {
+
+    pub fn _right_broadcast<F>(&self, o: &GenTensor<T>, closure: F) -> GenTensor<T>
+    where F: Fn(&T, &T) -> T {
         let mut ret = GenTensor {
             d: Vec::with_capacity(self.d.len()),
             dim: self.dim.clone(),
         };
         if self.d.len() == o.d.len() {
             for (v1, v2) in self.d.iter().zip(o.d.iter()) {
-                ret.d.push(*v1 + *v2);
+                ret.d.push(closure(v1, v2));
             }
         } else {
             if self.d.len() < o.d.len() {
@@ -223,7 +215,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             // do repeat add
             let mut index = 0;
             for i in 0..self.d.len() {
-                ret.d.push(self.d[i] + o.d[index]);
+                ret.d.push(closure(&self.d[i], &o.d[index]));
                 index += 1;
                 if index >= o.d.len() {
                     index = 0;
@@ -232,37 +224,29 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         ret
     }
+    
+    /// element-wise add with right-hand broadcast.
+    ///
+    /// ```
+    /// # use auto_diff::tensor::gen_tensor::*;
+    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
+    /// let m2 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
+    /// let m3 = m1.add(&m2);
+    /// assert_eq!(m3.get(&vec![0,0]), 2.);
+    /// assert_eq!(m3.get(&vec![1,1]), 8.);
+    /// ```
+    pub fn add(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        self._right_broadcast(o, |x, y| *x + *y)
+     }
     pub fn sub(&self, o: &GenTensor<T>) -> GenTensor<T> {
-        let mut ret = GenTensor {
-            d: Vec::with_capacity(self.d.len()),
-            dim: self.dim.clone(),
-        };
-        for (v1, v2) in self.d.iter().zip(o.d.iter()) {
-            ret.d.push(*v1 - *v2);
-        }
-        ret
+        self._right_broadcast(o, |x, y| *x - *y)
     }
     pub fn mul(&self, o: &GenTensor<T>) -> GenTensor<T> {
-        let mut ret = GenTensor {
-            d: Vec::with_capacity(self.d.len()),
-            dim: self.dim.clone(),
-        };
-        for (v1, v2) in self.d.iter().zip(o.d.iter()) {
-            ret.d.push(*v1 * *v2);
-        }
-        ret
+        self._right_broadcast(o, |x, y| *x * *y)
     }
     pub fn div(&self, o: &GenTensor<T>) -> GenTensor<T> {
-        let mut ret = GenTensor {
-            d: Vec::with_capacity(self.d.len()),
-            dim: self.dim.clone(),
-        };
-        for (v1, v2) in self.d.iter().zip(o.d.iter()) {
-            ret.d.push(*v1 / *v2);
-        }
-        ret
+        self._right_broadcast(o, |x, y| *x / *y)
     }
-    
 
     /// matrix multiplication
     ///
