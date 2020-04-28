@@ -39,4 +39,7 @@ fn main() {
     
     m.backward(-1.);
 
+    println!("LR, output: {}", output.get_grad());
+    println!("LR, loss: {}", loss.get_grad());
+
 }

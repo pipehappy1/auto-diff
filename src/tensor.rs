@@ -68,6 +68,13 @@ impl Tensor {
     tensor_method_single_tensor_return!(get_W);
 
 
+    pub fn same_shape(&self, o: &Tensor) -> bool {
+        let a = self.size();
+        let b = o.size();
+        a == b
+    }
+
+
     /// Create a tensor from a Vec,
     /// ```
     /// # use auto_diff::tensor::*;
@@ -206,5 +213,22 @@ impl Clone for Tensor {
         Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().clone())),
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tensor_equal() {
+        let a = Tensor::from_vec_f32(&vec![1., 2., 3., ], &vec![3, 1]);
+        let b = Tensor::from_vec_f32(&vec![1., 2., 3., ], &vec![3, 1]);
+        assert_eq!(a.same_shape(&b), true);
+
+        let a = Tensor::from_vec_f32(&vec![1., 2., 3., ], &vec![1, 3]);
+        let b = Tensor::from_vec_f32(&vec![1., 2., 3., ], &vec![3, 1]);
+        assert_eq!(a.same_shape(&b), false);
     }
 }

@@ -8,7 +8,10 @@ use super::tensor::Tensor;
 pub trait OpTrait {
     fn get_name(&self) -> String;
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
-    fn grad(&self, output: &[&Tensor], input: &[&Tensor]);
+    
+    /// Given the forward input value and backward output_grad,
+    /// return backward input gradeint.
+    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]);
 }
 
 
@@ -31,7 +34,7 @@ impl Op {
     pub fn apply(&self, input: &[&Tensor], output: &[&Tensor]) {
         self.o.borrow_mut().apply(input, output)
     }
-    pub fn grad(&self, output: &[&Tensor], input: &[&Tensor]) {
+    pub fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
         //self.o.borrow_mut().grad(0, 0);
     }
 }
@@ -61,7 +64,7 @@ macro_rules! new_binary_op {
             fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
                 $c(input, output)
             }
-            fn grad(&self, output: &[&Tensor], input: &[&Tensor]) {
+            fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
                 
             }       
         }
@@ -147,7 +150,7 @@ impl OpTrait for Linear {
             output[0].swap(ret);
         }
     }
-    fn grad(&self, output: &[&Tensor], input: &[&Tensor]) {
+    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
         
     }
 
@@ -188,7 +191,21 @@ impl OpTrait for MSELoss {
         let ret = tmp3.div(&input[0].get_N().mul(&input[0].get_C()));
         output[0].swap(ret);
     }
-    fn grad(&self, output: &[&Tensor], input: &[&Tensor]) {
-        
+    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+        if input.len() < 2 {
+            panic!("MSELoss expect two input, get {}", input.len());
+        }
+        if input_grad.len() < 2 {
+            panic!("MSELoss expect two input gradient tensor, get {}", input_grad.len());
+        }
+        if output_grad.len() < 1 {
+            panic!("MSELoss expect one output gradient, get {}", output_grad.len());
+        }
+        if ! input[0].same_shape(input[1]) {
+            panic!("MSELoss expect two input have the same shape, get {:?}, {:?}", input[0].size(), input[1].size());
+        }
+
+        input_grad[0].swap(input[0].sub(input[1]));
+        input_grad[1].swap(input[1].sub(input[0]));
     }
 }

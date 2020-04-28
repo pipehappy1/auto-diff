@@ -120,6 +120,11 @@ impl Var {
         self.net.borrow().data.get(&self.id).expect("").clone()
     }
 
+    /// Get the underlying gradient tensor.
+    pub fn get_grad(&self) -> Tensor {
+        self.net.borrow().data_grad.get(&self.id).expect("").clone()
+    }
+
     /// apply the var to pre-faburacated op.
     pub fn to(&self, op: &Op) -> Var {
         let result = self.new_attached();
@@ -287,28 +292,35 @@ impl Net {
             .walk(
                 &output[..],
                 false,
-                |input, output, op| {
-                    println!("op: {}", self.ops.get(op).expect("").get_name());
+                |output_grads, input_grads, op| {
+                    //println!("op: {}", self.ops.get(op).expect("").get_name());
 
-                    // get the output tensor ready (forward view).
+                    // collect input tensor.
                     let mut inputs: Vec<&Tensor> = Vec::new();
-                    for input_id in input {
-                        let a = self.data_grad.get(input_id).expect("");
+                    for input_id in input_grads {
+                        let a = self.data.get(input_id).expect("");
                         inputs.push(a);
                     }
-                    // get the input tensor ready (forward view).
-                    let mut outputs: Vec<&Tensor> = Vec::new();
-                    for output_id in output {
+
+                    // collect the output tensor ready (forward view).
+                    let mut output_grad: Vec<&Tensor> = Vec::new();
+                    for output_id in output_grads {
                         let a = self.data_grad.get(output_id).expect("");
-                        outputs.push(a);
+                        output_grad.push(a);
+                    }
+                    // collect the input tensor ready (forward view).
+                    let mut input_grad: Vec<&Tensor> = Vec::new();
+                    for input_id in input_grads {
+                        let a = self.data_grad.get(input_id).expect("");
+                        input_grad.push(a);
                     }
 
                     self.ops
                         .get(op)
                         .expect("")
-                        .grad(&inputs, &outputs);
+                        .grad(&inputs, &output_grad, &input_grad);
                     
-                    println!("var.rs: {:?}", outputs[0].size());
+                    //println!("var.rs: {:?}", 1);
                     
                 }
             ).expect("");
