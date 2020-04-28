@@ -66,7 +66,7 @@ impl Tensor {
     tensor_method_single_tensor_return!(get_D);
     tensor_method_single_tensor_return!(get_H);
     tensor_method_single_tensor_return!(get_W);
-    //tensor_method_single_tensor_return!(sum);
+    tensor_method_single_tensor_return!(numel_tensor);
 
 
     pub fn same_shape(&self, o: &Tensor) -> bool {

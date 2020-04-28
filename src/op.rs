@@ -98,6 +98,8 @@ pub struct Linear {
     bias_option: bool,
     weight: Tensor,
     bias: Tensor,
+    weight_grad: Tensor,
+    bias_grad: Tensor,
 }
 impl Linear {
     pub fn new(in_features: Option<usize>, out_features: Option<usize>, bias: bool) -> Linear{
@@ -107,6 +109,8 @@ impl Linear {
             bias_option: bias,
             weight: Tensor::new(),
             bias: Tensor::new(),
+            weight_grad: Tensor::new(),
+            bias_grad: Tensor::new(),
         };
         if ret.in_fea != Option::None && ret.out_fea != Option::None {
             ret._new();
@@ -151,6 +155,22 @@ impl OpTrait for Linear {
         }
     }
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+        if input.len() < 1 {
+            panic!("Expect one input tensor");
+        }
+        if input[0].size()[1] != self.weight.size()[0] {
+            panic!("Expect input dimension matches weight dimension {:?}, {:?}",
+                   input[0].size(), self.weight.size());
+        }
+        if input[0].size()[0] != output_grad[0].size()[0] {
+            panic!("Expect input population matches output gradient population {:?}, {:?}",
+                   input[0].size(), output_grad[0].size());
+        }
+        if output_grad[0].size()[1] != self.weight.size()[1] {
+            panic!("Expect output gradient dimension matches weight dimension {:?}, {:?}",
+                   output_grad[0].size(), self.weight.size());
+        }
+
         
     }
 
@@ -206,9 +226,17 @@ impl OpTrait for MSELoss {
             panic!("MSELoss expect two input have the same shape, get {:?}, {:?}", input[0].size(), input[1].size());
         }
 
-
-        // TODO: divide by N, multiple output_grad
-        input_grad[0].swap(input[0].sub(input[1]));
-        input_grad[1].swap(input[1].sub(input[0]));
+        input_grad[0].swap(
+            input[0]
+                .sub(input[1])
+                .div(&input[0].numel_tensor())
+                .mul(output_grad[0])
+        );
+        input_grad[1].swap(
+            input[1]
+                .sub(input[0])
+                .div(&input[0].numel_tensor())
+                .mul(output_grad[0])
+        );
     }
 }

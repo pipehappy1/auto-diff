@@ -168,6 +168,14 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         self.d.len()
     }
 
+    /// Returns the total number of elements in the input tensor
+    pub fn numel_tensor(&self) -> GenTensor<T> {
+        GenTensor {
+            d: vec![T::from(self.d.len()).expect(""),],
+            dim: vec![1],
+        }
+    }
+
     /// Returns the sum of all elements.
     /// ```
     /// # use auto_diff::tensor::gen_tensor::*;

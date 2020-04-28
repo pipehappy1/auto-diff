@@ -60,6 +60,7 @@ impl TypedTensor {
     typed_tensor_method_single_tensor_return!(get_D);
     typed_tensor_method_single_tensor_return!(get_H);
     typed_tensor_method_single_tensor_return!(get_W);
+    typed_tensor_method_single_tensor_return!(numel_tensor);
     
     pub fn to_f32(i: TypedTensor) {}
     pub fn to_f64(i: TypedTensor) {}
