@@ -54,7 +54,7 @@ impl TypedTensor {
     typed_tensor_method_single_same_return!(size, Vec<usize>);
     typed_tensor_method_single_same_return!(numel, usize);
 
-    typed_tensor_method_single_tensor_return!(sum);
+    
     typed_tensor_method_single_tensor_return!(get_N);
     typed_tensor_method_single_tensor_return!(get_C);
     typed_tensor_method_single_tensor_return!(get_D);
@@ -92,6 +92,16 @@ impl TypedTensor {
 
     typed_tensor_method!(mm);
     typed_tensor_method!(matmul);
+
+    // reduction ops
+    pub fn mean(&self, dim: usize, keepdim: bool) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.mean(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.mean(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }    
+    typed_tensor_method_single_tensor_return!(sum);
 
 }
 impl fmt::Display for TypedTensor {

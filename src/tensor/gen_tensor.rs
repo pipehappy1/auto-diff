@@ -193,6 +193,64 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
+    pub fn mean(&self, dim: usize, keepdim: bool) -> GenTensor<T> {
+        if self.dim.len() <= dim {
+            panic!("Tensor has dimension {:?}, mean() get dim of {}", self.dim, dim);
+        }
+        
+        let mut ret_dim;
+        if keepdim {
+            ret_dim = self.dim.to_vec();
+            ret_dim[dim] = 1;
+        } else {
+            ret_dim = Vec::new();
+            for (i, index) in self.dim.iter().zip(0..self.dim.len()) {
+                if index != dim {
+                    ret_dim.push(*i);
+                }
+            }
+        }
+        
+        let mut cap = 1;
+        for i in &ret_dim {
+            cap *= i;
+        }
+
+        let mut outer_size = 1;
+        let mut inner_size = 1;
+        for i in 0..self.dim.len() {
+            if i < dim {
+                outer_size *= self.dim[i];
+            }
+            if i > dim {
+                inner_size *= self.dim[i];
+            }
+        }
+        
+        let mut data = Vec::with_capacity(cap);
+        let over = self.dim[dim];
+        let stride = self.stride();
+        let step = stride[dim];
+
+        for k in 0..outer_size {
+            for j in 0..inner_size {
+                let mut sum = T::zero();
+                for i in 0..over {
+                    let index = k*inner_size*over + j +i*step;
+                    //println!("mean: {}", index);
+                    sum = sum + self.d[index];
+                }
+                sum = sum / T::from(over).expect("N");
+                data.push(sum);
+            }
+        }
+        
+        GenTensor {
+            d: data,
+            dim: ret_dim,
+        }
+    }
+
     pub fn unsqueeze(&self, dim: &[usize]) {
         
     }
@@ -534,5 +592,24 @@ impl<T> Clone for GenTensor<T> where T: num_traits::Float {
             d: self.d.to_vec(),
             dim: self.dim.to_vec(),
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mean() {
+        let a = GenTensor::<f32>::fill(1., &vec![3, 4, 3]);
+        let b = a.mean(1, false);
+        assert_eq!(b.size(), vec![3, 3]);
+        assert_eq!(b.numel(), 9);
+        //println!("{}", b);
+        let c = a.mean(1, true);
+        assert_eq!(c.size(), vec![3, 1, 3]);
+        assert_eq!(c.numel(), 9);
+        //println!("{}", c);
     }
 }

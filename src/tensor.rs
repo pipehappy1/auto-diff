@@ -60,13 +60,14 @@ impl Tensor {
     tensor_method_single_same_return!(size, Vec<usize>);
     tensor_method_single_same_return!(numel, usize);
     
-    tensor_method_single_tensor_return!(sum);
+
     tensor_method_single_tensor_return!(get_N);
     tensor_method_single_tensor_return!(get_C);
     tensor_method_single_tensor_return!(get_D);
     tensor_method_single_tensor_return!(get_H);
     tensor_method_single_tensor_return!(get_W);
     tensor_method_single_tensor_return!(numel_tensor);
+
 
 
     pub fn same_shape(&self, o: &Tensor) -> bool {
@@ -190,6 +191,30 @@ impl Tensor {
 
     tensor_method!(mm);
     tensor_method!(matmul);
+
+    // reduction ops
+    //tensor_method_single_tensor_return!(argmax);
+    //tensor_method_single_tensor_return!(argmin);
+    //tensor_method_single_tensor_return!(dist);
+    //tensor_method_single_tensor_return!(logsumexp);
+    pub fn mean(&self, dim: usize, keepdim: bool) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().mean(dim, keepdim))),
+        }
+    }    
+    //tensor_method_single_tensor_return!(median);
+    //tensor_method_single_tensor_return!(mode);
+    //tensor_method_single_tensor_return!(norm);
+    //tensor_method_single_tensor_return!(prod);
+    //tensor_method_single_tensor_return!(std);
+    //tensor_method_single_tensor_return!(std_mean);
+    tensor_method_single_tensor_return!(sum);
+    //tensor_method_single_tensor_return!(unique);
+    //tensor_method_single_tensor_return!(unique_consecutive);
+    //tensor_method_single_tensor_return!(var);
+    //tensor_method_single_tensor_return!(var_mean);
+
+    
 }
 
 impl fmt::Display for Tensor {
