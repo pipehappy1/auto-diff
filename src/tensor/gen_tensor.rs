@@ -193,6 +193,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
+    /// Returns the mean value of the tensor along dim row.
     pub fn mean(&self, dim: usize, keepdim: bool) -> GenTensor<T> {
         if self.dim.len() <= dim {
             panic!("Tensor has dimension {:?}, mean() get dim of {}", self.dim, dim);
@@ -384,6 +385,46 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             }
         }
         ret
+    }
+
+    /// outer product of right-most dimensions.
+    pub fn outer(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        let mut dim = Vec::new();
+        let mut data;
+        let mut cap = 1;
+        let mut outer_size = 1;
+        let left_dim;
+        let right_dim;
+        if self.dim.len() == o.dim.len()
+            && self.dim[0..self.dim.len()-1] == o.dim[0..self.dim.len()-1] {
+                left_dim = self.dim[self.dim.len()-1];
+                right_dim = o.dim[self.dim.len()-1];
+                for i in 0..self.dim.len()-1 {
+                    dim.push(self.dim[i]);
+                    cap *= self.dim[i];
+                    outer_size *= self.dim[i];
+                }
+                dim.push(left_dim);
+                cap *= left_dim;
+                dim.push(right_dim);
+                cap *= right_dim;
+                data = Vec::with_capacity(cap);
+            } else {
+            panic!("bad size for outer: {:?}, {:?}", self.dim, o.dim);
+            }
+
+        for k in 0..outer_size {
+            for i in 0..left_dim {
+                for j in 0..right_dim {
+                    data.push(self.d[i + k*left_dim] * o.d[j + k*right_dim]);
+                }
+            }
+        }
+        
+        GenTensor {
+            d: data,
+            dim: dim,
+        }
     }
 
     pub fn squared_error(t1: &Self, t2: &Self) -> GenTensor<T> {
@@ -647,5 +688,18 @@ mod tests {
         assert_eq!(c.size(), vec![3, 1, 3]);
         assert_eq!(c.numel(), 9);
         //println!("{}", c);
+    }
+
+    #[test]
+    fn outer() {
+        let a = GenTensor::<f32>::fill(1., &vec![10, 2]);
+        let b = GenTensor::<f32>::fill(1., &vec![10, 3]);
+        let c = a.outer(&b);
+        assert_eq!(c.size(), vec![10, 2, 3]);
+        //println!("{}", c);
+        let d = b.outer(&a);
+        assert_eq!(d.size(), vec![10, 3, 2]);
+
+        
     }
 }
