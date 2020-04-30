@@ -92,6 +92,7 @@ impl TypedTensor {
 
     typed_tensor_method!(mm);
     typed_tensor_method!(matmul);
+    typed_tensor_method!(outer);
 
     // reduction ops
     pub fn mean(&self, dim: usize, keepdim: bool) -> TypedTensor {

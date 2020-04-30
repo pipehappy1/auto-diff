@@ -262,6 +262,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             d: Vec::with_capacity(self.d.len()),
             dim: self.dim.clone(),
         };
+
         if self.d.len() == o.d.len() {
             for (v1, v2) in self.d.iter().zip(o.d.iter()) {
                 ret.d.push(closure(v1, v2));

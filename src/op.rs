@@ -155,6 +155,7 @@ impl OpTrait for Linear {
         }
     }
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+        println!("hehe");
         if input.len() < 1 {
             panic!("Expect one input tensor");
         }
@@ -171,8 +172,12 @@ impl OpTrait for Linear {
                    output_grad[0].size(), self.weight.size());
         }
 
-        
-        
+
+        input_grad[0].swap(output_grad[0].matmul(&self.weight));
+        self.weight_grad.swap(input[0].outer(&output_grad[0]).mean(0, false));
+        if self.bias_option {
+            self.bias_grad.swap(output_grad[0].mean(0, false));
+        }
     }
 
 }
@@ -227,17 +232,15 @@ impl OpTrait for MSELoss {
             panic!("MSELoss expect two input have the same shape, get {:?}, {:?}", input[0].size(), input[1].size());
         }
 
-        input_grad[0].swap(
-            input[0]
-                .sub(input[1])
-                .div(&input[0].numel_tensor())
-                .mul(output_grad[0])
-        );
-        input_grad[1].swap(
-            input[1]
-                .sub(input[0])
-                .div(&input[0].numel_tensor())
-                .mul(output_grad[0])
-        );
+
+        let tmp1 = input[0].sub(input[1]);
+        let tmp2 = tmp1.div(&input[0].numel_tensor());
+        let tmp3 = tmp2.mul(output_grad[0]);
+        input_grad[0].swap(tmp3);
+
+        let tmp1 = input[1].sub(input[0]);
+        let tmp2 = tmp1.div(&input[0].numel_tensor());
+        let tmp3 = tmp2.mul(output_grad[0]);
+        input_grad[1].swap(tmp3);
     }
 }

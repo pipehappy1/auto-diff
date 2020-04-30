@@ -191,6 +191,7 @@ impl Tensor {
 
     tensor_method!(mm);
     tensor_method!(matmul);
+    tensor_method!(outer);
 
     // reduction ops
     //tensor_method_single_tensor_return!(argmax);
