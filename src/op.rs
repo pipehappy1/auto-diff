@@ -173,7 +173,8 @@ impl OpTrait for Linear {
         }
 
 
-        input_grad[0].swap(output_grad[0].matmul(&self.weight));
+        println!("grad: {:?}, {:?}", output_grad[0].size(), self.weight.size());
+        input_grad[0].swap(output_grad[0].matmul(self.weight.permute(&vec![1,0])));
         self.weight_grad.swap(input[0].outer(&output_grad[0]).mean(0, false));
         if self.bias_option {
             self.bias_grad.swap(output_grad[0].mean(0, false));

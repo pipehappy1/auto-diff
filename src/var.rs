@@ -285,7 +285,9 @@ impl Net {
         }
 
         for i in self.graph.list_data() {
-            self.data_grad.insert(i, Tensor::new());
+            if ! self.data_grad.contains_key(&i) {
+                self.data_grad.insert(i, Tensor::new());                
+            }
         }
         
         self.graph
