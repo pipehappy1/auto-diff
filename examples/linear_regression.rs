@@ -20,18 +20,26 @@ fn main() {
 
     let y = func(&x);
     // println!("LR: {}", y);
-    let op = Linear::new(Some(2), Some(1), true);
-    rng.normal_(op.weight(), 0., 1.);
-    rng.normal_(op.bias(), 0., 1.);
+    let linear = Linear::new(Some(2), Some(1), true);
+    rng.normal_(linear.weight(), 0., 1.);
+    rng.normal_(linear.bias(), 0., 1.);
+    
 
     let input = m.var();
-    let output = input.to(&Op::new(Box::new(op)));
+    let output = input.to(&Op::new(Box::new(linear)));
     let label = m.var();
 
     let loss = mseloss(&output, &label);
 
     input.set(x);
     label.set(y);
+
+    for i in 0..100 {
+        m.forward();
+        m.backward(-1.);
+
+        println!("{:?}, {:?}", linear.weight(), linear.bias());
+    }
     
     m.forward();
     println!("LR: {}", output);

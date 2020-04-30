@@ -26,8 +26,6 @@ impl Op {
         }
     }
 
-    pub fn swap() {}
-
     pub fn get_name(&self) -> String {
         self.o.borrow_mut().get_name()
     }
