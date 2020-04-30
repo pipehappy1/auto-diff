@@ -69,6 +69,15 @@ impl TypedTensor {
         TypedTensor::Typef32(GenTensor::fill(fill_value, size))
     }
 
+
+    pub fn permute(&self, dim: &[usize]) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.permute(dim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.permute(dim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+
     pub fn unsqueeze(&mut self, dim: &[usize]) {
         match &self {
             TypedTensor::Typef32(v1) => {v1.unsqueeze(dim)},

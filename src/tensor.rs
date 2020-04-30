@@ -167,6 +167,12 @@ impl Tensor {
     pub fn take() {}
     pub fn transpose() {}
     pub fn unbind() {}
+
+    pub fn permute(&self, dim: &[usize]) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().permute(dim))),
+        }
+    }
     
     /// Returns a new tensor with a dimension of size one inserted at the specified position.
     /// 

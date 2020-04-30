@@ -497,20 +497,24 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
     /// m1.permute(&vec![2, 0, 1]);
     /// ```
-    pub fn permute(&mut self, dims: &[usize]) {
-        let dim_len = self.dim.len();
+    pub fn permute(&self, dims: &[usize]) -> GenTensor<T> {
+        let mut ret = GenTensor {
+            d: self.d.to_vec(),
+            dim: self.dim.to_vec(),
+        };
+        let dim_len = ret.dim.len();
         let mut target_dim = vec![0; dim_len];
         for i in 0..dim_len {
-            target_dim[i] = self.dim[dims[i]];
+            target_dim[i] = ret.dim[dims[i]];
         }
 
-        let mut new_d = self.d.to_vec();
+        let mut new_d = ret.d.to_vec();
         let mut index = vec![0; dim_len];
         let mut old_index = vec![0; dim_len];
-        let old_stride = self.stride();
-        self.dim = target_dim.to_vec();
-        let new_stride = self.stride();
-        for i in 0..self.d.len() {
+        let old_stride = ret.stride();
+        ret.dim = target_dim.to_vec();
+        let new_stride = ret.stride();
+        for i in 0..ret.d.len() {
             for j in 0..dim_len {
                 old_index[dims[j]] = index[j];
             }
@@ -521,7 +525,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                 item_index += old_stride[j]*old_index[j];
                 new_item_index += new_stride[j]*index[j];
             }
-            new_d[new_item_index] = self.d[item_index];
+            new_d[new_item_index] = ret.d[item_index];
             
             index[dim_len-1] += 1;
             let mut next_dim = dim_len-1;
@@ -537,7 +541,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             }
 
         }
-        self.d = new_d;
+        ret.d = new_d;
+        ret
     }
 
     /// Computes element-wise equality
@@ -695,11 +700,11 @@ mod tests {
     #[test]
     fn permute() {
         let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
-        m1.permute(&vec![2, 0, 1]);
-        assert_eq!(m1.size(), vec![5, 2, 3]);
+        let m11 = m1.permute(&vec![2, 0, 1]);
+        assert_eq!(m11.size(), vec![5, 2, 3]);
 
         let mut m2 = GenTensor::<f64>::new_raw(&vec![1., 2., 3., 4.,], &vec![2, 2]);
-        m2.permute(&vec![1, 0]);
-        assert_eq!(m2.get_raw(), vec![1., 3., 2., 4.]);
+        let m22 = m2.permute(&vec![1, 0]);
+        assert_eq!(m22.get_raw(), vec![1., 3., 2., 4.]);
     }
 }
