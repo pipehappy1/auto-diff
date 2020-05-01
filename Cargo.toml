@@ -12,7 +12,7 @@ documentation = "https://docs.rs/auto-diff"
 homepage = "https://github.com/pipehappy1/auto-diff"
 repository = "https://github.com/pipehappy1/auto-diff"
 readme = "README.md"
-license = "LGPL-2.1 AND MIT AND BSD-2-Clause"
+license = "MIT"
 keywords = ["machine-learning", "neural-network", "deep-learning"]
 exclude = ["/dev/**"]
 
