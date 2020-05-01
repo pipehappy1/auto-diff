@@ -53,6 +53,13 @@ impl TypedTensor {
 
     typed_tensor_method_single_same_return!(size, Vec<usize>);
     typed_tensor_method_single_same_return!(numel, usize);
+    pub fn get_scale_f32(&self) -> f32 {
+        match &self {
+            TypedTensor::Typef32(v1) => {v1.get_scale()},
+            TypedTensor::Typef64(v1) => {v1.get_scale() as f32},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
 
     
     typed_tensor_method_single_tensor_return!(get_N);

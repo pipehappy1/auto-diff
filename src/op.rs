@@ -1,5 +1,5 @@
 /// Only NCWH format is supported.
-use std::cell::RefCell;
+use std::cell::{RefCell, Ref};
 use std::rc::Rc;
 
 use super::tensor::Tensor;
@@ -7,15 +7,19 @@ use super::tensor::Tensor;
 /// All op is OpTrait
 pub trait OpTrait {
     fn get_name(&self) -> String;
+
+    /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
     
     /// Given the forward input value and backward output_grad,
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]);
+
+    fn get_values(&self) -> Vec<&Tensor>;
 }
 
 
-
+/// Op is the Rc wrapper of OpTraint
 pub struct Op {
     o: Rc<RefCell<Box<dyn OpTrait>>>,
 }
@@ -26,6 +30,10 @@ impl Op {
         }
     }
 
+    pub fn get(&self) -> Ref<Box<dyn OpTrait>> {
+        self.o.borrow()
+    }
+
     pub fn get_name(&self) -> String {
         self.o.borrow_mut().get_name()
     }
@@ -34,6 +42,14 @@ impl Op {
     }
     pub fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
         self.o.borrow_mut().grad(input, output_grad, input_grad);
+    }
+
+    pub fn get_values(&self) -> Vec<Tensor> {
+        let mut ret = Vec::new();
+        for i in self.o.borrow().get_values() {
+            ret.push(i.clone());
+        }
+        ret
     }
 }
 impl Clone for Op {
@@ -64,7 +80,10 @@ macro_rules! new_binary_op {
             }
             fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
                 println!("binary op grad");
-            }       
+            }
+            fn get_values(&self) -> Vec<&Tensor> {
+                Vec::new()
+            }
         }
     }
 }
@@ -153,7 +172,6 @@ impl OpTrait for Linear {
         }
     }
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        println!("hehe");
         if input.len() < 1 {
             panic!("Expect one input tensor");
         }
@@ -177,6 +195,14 @@ impl OpTrait for Linear {
         }
     }
 
+    fn get_values(&self) -> Vec<&Tensor> {
+        let mut ret = Vec::new();
+        ret.push(&self.weight);
+        if self.bias_option {
+            ret.push(&self.bias);
+        }
+        ret
+    }
 }
 
 // Bilinear
@@ -239,5 +265,9 @@ impl OpTrait for MSELoss {
         let tmp2 = tmp1.div(&input[0].numel_tensor());
         let tmp3 = tmp2.mul(output_grad[0]);
         input_grad[1].swap(tmp3);
+    }
+
+    fn get_values(&self) -> Vec<&Tensor> {
+        Vec::new()
     }
 }

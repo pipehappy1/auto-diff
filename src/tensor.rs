@@ -59,7 +59,10 @@ impl Tensor {
 
     tensor_method_single_same_return!(size, Vec<usize>);
     tensor_method_single_same_return!(numel, usize);
-    
+
+    pub fn get_scale_f32(&self) -> f32 {
+        self.v.borrow().get_scale_f32()
+    }
 
     tensor_method_single_tensor_return!(get_N);
     tensor_method_single_tensor_return!(get_C);

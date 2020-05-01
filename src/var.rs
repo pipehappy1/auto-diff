@@ -295,7 +295,7 @@ impl Net {
                 &output[..],
                 false,
                 |output_grads, input_grads, op| {
-                    println!("op, bptt: {}", self.ops.get(op).expect("").get_name());
+                    // println!("op, bptt: {}", self.ops.get(op).expect("").get_name());
 
                     // collect input tensor.
                     let mut inputs: Vec<&Tensor> = Vec::new();

@@ -20,13 +20,21 @@ fn main() {
 
     let y = func(&x);
     // println!("LR: {}", y);
-    let linear = Linear::new(Some(2), Some(1), true);
-    rng.normal_(linear.weight(), 0., 1.);
-    rng.normal_(linear.bias(), 0., 1.);
+    let op = Linear::new(Some(2), Some(1), true);
+    rng.normal_(op.weight(), 0., 1.);
+    rng.normal_(op.bias(), 0., 1.);
+
+    // Good is good.
+    //let good_weight = Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1]);
+    //let good_bias = Tensor::from_vec_f32(&vec![0.], &vec![1]);
+    //op.weight().swap(good_weight);
+    //op.bias().swap(good_bias);
+    
+    let linear = Op::new(Box::new(op));
     
 
     let input = m.var();
-    let output = input.to(&Op::new(Box::new(linear)));
+    let output = input.to(&linear);
     let label = m.var();
 
     let loss = mseloss(&output, &label);
@@ -38,16 +46,19 @@ fn main() {
         m.forward();
         m.backward(-1.);
 
-        println!("{:?}, {:?}", linear.weight(), linear.bias());
+        println!("{}", loss.get().get_scale_f32());
+
+        // let weights = linear.get_values();
+        //println!("{:?}, {:?}", weights[0], weights[1]);
     }
     
-    m.forward();
-    println!("LR: {}", output);
-    println!("LR: {}", loss);
+    //m.forward();
+    //println!("LR: {}", output);
+    //println!("LR: {}", loss);
     
-    m.backward(-1.);
+    //m.backward(-1.);
 
-    println!("LR, output: {}", output.get_grad());
-    println!("LR, loss: {}", loss.get_grad());
+    //println!("LR, output: {}", output.get_grad());
+    //println!("LR, loss: {}", loss.get_grad());
 
 }
