@@ -22,3 +22,4 @@ pub mod tensor;
 pub mod op;
 pub mod collection;
 pub mod rand;
+pub mod optim;

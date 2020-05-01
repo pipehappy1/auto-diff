@@ -50,7 +50,6 @@ impl Module {
     }
 
     pub fn backward(&self, og: f32) {
-        
 	self.net.borrow_mut().bptt_scale(og);
     }
 }

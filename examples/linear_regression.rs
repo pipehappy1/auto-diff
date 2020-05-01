@@ -2,6 +2,7 @@ use auto_diff::tensor::Tensor;
 use auto_diff::rand::RNG;
 use auto_diff::op::{Linear, Op};
 use auto_diff::var::{Module, mseloss};
+use auto_diff::optim::{SGD, Optimizer};
 
 fn main() {
 
@@ -42,11 +43,15 @@ fn main() {
     input.set(x);
     label.set(y);
 
+    let mut opt = SGD::new(0.1);
+
     for i in 0..100 {
         m.forward();
         m.backward(-1.);
 
         println!("{}", loss.get().get_scale_f32());
+
+        opt.step(&m);
 
         // let weights = linear.get_values();
         //println!("{:?}, {:?}", weights[0], weights[1]);
