@@ -23,6 +23,7 @@ impl Graph {
         }
     }
 
+    /// iterator over data node.
     pub fn list_data(&self) -> Vec<NetIndex> {
         let mut ret = Vec::new();
 
@@ -31,6 +32,7 @@ impl Graph {
         }
         ret
     }
+    /// iterator over op node.
     pub fn list_op(&self) -> Vec<NetIndex> {
         let mut ret = Vec::new();
 

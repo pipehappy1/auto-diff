@@ -21,6 +21,10 @@ impl SGD {
 }
 impl Optimizer for SGD {
     fn step(&mut self, m: &Module) {
-        
+        m._visit_op(|x| {
+            //println!("{}", x.get_name());
+            let weights = x.get_values();
+            let grads = x.get_grads();
+        });
     }
 }

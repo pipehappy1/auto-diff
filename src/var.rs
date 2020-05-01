@@ -17,12 +17,15 @@ pub struct Module {
 
 /// Network holder.
 impl Module {
+    /// Create an empty module.
+    /// A module is mainly used to create new variables.
     pub fn new() -> Module {
         Module {
             net: Rc::new(RefCell::new(Net::new())),
         }
     }
 
+    /// Create a new variable.
     pub fn var(&mut self) -> Var {
         let mut new_var = Var::new();
 
@@ -39,7 +42,7 @@ impl Module {
         self.net.borrow_mut().eval().expect("");
     }
     
-    /// 
+    /// Same as eval
     pub fn forward(&self) { 
         self.net.borrow_mut().eval().expect("");
     }
@@ -49,9 +52,27 @@ impl Module {
 	self.net.borrow_mut().bptt(og);
     }
 
+    /// Back propgation with a single value.
     pub fn backward(&self, og: f32) {
 	self.net.borrow_mut().bptt_scale(og);
     }
+
+    /// iterator over all data node.
+    pub fn _visit_data<F>(&self, closure: F)
+    where F: Fn(&Op) {
+    }
+    /// iterator over all op node.
+    pub fn _visit_op<F>(&self, closure: F)
+    where F: Fn(&Op) {
+        self.net.borrow_mut().visit_op(closure);
+    }
+}
+
+
+/// Introduce variable to the system by creating Var
+pub struct Var {
+    id: NetIndex,
+    net: Rc<RefCell<Net>>,
 }
 
 macro_rules! var_op_method {
@@ -65,12 +86,6 @@ macro_rules! var_op_method {
         }
     }
     
-}
-
-/// Introduce variable to the system by creating Var
-pub struct Var {
-    id: NetIndex,
-    net: Rc<RefCell<Net>>,
 }
 
 impl Var {
@@ -326,6 +341,15 @@ impl Net {
                 }
             ).expect("");
     }
+
+    /// Iterate over all ops, no order guarantee
+    pub fn visit_op<F>(&mut self, closure: F)
+    where F: Fn(&Op) {
+        for i in self.graph.list_op() {
+            closure(self.ops.get(&i).expect(""));
+        }
+    }
+        
 }
 
 #[cfg(test)]

@@ -12,10 +12,14 @@ pub trait OpTrait {
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
     
     /// Given the forward input value and backward output_grad,
+    /// Update weight gradient.
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]);
 
+    /// access weight values
     fn get_values(&self) -> Vec<&Tensor>;
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor>;
 }
 
 
@@ -51,6 +55,13 @@ impl Op {
         }
         ret
     }
+    pub fn get_grads(&self) -> Vec<Tensor> {
+        let mut ret = Vec::new();
+        for i in self.o.borrow().get_grads() {
+            ret.push(i.clone());
+        }
+        ret
+    }
 }
 impl Clone for Op {
     fn clone(&self) -> Self {
@@ -82,6 +93,9 @@ macro_rules! new_binary_op {
                 println!("binary op grad");
             }
             fn get_values(&self) -> Vec<&Tensor> {
+                Vec::new()
+            }
+            fn get_grads(&self) -> Vec<&Tensor> {
                 Vec::new()
             }
         }
@@ -203,6 +217,14 @@ impl OpTrait for Linear {
         }
         ret
     }
+    fn get_grads(&self) -> Vec<&Tensor> {
+        let mut ret = Vec::new();
+        ret.push(&self.weight_grad);
+        if self.bias_option {
+            ret.push(&self.bias_grad);
+        }
+        ret
+    }
 }
 
 // Bilinear
@@ -268,6 +290,10 @@ impl OpTrait for MSELoss {
     }
 
     fn get_values(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+
+    fn get_grads(&self) -> Vec<&Tensor> {
         Vec::new()
     }
 }
