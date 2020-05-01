@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Install gfortran
+      run: sudo apt-get install -y gfortran
     - name: Build
       run: cargo build --verbose
     - name: Run tests
