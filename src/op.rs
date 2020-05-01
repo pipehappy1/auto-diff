@@ -18,6 +18,7 @@ pub trait OpTrait {
 
     /// access weight values
     fn get_values(&self) -> Vec<&Tensor>;
+    fn set_values(&self, v: &[Tensor]);
     /// access gradient values
     fn get_grads(&self) -> Vec<&Tensor>;
 }
@@ -54,6 +55,9 @@ impl Op {
             ret.push(i.clone());
         }
         ret
+    }
+    pub fn set_values(&self, v: &[Tensor]) {
+        self.o.borrow_mut().set_values(v);
     }
     pub fn get_grads(&self) -> Vec<Tensor> {
         let mut ret = Vec::new();
@@ -97,6 +101,8 @@ macro_rules! new_binary_op {
             }
             fn get_grads(&self) -> Vec<&Tensor> {
                 Vec::new()
+            }
+            fn set_values(&self, v: &[Tensor]) {
             }
         }
     }
@@ -217,6 +223,12 @@ impl OpTrait for Linear {
         }
         ret
     }
+    fn set_values(&self, v: &[Tensor]) {
+        self.weight.swap(v[0].clone());
+        if self.bias_option {
+            self.bias.swap(v[1].clone());
+        }
+    }
     fn get_grads(&self) -> Vec<&Tensor> {
         let mut ret = Vec::new();
         ret.push(&self.weight_grad);
@@ -291,6 +303,8 @@ impl OpTrait for MSELoss {
 
     fn get_values(&self) -> Vec<&Tensor> {
         Vec::new()
+    }
+    fn set_values(&self, v: &[Tensor]) {
     }
 
     fn get_grads(&self) -> Vec<&Tensor> {

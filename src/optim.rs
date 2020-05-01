@@ -25,6 +25,11 @@ impl Optimizer for SGD {
             //println!("{}", x.get_name());
             let weights = x.get_values();
             let grads = x.get_grads();
+            let mut new_weight = Vec::new();
+            for (i, j) in weights.iter().zip(grads.iter()) {
+                new_weight.push(i.add(&j.mul(&self.lr)));
+            }
+            x.set_values(&new_weight);
         });
     }
 }

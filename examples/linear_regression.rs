@@ -43,7 +43,7 @@ fn main() {
     input.set(x);
     label.set(y);
 
-    let mut opt = SGD::new(0.1);
+    let mut opt = SGD::new(0.2);
 
     for i in 0..100 {
         m.forward();
