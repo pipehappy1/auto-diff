@@ -56,14 +56,5 @@ fn main() {
         // let weights = linear.get_values();
         //println!("{:?}, {:?}", weights[0], weights[1]);
     }
-    
-    //m.forward();
-    //println!("LR: {}", output);
-    //println!("LR: {}", loss);
-    
-    //m.backward(-1.);
-
-    //println!("LR, output: {}", output.get_grad());
-    //println!("LR, loss: {}", loss.get_grad());
 
 }
