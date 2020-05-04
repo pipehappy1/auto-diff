@@ -9,6 +9,7 @@
 
 ## Example
 
+```rust,no_run
     use auto_diff::tensor::Tensor;
     use auto_diff::rand::RNG;
     use auto_diff::op::{Linear, Op};
@@ -55,6 +56,8 @@
         }
     
     }
+```
+
 
 ## Dependence
 
