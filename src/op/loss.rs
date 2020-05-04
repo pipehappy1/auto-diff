@@ -72,3 +72,56 @@ impl OpTrait for MSELoss {
         Vec::new()
     }
 }
+
+
+/// This loss combines a Sigmoid layer and the BCELoss in one single class.
+/// This version is more numerically stable than using a plain Sigmoid followed
+/// by a BCELoss as, by combining the operations into one layer,
+/// we take advantage of the log-sum-exp trick for numerical stability.
+/// 
+/// Prediction comes first, label comes second.
+pub struct BCEWithLogitsLoss {
+    
+}
+impl BCEWithLogitsLoss {
+    pub fn new() -> BCEWithLogitsLoss {
+        BCEWithLogitsLoss {
+        }
+    }
+}
+impl OpTrait for BCEWithLogitsLoss {
+    
+    fn get_name(&self) -> String {
+        "BCEWithLogitsLoss".to_string()
+    }
+
+    /// Forward pass
+    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+        if input.len() < 2 {
+            panic!("{} expect two input, get {}", self.get_name(), input.len());
+        }
+
+
+    }
+    
+    /// Given the forward input value and backward output_grad,
+    /// Update weight gradient.
+    /// return backward input gradeint.
+    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+        
+    }
+
+    /// access weight values
+    fn get_values(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+    
+    fn set_values(&self, v: &[Tensor]) {
+        
+    }
+    
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+}

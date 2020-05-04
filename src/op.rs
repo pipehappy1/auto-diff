@@ -6,6 +6,7 @@ use super::tensor::Tensor;
 
 /// All op is OpTrait
 pub trait OpTrait {
+    
     fn get_name(&self) -> String;
 
     /// Forward pass

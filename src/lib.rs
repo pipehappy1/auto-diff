@@ -2,6 +2,7 @@
 //! A machine learning library with a 1st order learning approach
 //! =============================================================
 //!
+//!
 //! Introduction
 //! ------------
 //!

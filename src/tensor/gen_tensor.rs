@@ -316,6 +316,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         self._right_broadcast(o, |x, y| *x / *y)
     }
 
+    
+
     /// matrix multiplication
     ///
     /// ```
@@ -545,6 +547,51 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         ret
     }
 
+
+    // Comparison Ops
+
+
+    pub fn all_close(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        self.eq_t(o)
+    }
+
+    pub fn arg_sort(&self, dim: usize, descending: bool) -> GenTensor<T> {
+        let mut d = self.d.to_vec();
+
+        let mut outer_size = 1;
+        let mut inner_size = 1;
+
+        for (i, index) in self.dim.iter().zip(0..self.dim.len()) {
+            if index < dim {
+                outer_size *= i;
+            } else if index > dim {
+                inner_size *= i;
+            }
+        }
+
+        let stride = self.stride()[dim];
+        let size = self.dim[dim];
+
+        for i in 0..outer_size {
+            for j in 0..inner_size {
+                let mut collected = Vec::<(T, usize)>::with_capacity(size);
+                for k in 0..size {
+                    collected.push((self.d[k*stride + j + i*inner_size*size], k));
+                }
+                collected.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+                let (left, right): (Vec<_>, Vec<_>) = collected.iter().cloned().unzip();
+                for k in 0..size {
+                    d[k*stride + j + i*inner_size*size] = T::from(right[k]).expect("");
+                }
+            }
+        }
+
+        GenTensor {
+            d: d,
+            dim: self.dim.to_vec()
+        }
+    }
+
     /// Computes element-wise equality
     /// use eq_t instead, as eq is reserved for == overloading.
     ///
@@ -576,18 +623,57 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// # use auto_diff::tensor::gen_tensor::*;
     /// let m1 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
     /// let m2 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
-    /// assert_eq!(m1.equal(&m2), Ok(()))
+    /// assert_eq!(m1.equal(&m2), true)
     /// ```
-    pub fn equal(&self, o: &GenTensor<T>) -> Result<(), ()> {
-        let mut same = Ok(());
+    pub fn equal(&self, o: &GenTensor<T>) -> bool {
+        let mut same = true;
         for (v1, v2) in self.d.iter().zip(o.d.iter()) {
             if (*v1-*v2).abs() > T::min_positive_value().sqrt() {
-                same = Err(());
+                same = false;
                 break;
             }
         }
         same
     }
+
+    pub fn ge(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        GenTensor::new()
+    }
+
+    pub fn gt(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        GenTensor::new()
+    }
+
+    //pub fn isfinite(&self, o: &GenTensor<T>) -> GenTensor<T> {
+    //    GenTensor::new()
+    //}
+    //
+    //pub fn isinf(&self, o: &GenTensor<T>) -> GenTensor<T> {
+    //    GenTensor::new()
+    //}
+    //
+    //pub fn isnan(&self, o: &GenTensor<T>) -> GenTensor<T> {
+    //    GenTensor::new()
+    //}
+    //
+    //pub fn kthvalue(&self, o: &GenTensor<T>) -> GenTensor<T> {
+    //    GenTensor::new()
+    //}
+    pub fn le(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        GenTensor::new()
+    }
+
+    pub fn lt(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        GenTensor::new()
+    }
+    // max
+    // min
+    pub fn ne(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        GenTensor::new()
+    }
+    // sort
+    // topk
+    
 
 }
 
@@ -599,7 +685,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 /// ```
 impl<T> PartialEq for GenTensor<T> where T: num_traits::Float {
     fn eq(&self, other: &Self) -> bool {
-        if self.equal(other) == Ok(()) {
+        if self.equal(other) {
             true
         } else {
             false
@@ -630,6 +716,43 @@ impl fmt::Display for GenTensor<f64> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.dim);
         write!(f, "{:?}", self.d)
+    }
+}
+
+impl fmt::Debug for GenTensor<f32> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                if self.dim.len() == 2 {
+            write!(f, "[");
+            for i in 0..self.dim[0] {
+                write!(f, "[");
+                for j in 0..self.dim[1] {
+                    write!(f, "{}, ", self.get(&vec![i, j]));
+                }
+                write!(f, "]\n");
+            }
+            write!(f, "]\n")
+        } else {
+            write!(f, "{:?}\n", self.dim);
+            write!(f, "{:?}", self.d)            
+        }
+    }
+}
+impl fmt::Debug for GenTensor<f64> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.dim.len() == 2 {
+            write!(f, "[");
+            for i in 0..self.dim[0] {
+                write!(f, "[");
+                for j in 0..self.dim[1] {
+                    write!(f, "{}, ", self.get(&vec![i, j]));
+                }
+                write!(f, "]\n");
+            }
+            write!(f, "]\n")
+        } else {
+            write!(f, "{:?}\n", self.dim);
+            write!(f, "{:?}", self.d)            
+        }
     }
 }
 
@@ -707,4 +830,24 @@ mod tests {
         let m22 = m2.permute(&vec![1, 0]);
         assert_eq!(m22.get_raw(), vec![1., 3., 2., 4.]);
     }
+
+    // Comparison Ops
+    #[test]
+    fn arg_sort() {
+        let mut a = GenTensor::<f32>::new_raw(&vec![0.0785,  1.5267, -0.8521,  0.4065,
+                                                    0.1598,  0.0788, -0.0745, -1.2700,
+                                                    1.2208,  1.0722, -0.7064,  1.2564,
+                                                    0.0669, -0.2318, -0.8229, -0.9280,],
+                                              &vec![4, 4]);
+        
+        let index = a.arg_sort(1, true);
+
+        let expect = GenTensor::<f32>::new_raw(&vec![2., 0., 3., 1., 
+                                                     3., 2., 1., 0., 
+                                                     2., 1., 0., 3., 
+                                                     3., 2., 1., 0.], 
+                                               &vec![4, 4]);
+        assert_eq!(index, expect);
+    }
+    
 }
