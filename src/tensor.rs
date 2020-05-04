@@ -137,12 +137,8 @@ impl Tensor {
     pub fn new_zeros(dim: &[u32]) -> Tensor {
         Tensor::new()
     }
-    pub fn zeros_like(o: &Tensor) -> Tensor {
-        Tensor::new()
-    }
-    pub fn ones_like(o: &Tensor) -> Tensor {
-        Tensor::new()
-    }
+    tensor_method_single_tensor_return!(zeros_like);
+    tensor_method_single_tensor_return!(ones_like);
     pub fn range(start: f64, step: f64) -> Tensor {
         Tensor::new()
     }
@@ -196,6 +192,10 @@ impl Tensor {
     
     pub fn to_f64(&mut self) {}
     pub fn to_f32(&mut self) {}
+
+    tensor_method_single_tensor_return!(neg);
+    tensor_method_single_tensor_return!(log1pexp);
+    tensor_method_single_tensor_return!(sigmoid);
 
     tensor_method!(add);
     tensor_method!(sub);

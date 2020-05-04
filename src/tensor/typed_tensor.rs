@@ -51,6 +51,9 @@ impl TypedTensor {
         TypedTensor::Typef32(GenTensor::new())
     }
 
+    typed_tensor_method_single_tensor_return!(zeros_like);
+    typed_tensor_method_single_tensor_return!(ones_like);
+
     typed_tensor_method_single_same_return!(size, Vec<usize>);
     typed_tensor_method_single_same_return!(numel, usize);
     pub fn get_scale_f32(&self) -> f32 {
@@ -92,6 +95,10 @@ impl TypedTensor {
             //_ => {panic!("should have same tensor type!");},
         }
     }
+
+    typed_tensor_method_single_tensor_return!(neg);
+    typed_tensor_method_single_tensor_return!(log1pexp);
+    typed_tensor_method_single_tensor_return!(sigmoid);
 
     // ```
     // # use auto_diff::tensor::*;

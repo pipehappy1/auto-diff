@@ -6,6 +6,9 @@ pub struct GenTensor<T> {
     dim: Vec<usize>,
 }
 impl<T> GenTensor<T> where T: num_traits::Float {
+
+    /// Creation Ops
+    
     pub fn new() -> GenTensor<T> {
         GenTensor { d: Vec::<T>::new(), dim: Vec::new() }
     }
@@ -19,6 +22,62 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             dim: new_dim,
         }
     }
+
+    // 
+    // as_tensor
+    // as_strided
+    // from_ndarray
+    // zeros
+    pub fn zeros_like(&self) -> GenTensor<T> {
+        let mut new_data = Vec::with_capacity(self.d.len());
+        for i in 0..self.d.len() {
+            new_data.push(T::zero());
+        }
+        let new_dim = self.dim.to_vec();
+        GenTensor {
+            d: new_data,
+            dim: new_dim,
+        }
+    }
+
+    // ones
+    pub fn ones_like(&self) -> GenTensor<T> {
+        let mut new_data = Vec::with_capacity(self.d.len());
+        for i in 0..self.d.len() {
+            new_data.push(T::one());
+        }
+        let new_dim = self.dim.to_vec();
+        GenTensor {
+            d: new_data,
+            dim: new_dim,
+        }
+    }
+    // arange
+    // range
+    // linspace
+    // logspace
+    // eye
+    pub fn empty(shape: &[usize]) -> GenTensor<T> {
+        let mut elem = 1;
+        for i in shape {
+            elem *= i;
+        }
+        
+        let mut new_data = Vec::with_capacity(elem);
+        unsafe{ new_data.set_len(elem); }
+        let new_dim = shape.to_vec();
+        GenTensor {
+            d: new_data,
+            dim: new_dim,
+        }
+    }
+    // empty_like
+    // empty_stided
+    // full
+    // full_like
+    // quantize_per_tensor
+    // quantize_per_channel
+    // 
 
     /// Create a tensor filled with the same value d
     ///
@@ -256,6 +315,117 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         
     }
 
+
+    // Pointwise Ops
+    
+    // abs
+    // acos
+    // addcdiv
+    // addcmul
+    // angle
+    // asin
+    // atan
+    // atan2
+    // bitwise_not
+    // bitwise_and
+    // bitwise_or
+    // bitwise_xor
+    // ceil
+    // clamp
+    // conj
+    // cos
+    // digamma
+    // erf
+    // erfc
+    // erfinv
+    // exp
+    // expm1
+    // floor
+    // floor_divide
+    // fmod
+    // frac
+    // imag
+    // lerp
+    // lgamma
+    // log
+    // log10
+    // log1p
+
+    /// Better log(1 + exp(x))
+    /// see https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
+    pub fn log1pexp(&self) -> GenTensor<T> {
+        let mut ret = GenTensor {
+            d: Vec::with_capacity(self.d.len()),
+            dim: self.dim.to_vec(),
+        };
+        for i in &self.d {
+            if i <= &T::from(-37).expect("") {
+                ret.d.push(i.exp());
+            } else if i > &T::from(-37).expect("") && i <= &T::from(18).expect("") {
+                ret.d.push(i.exp().ln_1p());
+            } else if i > &T::from(-18).expect("") && i <= &T::from(33.3).expect("") {
+                ret.d.push(*i + i.mul(T::from(-1).expect("")).exp());
+            } else {
+                ret.d.push(*i);
+            }
+        }
+        ret
+    }
+    
+    // log2
+    // logical_and
+    // logical_not
+    // logical_or
+    // logical_xor
+    // mvlgamma
+
+    pub fn neg(&self) -> GenTensor<T> {
+        let mut ret = GenTensor {
+            d: Vec::with_capacity(self.d.len()),
+            dim: self.dim.to_vec(),
+        };
+
+        for i in &self.d {
+            ret.d.push(i.mul(T::zero() - T::one()));
+        }
+        ret
+    }
+    
+    // polygamma
+    // pow
+    // real
+    // reciprocal
+    // remainder
+    // round
+    // rsqrt
+    
+    pub fn sigmoid(&self) -> GenTensor<T> {
+        let mut ret = GenTensor {
+            d: self.d.to_vec(),
+            dim: self.dim.to_vec(),
+        };
+
+        for i in 0..self.d.len() {
+            if self.d[i] > T::zero() {
+                ret.d[i] = T::one()/(T::one() + self.d[i].neg().exp());
+            }
+            else {
+                ret.d[i] = self.d[i].exp()/(T::one() + self.d[i].exp());
+            }
+        }
+        ret
+    }
+
+    // sign
+    // sin
+    // sinh
+    // sqrt
+    // square
+    // tan
+    // tanh
+    // true_divide
+    // trunc
+    
     pub fn _right_broadcast<F>(&self, o: &GenTensor<T>, closure: F) -> GenTensor<T>
     where F: Fn(&T, &T) -> T {
         let mut ret = GenTensor {
@@ -315,8 +485,6 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     pub fn div(&self, o: &GenTensor<T>) -> GenTensor<T> {
         self._right_broadcast(o, |x, y| *x / *y)
     }
-
-    
 
     /// matrix multiplication
     ///
@@ -822,14 +990,40 @@ mod tests {
 
     #[test]
     fn permute() {
-        let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
+        let m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
         let m11 = m1.permute(&vec![2, 0, 1]);
         assert_eq!(m11.size(), vec![5, 2, 3]);
 
-        let mut m2 = GenTensor::<f64>::new_raw(&vec![1., 2., 3., 4.,], &vec![2, 2]);
+        let m2 = GenTensor::<f64>::new_raw(&vec![1., 2., 3., 4.,], &vec![2, 2]);
         let m22 = m2.permute(&vec![1, 0]);
         assert_eq!(m22.get_raw(), vec![1., 3., 2., 4.]);
     }
+
+    // Pointwise Ops
+    #[test]
+    fn log1pexp() {
+        let a = GenTensor::<f32>::new_raw(&vec![0.9213,  1.0887, -0.8858, -1.7683],
+                                              &vec![4]);
+        
+        let ret = a.log1pexp();
+
+        let expect = GenTensor::<f32>::new_raw(&vec![1.2563436, 1.3788694, 0.34527916, 0.15753591], 
+                                               &vec![4]);
+        assert_eq!(ret, expect);
+    }
+    
+    #[test]
+    fn sigmoid() {
+        let a = GenTensor::<f32>::new_raw(&vec![0.9213,  1.0887, -0.8858, -1.7683],
+                                              &vec![4]);
+        
+        let ret = a.sigmoid();
+
+        let expect = GenTensor::<f32>::new_raw(&vec![0.71530694, 0.7481369, 0.29197732, 0.14575386], 
+                                               &vec![4]);
+        assert_eq!(ret, expect);
+    }
+    
 
     // Comparison Ops
     #[test]

@@ -78,6 +78,8 @@ impl OpTrait for MSELoss {
 /// This version is more numerically stable than using a plain Sigmoid followed
 /// by a BCELoss as, by combining the operations into one layer,
 /// we take advantage of the log-sum-exp trick for numerical stability.
+///
+/// -y log (1/(1 + exp(-x))) - (1-y) log(1 - 1/(1 + exp(-x)))
 /// 
 /// Prediction comes first, label comes second.
 pub struct BCEWithLogitsLoss {
@@ -95,20 +97,22 @@ impl OpTrait for BCEWithLogitsLoss {
         "BCEWithLogitsLoss".to_string()
     }
 
-    /// Forward pass
+    /// The first is the prediction, the second input is the label
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         if input.len() < 2 {
             panic!("{} expect two input, get {}", self.get_name(), input.len());
         }
-
-
+        let ret = input[1].mul(&input[0].neg().log1pexp())
+            .add(&(input[1].neg().add(&input[1].ones_like())).mul(&input[0].log1pexp()));
+        output[0].swap(ret);
     }
     
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        
+        // ddx y log (1 + exp(-x)) = -y  / (1 + exp(x))
+        // ddx (1-y) log (1 + exp(x)) = (1-y) / (1 + exp(-x))
     }
 
     /// access weight values
