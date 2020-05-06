@@ -202,9 +202,41 @@ impl Tensor {
     pub fn to_f64(&mut self) {}
     pub fn to_f32(&mut self) {}
 
-    tensor_method_single_tensor_return!(neg);
+    // Pointwise Ops
+    tensor_method_single_tensor_return!(abs);
+    tensor_method_single_tensor_return!(acos);
+    tensor_method_single_tensor_return!(asin);
+    tensor_method_single_tensor_return!(atan);
+    tensor_method_single_tensor_return!(ceil);
+    // clamp
+    tensor_method_single_tensor_return!(cos);
+    tensor_method_single_tensor_return!(cosh);
+    tensor_method_single_tensor_return!(exp);
+    tensor_method_single_tensor_return!(expm1);
+    tensor_method_single_tensor_return!(floor);
+    tensor_method_single_tensor_return!(frac);
+    // lerp
+    pub fn lerp(&self, end: &Tensor, weight: f32) -> Tensor {unimplemented!()}
+    pub fn lerp_weights(&self, end: &Tensor, weight: &Tensor) -> Tensor {unimplemented!()}
+    tensor_method_single_tensor_return!(log);
+    tensor_method_single_tensor_return!(log10);
+    tensor_method_single_tensor_return!(log1p);
     tensor_method_single_tensor_return!(log1pexp);
+    tensor_method_single_tensor_return!(log2);
+    tensor_method_single_tensor_return!(neg);
+    // pow
+    tensor_method_single_tensor_return!(reciprocal);
+    tensor_method_single_tensor_return!(round);
+    tensor_method_single_tensor_return!(rsqrt);
     tensor_method_single_tensor_return!(sigmoid);
+    tensor_method_single_tensor_return!(sign);
+    tensor_method_single_tensor_return!(sin);
+    tensor_method_single_tensor_return!(sinh);
+    tensor_method_single_tensor_return!(sqrt);
+    tensor_method_single_tensor_return!(square);
+    tensor_method_single_tensor_return!(tan);
+    tensor_method_single_tensor_return!(tanh);
+    tensor_method_single_tensor_return!(trunc);
 
     tensor_method!(add);
     tensor_method!(sub);

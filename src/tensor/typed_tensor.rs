@@ -103,10 +103,40 @@ impl TypedTensor {
             //_ => {panic!("should have same tensor type!");},
         }
     }
-
-    typed_tensor_method_single_tensor_return!(neg);
+    
+    // Pointwise Ops
+    typed_tensor_method_single_tensor_return!(abs);
+    typed_tensor_method_single_tensor_return!(acos);
+    typed_tensor_method_single_tensor_return!(asin);
+    typed_tensor_method_single_tensor_return!(atan);
+    typed_tensor_method_single_tensor_return!(ceil);
+    // clamp
+    typed_tensor_method_single_tensor_return!(cos);
+    typed_tensor_method_single_tensor_return!(cosh);
+    typed_tensor_method_single_tensor_return!(exp);
+    typed_tensor_method_single_tensor_return!(expm1);
+    typed_tensor_method_single_tensor_return!(floor);
+    typed_tensor_method_single_tensor_return!(frac);
+    // lerp
+    typed_tensor_method_single_tensor_return!(log);
+    typed_tensor_method_single_tensor_return!(log10);
+    typed_tensor_method_single_tensor_return!(log1p);
     typed_tensor_method_single_tensor_return!(log1pexp);
+    typed_tensor_method_single_tensor_return!(log2);
+    typed_tensor_method_single_tensor_return!(neg);
+    // pow
+    typed_tensor_method_single_tensor_return!(reciprocal);
+    typed_tensor_method_single_tensor_return!(round);
+    typed_tensor_method_single_tensor_return!(rsqrt);
     typed_tensor_method_single_tensor_return!(sigmoid);
+    typed_tensor_method_single_tensor_return!(sign);
+    typed_tensor_method_single_tensor_return!(sin);
+    typed_tensor_method_single_tensor_return!(sinh);
+    typed_tensor_method_single_tensor_return!(sqrt);
+    typed_tensor_method_single_tensor_return!(square);
+    typed_tensor_method_single_tensor_return!(tan);
+    typed_tensor_method_single_tensor_return!(tanh);
+    typed_tensor_method_single_tensor_return!(trunc);
 
     // ```
     // # use auto_diff::tensor::*;

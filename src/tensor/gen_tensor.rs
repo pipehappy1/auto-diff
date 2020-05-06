@@ -241,6 +241,47 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
+
+    // Indexing, Slicing, Joining, Mutating Ops
+    
+    pub fn cat(&self, tensors: &[&GenTensor<T>], dim: usize) -> GenTensor<T> {
+        GenTensor::new()
+    }
+    //pub fn chunk() {}
+    //pub fn gather() {}
+    //pub fn index_select() {}
+    //pub fn masked_select() {}
+    //pub fn narrow() {}
+    //pub fn nonzero() {}
+    //pub fn reshape() {}
+    //pub fn split() {}
+    //pub fn squeeze() {}
+    //pub fn stack() {}
+    //pub fn t() {}
+    //pub fn take() {}
+    //pub fn transpose() {}
+    //pub fn unbind() {}
+    //
+    //pub fn permute(&self, dim: &[usize]) -> Tensor {
+    //    Tensor {
+    //        v: Rc::new(RefCell::new(self.v.borrow().permute(dim))),
+    //    }
+    //}
+    //
+    ///// Returns a new tensor with a dimension of size one inserted at the specified position.
+    ///// 
+    ///// The returned tensor shares the same underlying data with this tensor.
+    /////
+    ///// 
+    //pub fn unsqueeze(&mut self, dim: &[usize]) -> &Tensor {
+    //    self.v.borrow_mut().unsqueeze(dim);
+    //    self
+    //}
+    //
+    //pub fn condition() {} // this is pytorch where
+
+    
+
     /// Returns the sum of all elements.
     /// ```
     /// # use auto_diff::tensor::gen_tensor::*;
@@ -367,38 +408,147 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     // Pointwise Ops
     
+    fn _pointwise<F>(&self, closure: F) -> GenTensor<T>
+    where F: Fn(&T) -> T {
+        let mut ret = GenTensor {
+            d: Vec::with_capacity(self.d.len()),
+            dim: self.dim.clone(),
+        };
+
+        for i in &self.d {
+            ret.d.push(closure(i));
+        }
+        ret
+    }
     // abs
+    pub fn abs(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.abs()
+        })
+    }
     // acos
+    pub fn acos(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.acos()
+        })
+    }
+    // add, there is one.
     // addcdiv
     // addcmul
     // angle
     // asin
+    pub fn asin(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.asin()
+        })
+    }
     // atan
+    pub fn atan(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.atan()
+        })
+    }
     // atan2
     // bitwise_not
     // bitwise_and
     // bitwise_or
     // bitwise_xor
     // ceil
+    pub fn ceil(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.ceil()
+        })
+    }
     // clamp
+    pub fn clamp(&self, min: T, max: T) -> GenTensor<T> {
+        let mut ret = GenTensor {
+            d: Vec::with_capacity(self.d.len()),
+            dim: self.dim.clone(),
+        };
+
+        for i in &self.d {
+            let value;
+            if *i < min {
+                value = min;
+            } else if *i <= max {
+                value = *i;
+            } else {
+                value = max;
+            }
+            ret.d.push(value);
+        }
+        ret
+    }
     // conj
     // cos
+    pub fn cos(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.cos()
+        })
+    }
+    // cosh
+    pub fn cosh(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.cosh()
+        })
+    }
+    // div, there is one.
     // digamma
+    //pub fn digamma(&self) -> GenTensor<T> {
+    //    self._pointwise(|x| {
+    //        x.digamma()
+    //    })
+    //}
     // erf
     // erfc
     // erfinv
     // exp
+    pub fn exp(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.exp()
+        })
+    }
     // expm1
+    pub fn expm1(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.exp_m1()
+        })
+    }
     // floor
+    pub fn floor(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.floor()
+        })
+    }
     // floor_divide
     // fmod
     // frac
+    pub fn frac(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.fract()
+        })
+    }
     // imag
-    // lerp
+    // lerp, this is on Tensor.
     // lgamma
     // log
+    pub fn log(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.ln()
+        })
+    }
     // log10
+    pub fn log10(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.log10()
+        })
+    }
     // log1p
+    pub fn log1p(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.ln_1p()
+        })
+    }
 
     /// Better log(1 + exp(x))
     /// see https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
@@ -422,12 +572,18 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
     
     // log2
+    pub fn log2(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.log2()
+        })
+    }
     // logical_and
     // logical_not
     // logical_or
     // logical_xor
+    // mul, there is one
     // mvlgamma
-
+    // neg
     pub fn neg(&self) -> GenTensor<T> {
         let mut ret = GenTensor {
             d: Vec::with_capacity(self.d.len()),
@@ -442,11 +598,31 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     
     // polygamma
     // pow
+    pub fn pow(&self, n: T) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.powf(n)
+        })
+    }
     // real
     // reciprocal
+    pub fn reciprocal(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.recip()
+        })
+    }
     // remainder
     // round
+    pub fn round(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.round()
+        })
+    }
     // rsqrt
+    pub fn rsqrt(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.sqrt()/(*x)
+        })
+    }
     
     pub fn sigmoid(&self) -> GenTensor<T> {
         let mut ret = GenTensor {
@@ -466,14 +642,60 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
 
     // sign
+    pub fn sign(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            if *x == T::zero() {
+                T::zero()
+            } else if *x > T::zero() {
+                T::one()
+            } else {
+                T::zero() - T::one()
+            }
+        })
+    }
     // sin
+    pub fn sin(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.sin()
+        })
+    }
     // sinh
+    pub fn sinh(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.sinh()
+        })
+    }
     // sqrt
+    pub fn sqrt(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.sqrt()
+        })
+    }
     // square
+    pub fn square(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            (*x)*(*x)
+        })
+    }
     // tan
+    pub fn tan(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.tan()
+        })
+    }
     // tanh
+    pub fn tanh(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.tanh()
+        })
+    }
     // true_divide
     // trunc
+    pub fn trunc(&self) -> GenTensor<T> {
+        self._pointwise(|x| {
+            x.trunc()
+        })
+    }
     
     pub fn _right_broadcast<F>(&self, o: &GenTensor<T>, closure: F) -> GenTensor<T>
     where F: Fn(&T, &T) -> T {
@@ -1080,6 +1302,18 @@ mod tests {
 
     // Pointwise Ops
     #[test]
+    fn ceil() {
+        let a = GenTensor::<f32>::new_raw(&vec![0.9213,  1.0887, -0.8858, -1.7683],
+                                              &vec![4]);
+        
+        let ret = a.ceil();
+
+        let expect = GenTensor::<f32>::new_raw(&vec![1., 2., 0., -1.], 
+                                               &vec![4]);
+        assert_eq!(ret, expect);
+    }
+    
+    #[test]
     fn log1pexp() {
         let a = GenTensor::<f32>::new_raw(&vec![0.9213,  1.0887, -0.8858, -1.7683],
                                               &vec![4]);
@@ -1099,6 +1333,18 @@ mod tests {
         let ret = a.sigmoid();
 
         let expect = GenTensor::<f32>::new_raw(&vec![0.71530694, 0.7481369, 0.29197732, 0.14575386], 
+                                               &vec![4]);
+        assert_eq!(ret, expect);
+    }
+
+    #[test]
+    fn sign() {
+        let a = GenTensor::<f32>::new_raw(&vec![0.9213,  0.0, -0.0, -1.7683],
+                                              &vec![4]);
+        
+        let ret = a.sign();
+
+        let expect = GenTensor::<f32>::new_raw(&vec![1.0, 0.0, 0.0, -1.0],
                                                &vec![4]);
         assert_eq!(ret, expect);
     }
