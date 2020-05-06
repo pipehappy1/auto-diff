@@ -53,6 +53,19 @@ impl TypedTensor {
 
     typed_tensor_method_single_tensor_return!(zeros_like);
     typed_tensor_method_single_tensor_return!(ones_like);
+    pub fn empty(shape: &[usize]) -> TypedTensor {
+        TypedTensor::Typef32(GenTensor::<f32>::empty(shape))
+    }
+    pub fn fill(size: &[usize], fill_value: f32) -> TypedTensor {
+        TypedTensor::Typef32(GenTensor::fill(fill_value, size))
+    }
+    pub fn from_record(&mut self, row: usize, record: &[f32]) -> Result<(), ()>{
+        match self {
+            TypedTensor::Typef32(v1) => {v1.from_record(row, record)},
+            TypedTensor::Typef64(v1) => {v1.from_record(row, record)},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
 
     typed_tensor_method_single_same_return!(size, Vec<usize>);
     typed_tensor_method_single_same_return!(numel, usize);
@@ -74,11 +87,6 @@ impl TypedTensor {
     
     pub fn to_f32(i: TypedTensor) {}
     pub fn to_f64(i: TypedTensor) {}
-
-    pub fn fill(size: &[usize], fill_value: f32) -> TypedTensor {
-        TypedTensor::Typef32(GenTensor::fill(fill_value, size))
-    }
-
 
     pub fn permute(&self, dim: &[usize]) -> TypedTensor {
         match &self {
@@ -124,7 +132,21 @@ impl TypedTensor {
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.mean(dim, keepdim))},
             //_ => {panic!("should have same tensor type!");},
         }
-    }    
+    }
+    pub fn std(&self, dim: usize, keepdim: bool) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.std(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.std(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    pub fn var(&self, dim: usize, keepdim: bool) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.var(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.var(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
     typed_tensor_method_single_tensor_return!(sum);
 
 }

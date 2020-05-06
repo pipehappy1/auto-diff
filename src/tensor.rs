@@ -113,6 +113,9 @@ impl Tensor {
     pub fn from_vec_f64(i: &[f64]) -> Tensor {
         Tensor::new()
     }
+    pub fn from_record(&self, row: usize, record: &[f32]) -> Result<(), ()> {
+        self.v.borrow_mut().from_record(row, record)
+    }
 
     pub fn swap(&self, o: Tensor) {
         self.v.swap(&o.v);
@@ -127,9 +130,15 @@ impl Tensor {
     pub fn fill_like() -> Tensor {
         Tensor::new()
     }
-    pub fn empty() -> Tensor {
-        // <- this will no work. As there must be sth.
-        Tensor::new()
+    pub fn empty(shape: &[usize]) -> Tensor {
+        for i in shape {
+            if *i == 0 {
+                println!("");
+            }
+        }
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::empty(shape))),
+        }
     }
     pub fn new_ones(dim: &[u32]) -> Tensor {
         Tensor::new()
@@ -215,19 +224,57 @@ impl Tensor {
         Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().mean(dim, keepdim))),
         }
-    }    
+    }
+    
     //tensor_method_single_tensor_return!(median);
     //tensor_method_single_tensor_return!(mode);
     //tensor_method_single_tensor_return!(norm);
     //tensor_method_single_tensor_return!(prod);
-    //tensor_method_single_tensor_return!(std);
+    pub fn std(&self, dim: usize, keepdim: bool) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().std(dim, keepdim))),
+        }
+    }
     //tensor_method_single_tensor_return!(std_mean);
     tensor_method_single_tensor_return!(sum);
     //tensor_method_single_tensor_return!(unique);
     //tensor_method_single_tensor_return!(unique_consecutive);
-    //tensor_method_single_tensor_return!(var);
+    pub fn var(&self, dim: usize, keepdim: bool) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().var(dim, keepdim))),
+        }
+    }
     //tensor_method_single_tensor_return!(var_mean);
 
+    pub fn normalize(&self, mean: &[f32], std: &[f32]) -> Tensor {
+        if self.size().len() != 2 {
+            panic!("fn normalize is for two-dimensional data.");
+        }
+        let width = self.size()[1];
+        let total = self.size()[0];
+        if width != mean.len() {
+            panic!("input mean has a different size. {}, {}", width, mean.len());
+        }
+        if width != std.len() {
+            panic!("input std has a different size. {}, {}", width, std.len());
+        }
+        
+        let data_mean = self.mean(0, false);
+        let tmp1 = self.sub(&data_mean).add(&Tensor::from_vec_f32(mean, &vec![width]));
+        //let tmp1 = Tensor::from_vec_f32(mean, &vec![width]).sub(&data_mean).add(self);
+
+        let data_std = tmp1.std(0, false);
+        //println!("data_std: {:?}, tmp1: {:?}", data_std, tmp1);
+        let tmp2 = tmp1.div(&data_std);
+        tmp2
+    }
+    pub fn normalize_unit(&self) -> Tensor {
+        if self.size().len() != 2 {
+            panic!("fn normalize is for two-dimensional data.");
+        }
+        self.normalize(&vec![0. ; self.size()[self.size().len()-1]],
+                       &vec![1. ; self.size()[self.size().len()-1]])
+    }
     
 }
 
@@ -270,5 +317,12 @@ mod tests {
         let a = Tensor::from_vec_f32(&vec![1., 2., 3., ], &vec![1, 3]);
         let b = Tensor::from_vec_f32(&vec![1., 2., 3., ], &vec![3, 1]);
         assert_eq!(a.same_shape(&b), false);
+    }
+
+    #[test]
+    fn normalize() {
+        let a = Tensor::from_vec_f32(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
+        let b = a.normalize_unit();
+        assert_eq!(b, Tensor::from_vec_f32(&vec![-1.2247448, -1.2247448, 0.,0., 1.2247448, 1.2247448], &vec![3, 2]));
     }
 }
