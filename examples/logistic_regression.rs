@@ -97,8 +97,8 @@ fn main() {
     let loss = bcewithlogitsloss(&output, &label);
     
     //println!("{}, {}", &train_data, &train_label);
-    input.set(train_data);
-    label.set(train_label);
+    input.set(train_data.clone());
+    label.set(train_label.clone());
 
     let mut opt = SGD::new(0.1);
 
