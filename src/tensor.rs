@@ -161,10 +161,22 @@ impl Tensor {
         Tensor::new()
     }
 
-
-
-
-    pub fn cat() {}
+    
+    // Indexing, Slicing, Joining, Mutating Ops
+    pub fn cat(&self, tensors: &[&Tensor], dim: usize) -> Tensor {
+        let mut concrete_tensor = Vec::new();
+        
+        for i in tensors {
+            concrete_tensor.push(i.v.borrow().clone());
+        }
+        let mut converted_tensor = Vec::new();
+        for i in &concrete_tensor {
+            converted_tensor.push(i);
+        }
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().cat(&converted_tensor[..], dim))),
+        }
+    }
     pub fn chunk() {}
     pub fn gather() {}
     pub fn index_select() {}
@@ -172,7 +184,16 @@ impl Tensor {
     pub fn narrow() {}
     pub fn nonzero() {}
     pub fn reshape() {}
-    pub fn split() {}
+    pub fn split(&self, sections: &[usize], dim: usize) -> Vec<Tensor> {
+        let typts = self.v.borrow().split(sections, dim);
+        let mut ret = Vec::new();
+        for i in typts {
+            ret.push(Tensor {
+                v: Rc::new(RefCell::new(i)),
+            });
+        }
+        ret
+    }
     pub fn squeeze() {}
     pub fn stack() {}
     pub fn t() {}

@@ -1,4 +1,5 @@
 use std::fmt;
+use std::mem::discriminant;
 
 
 use super::gen_tensor::*;
@@ -85,8 +86,74 @@ impl TypedTensor {
     typed_tensor_method_single_tensor_return!(get_W);
     typed_tensor_method_single_tensor_return!(numel_tensor);
     
-    pub fn to_f32(i: TypedTensor) {}
-    pub fn to_f64(i: TypedTensor) {}
+    pub fn to_gentensorf32(i: &TypedTensor) -> TypedTensor {
+        unimplemented!();
+    }
+    pub fn to_gentensorf64(i: &TypedTensor) -> TypedTensor {
+        unimplemented!();
+    }
+
+    // Indexing, Slicing, Joining, Mutating Ops
+    pub fn cat(&self, tensors: &[&TypedTensor], dim: usize) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {
+                let mut converted_tensor = Vec::new();
+                for i in tensors {
+                    if discriminant(*i) == discriminant(&TypedTensor::Typef32(GenTensor::<f32>::new())) {
+                        let tmp_ref;
+                        match i {
+                            TypedTensor::Typef32(v1) => {tmp_ref = v1;},
+                            TypedTensor::Typef64(v1) => {panic!("");},
+                        }
+                        converted_tensor.push(tmp_ref);
+                    } else {
+                        unimplemented!();
+                    }
+                }
+                TypedTensor::Typef32(v1.cat(&converted_tensor[..], dim))
+            },
+            TypedTensor::Typef64(v1) => {
+                let mut converted_tensor = Vec::new();
+                for i in tensors {
+                    if discriminant(*i) == discriminant(&TypedTensor::Typef64(GenTensor::<f64>::new())) {
+                        let tmp_ref;
+                        match i {
+                            TypedTensor::Typef64(v1) => {tmp_ref = v1;},
+                            TypedTensor::Typef32(v1) => {panic!("");},
+                        }
+                        converted_tensor.push(tmp_ref);
+                    } else {
+                        unimplemented!();
+                    }
+                }
+                TypedTensor::Typef64(v1.cat(&converted_tensor[..], dim))
+            },
+        }
+    }
+
+    pub fn split(&self, sections: &[usize], dim: usize) -> Vec<TypedTensor> {
+
+        match &self {
+            TypedTensor::Typef32(v1) => {
+                let gts = v1.split(sections, dim);
+                let mut ret = Vec::new();
+                for i in gts {
+                   ret.push(TypedTensor::Typef32(i));
+                }
+                ret
+            },
+            TypedTensor::Typef64(v1) => {
+                let gts = v1.split(sections, dim);
+                let mut ret = Vec::new();
+                for i in gts {
+                   ret.push(TypedTensor::Typef64(i));
+                }
+                ret
+            },
+            //_ => {panic!("should have same tensor type!");},
+        }
+
+    }
 
     pub fn permute(&self, dim: &[usize]) -> TypedTensor {
         match &self {

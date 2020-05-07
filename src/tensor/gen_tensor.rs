@@ -1,4 +1,5 @@
 use std::fmt;
+use std::ops::Range;
 
 /// Naive tensor implementation, single thread
 pub struct GenTensor<T> {
@@ -95,6 +96,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             dim: shape.to_vec(),
         }
     }
+    /// assign a row.
     pub fn from_record(&mut self, row: usize, record: &[f32]) -> Result<(), ()> {
         for (i, index) in record.iter().zip(0..self.dim[self.dim.len()-1]) {
             self.d[row*self.dim[self.dim.len()-1] + index] = T::from(*i).expect("");
@@ -243,9 +245,65 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
 
     // Indexing, Slicing, Joining, Mutating Ops
-    
+
+    // cat
     pub fn cat(&self, tensors: &[&GenTensor<T>], dim: usize) -> GenTensor<T> {
-        GenTensor::new()
+        for i in tensors {
+            if i.dim.len() != self.dim.len() {
+                panic!("cat needs all have the same number of dimens {}, {}", self.dim.len(), i.dim.len());
+            }
+            for (j, index) in i.dim.iter().zip(0..self.dim.len()) {
+                if index != dim && self.dim[index] != *j {
+                    panic!("cat needs all but the cat dim to have the same dim {:?}, {:?}", self.dim, i.dim);
+                }
+            }
+        }
+
+        let mut cap = 1;
+        let mut new_dim = Vec::new();
+        let mut outer_size = 1;
+        let mut inner_size = 1;
+        for i in 0..self.dim.len() {
+            if i != dim {
+                cap *= self.dim[i];
+                new_dim.push(self.dim[i]);                
+            } else {
+                let mut dim_total = self.dim[i];
+                for j in tensors {
+                    dim_total += j.dim[i];
+                }
+                cap *= dim_total;
+                new_dim.push(dim_total);
+            }
+            if i < dim {
+                outer_size *= self.dim[i];
+            }
+            if i > dim {
+                inner_size *= self.dim[i];
+            }
+        }
+        let mut data = Vec::with_capacity(cap);
+        unsafe{ data.set_len(cap); }
+
+        let mut ret_range = Range{start: 0, end: self.dim[dim]*inner_size};
+        for i in 0..outer_size {
+            data[ret_range.clone()].clone_from_slice(&self.d[i*self.dim[dim]*inner_size..(i+1)*self.dim[dim]*inner_size]);
+            
+            //println!("outer: {:?}", ret_range);
+            
+            for j in tensors {
+                ret_range = Range{start: ret_range.end, end: ret_range.end + j.dim[dim]*inner_size};
+                data[ret_range.clone()].clone_from_slice(&j.d[i*j.dim[dim]*inner_size..(i+1)*j.dim[dim]*inner_size]);
+                //println!("inner: {:?}", ret_range);
+            }
+
+            ret_range = Range{start: ret_range.end, end: ret_range.end + self.dim[dim]*inner_size};
+        }
+        
+        GenTensor {
+            d: data,
+            dim: new_dim,
+        }
     }
     //pub fn chunk() {}
     //pub fn gather() {}
@@ -254,31 +312,170 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     //pub fn narrow() {}
     //pub fn nonzero() {}
     //pub fn reshape() {}
-    //pub fn split() {}
+    // split
+    pub fn split(&self, sections: &[usize], dim: usize) -> Vec<GenTensor<T>> {
+        if sections.iter().sum::<usize>() != self.dim[dim] {
+            panic!("sum of sections should be the size on dim.");
+        }
+
+        let mut outer_size = 1;
+        let mut inner_size = 1;
+        for (i, index) in self.dim.iter().zip(0..self.dim.len()) {
+            if index < dim {
+                outer_size *= i;
+            }
+            if index > dim {
+                inner_size *= i;
+            }
+        }
+        
+        let mut ret = Vec::new();
+        for i in sections {
+            let mut t_size = Vec::new();
+            for (j, index) in self.dim.iter().zip(0..self.dim.len()) {
+                if index == dim {
+                    t_size.push(*i);
+                } else {
+                    t_size.push(*j);
+                }
+            }
+            let t = GenTensor::empty(&t_size);
+            ret.push(t);
+        }
+
+        for i in 0..outer_size {
+            let mut start = 0;
+            for (j, index) in ret.iter_mut().zip(0..sections.len()) {
+                j.d[i*inner_size*sections[index]..(i+1)*inner_size*sections[index]].clone_from_slice(
+                    &self.d[i*inner_size*self.dim[dim] + start..i*inner_size*self.dim[dim] + start + sections[index]*inner_size]);
+                start += sections[index]*inner_size;
+            }
+        }
+        
+        ret
+    }
     //pub fn squeeze() {}
-    //pub fn stack() {}
+    // stack
+        /// Concatenates sequence of tensors along a new dimension.
+    ///
+    /// All tensors need to be of the same size.
+    /// ```
+    /// # use auto_diff::tensor::gen_tensor::*;
+    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
+    /// let m2 = GenTensor::<f64>::new_raw(&vec![2.,3.,4.,5.,6.,7.], &vec![3,2]);
+    /// let result = GenTensor::<f64>::stack(&vec![&m1, &m2], 1);
+    /// let raw = result.get_raw();
+    /// for i in raw {
+    ///     println!("{}", i);
+    /// }
+    /// assert_eq!(result.size(), vec![3,2,2]);
+    /// ```
+    pub fn stack(tensors: &[&Self], dim: usize) -> GenTensor<T> {
+        let cap = tensors.len()*tensors[0].d.len();
+        let mut odim = Vec::new();
+        for i in 0..tensors[0].dim.len() {
+            if i == dim {
+                odim.push(tensors.len());
+            }
+            odim.push(tensors[0].dim[i]);
+        }
+        if odim.len() == tensors[0].dim.len() {
+            odim.push(tensors.len());
+        }
+        
+        let mut ret = GenTensor {
+            d: Vec::with_capacity(cap),
+            dim: odim,
+        };
+        
+        let mut outter_loop = 1;
+        let mut inner_loop = 1;
+        for i in 0..tensors[0].dim.len() {
+            if i < dim {
+                outter_loop *= tensors[0].dim[i];
+            } else {
+                inner_loop *= tensors[0].dim[i];
+            }
+        }
+        for i in 0..outter_loop {
+            for j in 0..tensors.len() {
+                for k in 0..inner_loop {
+                    ret.d.push(tensors[j].d[k + i*inner_loop]);
+                }
+            }
+        }
+        ret
+    }
+
     //pub fn t() {}
     //pub fn take() {}
     //pub fn transpose() {}
     //pub fn unbind() {}
-    //
-    //pub fn permute(&self, dim: &[usize]) -> Tensor {
-    //    Tensor {
-    //        v: Rc::new(RefCell::new(self.v.borrow().permute(dim))),
-    //    }
-    //}
-    //
-    ///// Returns a new tensor with a dimension of size one inserted at the specified position.
-    ///// 
-    ///// The returned tensor shares the same underlying data with this tensor.
+    // permute 
+    /// Permute the dimensions of this tensor.
+    ///
+    /// ```
+    /// # use auto_diff::tensor::gen_tensor::*;
+    /// let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
+    /// m1.permute(&vec![2, 0, 1]);
+    /// ```
+    pub fn permute(&self, dims: &[usize]) -> GenTensor<T> {
+        let mut ret = GenTensor {
+            d: self.d.to_vec(),
+            dim: self.dim.to_vec(),
+        };
+        let dim_len = ret.dim.len();
+        let mut target_dim = vec![0; dim_len];
+        for i in 0..dim_len {
+            target_dim[i] = ret.dim[dims[i]];
+        }
+
+        let mut new_d = ret.d.to_vec();
+        let mut index = vec![0; dim_len];
+        let mut old_index = vec![0; dim_len];
+        let old_stride = ret.stride();
+        ret.dim = target_dim.to_vec();
+        let new_stride = ret.stride();
+        for i in 0..ret.d.len() {
+            for j in 0..dim_len {
+                old_index[dims[j]] = index[j];
+            }
+
+            let mut item_index = 0;
+            let mut new_item_index = 0;
+            for j in 0..dim_len {
+                item_index += old_stride[j]*old_index[j];
+                new_item_index += new_stride[j]*index[j];
+            }
+            new_d[new_item_index] = ret.d[item_index];
+            
+            index[dim_len-1] += 1;
+            let mut next_dim = dim_len-1;
+            while index[next_dim] >= target_dim[next_dim] {
+                if next_dim <= 0 {
+                    break
+                } else {
+                    index[next_dim] = 0;
+                    index[next_dim-1] += 1;
+                    next_dim -= 1;                    
+                }
+
+            }
+
+        }
+        ret.d = new_d;
+        ret
+    }
+
     /////
-    ///// 
-    //pub fn unsqueeze(&mut self, dim: &[usize]) -> &Tensor {
-    //    self.v.borrow_mut().unsqueeze(dim);
-    //    self
-    //}
-    //
+    // unsqueeze
+    pub fn unsqueeze(&self, dim: &[usize]) {
+        
+    }
+
     //pub fn condition() {} // this is pytorch where
+
+
 
     
 
@@ -399,10 +596,6 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                                 sum = sum / T::from(over).expect("N");
                                 sum
                             })
-    }
-
-    pub fn unsqueeze(&self, dim: &[usize]) {
-        
     }
 
 
@@ -880,112 +1073,6 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         ret
     }
 
-    /// Concatenates sequence of tensors along a new dimension.
-    ///
-    /// All tensors need to be of the same size.
-    /// ```
-    /// # use auto_diff::tensor::gen_tensor::*;
-    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
-    /// let m2 = GenTensor::<f64>::new_raw(&vec![2.,3.,4.,5.,6.,7.], &vec![3,2]);
-    /// let result = GenTensor::<f64>::stack(&vec![&m1, &m2], 1);
-    /// let raw = result.get_raw();
-    /// for i in raw {
-    ///     println!("{}", i);
-    /// }
-    /// assert_eq!(result.size(), vec![3,2,2]);
-    /// ```
-    pub fn stack(tensors: &[&Self], dim: usize) -> GenTensor<T> {
-        let cap = tensors.len()*tensors[0].d.len();
-        let mut odim = Vec::new();
-        for i in 0..tensors[0].dim.len() {
-            if i == dim {
-                odim.push(tensors.len());
-            }
-            odim.push(tensors[0].dim[i]);
-        }
-        if odim.len() == tensors[0].dim.len() {
-            odim.push(tensors.len());
-        }
-        
-        let mut ret = GenTensor {
-            d: Vec::with_capacity(cap),
-            dim: odim,
-        };
-        
-        let mut outter_loop = 1;
-        let mut inner_loop = 1;
-        for i in 0..tensors[0].dim.len() {
-            if i < dim {
-                outter_loop *= tensors[0].dim[i];
-            } else {
-                inner_loop *= tensors[0].dim[i];
-            }
-        }
-        for i in 0..outter_loop {
-            for j in 0..tensors.len() {
-                for k in 0..inner_loop {
-                    ret.d.push(tensors[j].d[k + i*inner_loop]);
-                }
-            }
-        }
-        ret
-    }
-
-    /// Permute the dimensions of this tensor.
-    ///
-    /// ```
-    /// # use auto_diff::tensor::gen_tensor::*;
-    /// let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
-    /// m1.permute(&vec![2, 0, 1]);
-    /// ```
-    pub fn permute(&self, dims: &[usize]) -> GenTensor<T> {
-        let mut ret = GenTensor {
-            d: self.d.to_vec(),
-            dim: self.dim.to_vec(),
-        };
-        let dim_len = ret.dim.len();
-        let mut target_dim = vec![0; dim_len];
-        for i in 0..dim_len {
-            target_dim[i] = ret.dim[dims[i]];
-        }
-
-        let mut new_d = ret.d.to_vec();
-        let mut index = vec![0; dim_len];
-        let mut old_index = vec![0; dim_len];
-        let old_stride = ret.stride();
-        ret.dim = target_dim.to_vec();
-        let new_stride = ret.stride();
-        for i in 0..ret.d.len() {
-            for j in 0..dim_len {
-                old_index[dims[j]] = index[j];
-            }
-
-            let mut item_index = 0;
-            let mut new_item_index = 0;
-            for j in 0..dim_len {
-                item_index += old_stride[j]*old_index[j];
-                new_item_index += new_stride[j]*index[j];
-            }
-            new_d[new_item_index] = ret.d[item_index];
-            
-            index[dim_len-1] += 1;
-            let mut next_dim = dim_len-1;
-            while index[next_dim] >= target_dim[next_dim] {
-                if next_dim <= 0 {
-                    break
-                } else {
-                    index[next_dim] = 0;
-                    index[next_dim-1] += 1;
-                    next_dim -= 1;                    
-                }
-
-            }
-
-        }
-        ret.d = new_d;
-        ret
-    }
-
 
     // Comparison Ops
 
@@ -1288,6 +1375,40 @@ mod tests {
         let d = b.outer(&a);
         assert_eq!(d.size(), vec![10, 3, 2]);
     }
+
+    #[test]
+    fn cat() {
+        let a = GenTensor::<f32>::fill(1., &vec![5, 3, 3, 2]);
+        let b = GenTensor::<f32>::fill(2., &vec![5, 3, 3, 2]);
+        let c = GenTensor::<f32>::fill(3., &vec![5, 3, 3, 2]);
+
+        let d = a.cat(&vec![&b, &c], 1);
+        //println!("{}", d);
+        assert_eq!(d, GenTensor::new_raw(&vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 
+                                               1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 
+                                               1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 
+                                               1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 
+                                               1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0], &vec![5, 9, 3, 2]));
+    }
+
+    #[test]
+    fn split() {
+        let a = GenTensor::<f32>::fill(1., &vec![5, 3, 3, 2]);
+        let b = GenTensor::<f32>::fill(2., &vec![5, 3, 3, 2]);
+        let c = GenTensor::<f32>::fill(3., &vec![5, 3, 3, 2]);
+
+        let d = a.cat(&vec![&b, &c], 1);
+
+        let secs = vec![3, 3, 3];
+        let tensors = d.split(&secs, 1);
+        //println!("{}, \n{}, \n{}", tensors[0], tensors[1], tensors[2]);
+        assert_eq!(tensors[0], a);
+        assert_eq!(tensors[1], b);
+        assert_eq!(tensors[2], c);
+    }
+    
+    #[test]
+    fn stack() {}
 
     #[test]
     fn permute() {
