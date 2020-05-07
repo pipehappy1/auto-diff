@@ -1,6 +1,6 @@
 [package]
 name = "auto-diff"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["yguan <yguan@example.com>"]
 edition = "2018"
 description = """

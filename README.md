@@ -5,6 +5,8 @@
 
 ## Introduction
 
+This is a deep learning library trying to mimic the PyTorch API.
+
 ## Install
 
 ## Example

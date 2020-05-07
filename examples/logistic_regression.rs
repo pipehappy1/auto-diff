@@ -6,7 +6,7 @@
 use auto_diff::tensor::Tensor;
 use auto_diff::rand::RNG;
 use auto_diff::op::{Linear, Op};
-use auto_diff::var::{Module, mseloss};
+use auto_diff::var::{Module, bcewithlogitsloss};
 use auto_diff::optim::{SGD, Optimizer};
 use csv;
 use std::collections::{BTreeMap, BTreeSet};
@@ -63,6 +63,56 @@ fn main() {
 
     
     //println!("{:?} \n {}", data.size(), data);
+    let train_size = ((size as f32)*0.7) as usize;
+    let test_size = size - train_size;
+    //let splited_data = data.split(&vec![train_size, test_size], 0);
+    let data_label_split = data.split(&vec![1, 30], 1);
+    let label = data_label_split[0].clone();
+    let data = data_label_split[1].clone();
     let data = data.normalize_unit();
+    let label_split = label.split(&vec![train_size, test_size], 0);
+    let data_split = data.split(&vec![train_size, test_size], 0);
+    let train_data = data_split[0].clone();
+    let train_label = label_split[0].clone();
+    let test_data = data_split[1].clone();
+    let test_label = label_split[1].clone();
     
+    
+
+    // build the model
+    let mut m = Module::new();
+    let mut rng = RNG::new();
+    rng.set_seed(123);
+
+    let op = Linear::new(Some(30), Some(1), true);
+    rng.normal_(op.weight(), 0., 1.);
+    rng.normal_(op.bias(), 0., 1.);
+
+    let linear = Op::new(Box::new(op));
+
+    let input = m.var();
+    let output = input.to(&linear);
+    let label = m.var();
+
+    let loss = bcewithlogitsloss(&output, &label);
+    
+    //println!("{}, {}", &train_data, &train_label);
+    input.set(train_data);
+    label.set(train_label);
+
+    let mut opt = SGD::new(0.1);
+
+
+    for i in 0..5000 {
+        m.forward();
+        m.backward(-1.);
+
+        opt.step(&m);
+
+        let predict = Tensor::empty(&test_label.size());
+        linear.apply(&vec![&test_data], &vec![&predict]);
+        let tsum = predict.sigmoid().sub(&test_label).sum();
+        println!("loss: {}, accuracy: {}", loss.get().get_scale_f32(), tsum.get_scale_f32()/(test_size as f32));
+
+    }
 }

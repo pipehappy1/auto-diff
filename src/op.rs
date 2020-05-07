@@ -93,3 +93,4 @@ pub use linear::Linear as Linear;
 
 pub mod loss;
 pub use loss::MSELoss as MSELoss;
+pub use loss::BCEWithLogitsLoss as BCEWithLogitsLoss;

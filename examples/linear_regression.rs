@@ -53,8 +53,8 @@ fn main() {
 
         opt.step(&m);
 
-        // let weights = linear.get_values();
-        //println!("{:?}, {:?}", weights[0], weights[1]);
+        let weights = linear.get_values();
+        println!("{:?}, {:?}", weights[0], weights[1]);
     }
 
 }

@@ -986,6 +986,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     /// matrix multiplication of two tensor
     pub fn matmul(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        if self.dim[self.dim.len()-1] != o.dim[0] {
+            panic!("matmul expect matched size {:?}, {:?}", self.dim, o.dim);
+        }
         let inner = o.dim[0];
         let mut cap = 1;
         let mut odim = Vec::new();

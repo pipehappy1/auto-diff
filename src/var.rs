@@ -178,6 +178,11 @@ pub fn mseloss(a: &Var, b: &Var) -> Var {
     a.net.borrow_mut().connect(&vec![a.id, b.id], Op::new(Box::new(MSELoss::new())), &vec![result.id]);
     result
 }
+pub fn bcewithlogitsloss(predict: &Var, label: &Var) -> Var {
+    let result = predict.new_attached();
+    predict.net.borrow_mut().connect(&vec![predict.id, label.id], Op::new(Box::new(BCEWithLogitsLoss::new())), &vec![result.id]);
+    result
+}
 
 
 

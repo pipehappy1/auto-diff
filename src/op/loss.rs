@@ -102,8 +102,10 @@ impl OpTrait for BCEWithLogitsLoss {
         if input.len() < 2 {
             panic!("{} expect two input, get {}", self.get_name(), input.len());
         }
-        let ret = input[1].mul(&input[0].neg().log1pexp())
+        let ret_all = input[1].mul(&input[0].neg().log1pexp())
             .add(&(input[1].neg().add(&input[1].ones_like())).mul(&input[0].log1pexp()));
+        let tmp3 = ret_all.sum();
+        let ret = tmp3.div(&input[0].get_N().mul(&input[0].get_C()));
         output[0].swap(ret);
     }
     
@@ -113,6 +115,15 @@ impl OpTrait for BCEWithLogitsLoss {
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
         // ddx y log (1 + exp(-x)) = -y  / (1 + exp(x))
         // ddx (1-y) log (1 + exp(x)) = (1-y) / (1 + exp(-x))
+        let ones = Tensor::ones_like(&input[0]);
+        let tmp1 = input[1].neg().div(&input[0].exp().add(&ones));
+        let tmp2 = input[1].neg().add(&ones).div(&input[0].neg().exp().add(&ones));
+        let tmp3 = tmp1.add(&tmp2);
+        let tmp4 = tmp3.mul(output_grad[0]);
+        
+        let zeros = Tensor::zeros_like(input[0]);
+        input_grad[0].swap(tmp4);
+        input_grad[1].swap(zeros);
     }
 
     /// access weight values
