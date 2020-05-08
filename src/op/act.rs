@@ -2,6 +2,8 @@ use crate::tensor::Tensor;
 use super::OpTrait;
 
 
+
+
 pub struct Sigmoid {
     
 }

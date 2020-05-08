@@ -89,8 +89,8 @@ pub mod linear;
 pub use linear::Linear as Linear;
 
 
-pub mod act;
-pub use act::Sigmoid as Sigmoid;
+pub mod nonlinear;
+pub use nonlinear::Sigmoid as Sigmoid;
 
 
 pub mod loss;
