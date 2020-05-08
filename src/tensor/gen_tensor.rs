@@ -1298,16 +1298,21 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if self.size() != o.size() {
             panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
         }
-        let mut ret = GenTensor::empty(&self.dim);
+        
 
-        for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
-            if a != b {
-                *c = *b;
-            } else {
-                *c = *a;
-            }
+        let data = self.d.iter().zip(
+            o.d.iter())
+            .map(|(x, y)|
+                 if *x != *y {
+                     T::one()
+                 } else {
+                     T::zero()
+                 }
+        ).collect();
+        GenTensor {
+            d: data,
+            dim: self.dim.to_vec(),
         }
-        ret
     }
     // sort
     // topk
@@ -1616,5 +1621,13 @@ mod tests {
         let b = GenTensor::<f32>::new_raw(&vec![2., 4., 5., 6.], &vec![2,2]);
         let c = a.min(&b);
         assert_eq!(c, GenTensor::<f32>::new_raw(&vec![1., 3., 5., 6.], &vec![2,2]));
+    }
+
+    #[test]
+    fn ne() {
+        let a = GenTensor::<f32>::new_raw(&vec![1., 3., 10., 11.], &vec![2,2]);
+        let b = GenTensor::<f32>::new_raw(&vec![2., 3., 10., 6.], &vec![2,2]);
+        let c = a.ne(&b);
+        assert_eq!(c, GenTensor::<f32>::new_raw(&vec![1., 0., 0., 1.], &vec![2,2]));
     }
 }
