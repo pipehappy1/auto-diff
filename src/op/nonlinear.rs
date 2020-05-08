@@ -3,10 +3,12 @@ use super::OpTrait;
 
 /// ELU
 pub struct ELU {
+    alpha: f32,
 }
 impl ELU {
-    pub fn new() -> ELU {
+    pub fn new(alpha: f32) -> ELU {
         ELU {
+            alpha: alpha,
         }
     }
 }

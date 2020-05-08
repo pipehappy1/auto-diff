@@ -1171,11 +1171,35 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
 
     pub fn ge(&self, o: &GenTensor<T>) -> GenTensor<T> {
-        GenTensor::new()
+        if self.size() != o.size() {
+            panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
+        }
+        let mut ret = GenTensor::empty(&self.dim);
+
+        for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
+            if a >= b {
+                *c = T::one();
+            } else {
+                *c = T::zero();
+            }
+        }
+        ret
     }
 
     pub fn gt(&self, o: &GenTensor<T>) -> GenTensor<T> {
-        GenTensor::new()
+        if self.size() != o.size() {
+            panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
+        }
+        let mut ret = GenTensor::empty(&self.dim);
+
+        for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
+            if a > b {
+                *c = T::one();
+            } else {
+                *c = T::zero();
+            }
+        }
+        ret
     }
 
     //pub fn isfinite(&self, o: &GenTensor<T>) -> GenTensor<T> {
@@ -1193,17 +1217,97 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     //pub fn kthvalue(&self, o: &GenTensor<T>) -> GenTensor<T> {
     //    GenTensor::new()
     //}
+    // le
     pub fn le(&self, o: &GenTensor<T>) -> GenTensor<T> {
-        GenTensor::new()
-    }
+        if self.size() != o.size() {
+            panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
+        }
+        let mut ret = GenTensor::empty(&self.dim);
 
-    pub fn lt(&self, o: &GenTensor<T>) -> GenTensor<T> {
-        GenTensor::new()
+        for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
+            if a <= b {
+                *c = T::one();
+            } else {
+                *c = T::zero();
+            }
+        }
+        ret
     }
-    // max
-    // min
+    // lt
+    pub fn lt(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        if self.size() != o.size() {
+            panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
+        }
+        let mut ret = GenTensor::empty(&self.dim);
+
+        for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
+            if a < b {
+                *c = T::one();
+            } else {
+                *c = T::zero();
+            }
+        }
+        ret
+    }
+    // max, there are 3 versions.
+    pub fn max_all(&self) -> GenTensor<T> {
+        unimplemented!()
+    }
+    pub fn max_along(&self) -> (GenTensor<T>, GenTensor<T>) {
+        unimplemented!()
+    }
+    pub fn max(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        if self.size() != o.size() {
+            panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
+        }
+        let mut ret = GenTensor::empty(&self.dim);
+
+        for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
+            if a >= b {
+                *c = *a;
+            } else {
+                *c = *b;
+            }
+        }
+        ret
+    }
+    // min, there are 3 versions.
+    pub fn min_all(&self) -> GenTensor<T> {
+        unimplemented!()
+    }
+    pub fn min_along(&self) -> (GenTensor<T>, GenTensor<T>) {
+        unimplemented!()
+    }
+    pub fn min(&self, o: &GenTensor<T>) -> GenTensor<T> {
+        if self.size() != o.size() {
+            panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
+        }
+        let mut ret = GenTensor::empty(&self.dim);
+
+        for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
+            if a >= b {
+                *c = *b;
+            } else {
+                *c = *a;
+            }
+        }
+        ret
+    }
+    // ne
     pub fn ne(&self, o: &GenTensor<T>) -> GenTensor<T> {
-        GenTensor::new()
+        if self.size() != o.size() {
+            panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
+        }
+        let mut ret = GenTensor::empty(&self.dim);
+
+        for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
+            if a != b {
+                *c = *b;
+            } else {
+                *c = *a;
+            }
+        }
+        ret
     }
     // sort
     // topk
@@ -1497,5 +1601,20 @@ mod tests {
                                                &vec![4, 4]);
         assert_eq!(index, expect);
     }
-    
+
+    #[test]
+    fn max() {
+        let a = GenTensor::<f32>::new_raw(&vec![1., 3., 10., 11.], &vec![2,2]);
+        let b = GenTensor::<f32>::new_raw(&vec![2., 4., 5., 6.], &vec![2,2]);
+        let c = a.max(&b);
+        assert_eq!(c, GenTensor::<f32>::new_raw(&vec![2., 4., 10., 11.], &vec![2,2]));
+    }
+
+    #[test]
+    fn min() {
+        let a = GenTensor::<f32>::new_raw(&vec![1., 3., 10., 11.], &vec![2,2]);
+        let b = GenTensor::<f32>::new_raw(&vec![2., 4., 5., 6.], &vec![2,2]);
+        let c = a.min(&b);
+        assert_eq!(c, GenTensor::<f32>::new_raw(&vec![1., 3., 5., 6.], &vec![2,2]));
+    }
 }

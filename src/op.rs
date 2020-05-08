@@ -90,6 +90,8 @@ pub use linear::Linear as Linear;
 
 
 pub mod nonlinear;
+pub use nonlinear::Sigmoid as ELU;
+pub use nonlinear::Sigmoid as ReLU;
 pub use nonlinear::Sigmoid as Sigmoid;
 
 
