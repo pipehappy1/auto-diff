@@ -22,11 +22,14 @@ impl SGD {
 impl Optimizer for SGD {
     fn step(&mut self, m: &Module) {
         m._visit_op(|x| {
-            //println!("{}", x.get_name());
             let weights = x.get_values();
             let grads = x.get_grads();
+            // println!("name: {}, {}, {}", x.get_name(), weights.len(), grads.len());
+
             let mut new_weight = Vec::new();
             for (i, j) in weights.iter().zip(grads.iter()) {
+                // println!("{:?}, {:?}, {:?}", i.size(), j.size(), self.lr.size());
+                
                 new_weight.push(i.add(&j.mul(&self.lr)));
             }
             x.set_values(&new_weight);

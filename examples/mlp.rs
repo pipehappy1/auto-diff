@@ -83,13 +83,13 @@ fn main() {
     let mut rng = RNG::new();
     rng.set_seed(123);
 
-    let op1 = Linear::new(Some(30), Some(60), true);
+    let op1 = Linear::new(Some(30), Some(10), true);
     rng.normal_(op1.weight(), 0., 1.);
     rng.normal_(op1.bias(), 0., 1.);
 
     let linear1 = Op::new(Box::new(op1));
 
-    let op2 = Linear::new(Some(60), Some(1), true);
+    let op2 = Linear::new(Some(10), Some(1), true);
     rng.normal_(op2.weight(), 0., 1.);
     rng.normal_(op2.bias(), 0., 1.);
 
@@ -107,23 +107,25 @@ fn main() {
     let loss = bcewithlogitsloss(&output, &label);
     
     //println!("{}, {}", &train_data, &train_label);
-    input.set(train_data.clone());
-    label.set(train_label.clone());
+    
 
-    let mut opt = SGD::new(0.1);
+    let mut opt = SGD::new(0.2);
 
 
     for i in 0..500 {
+        input.set(train_data.clone());
+        label.set(train_label.clone());
         m.forward();
         m.backward(-1.);
 
         opt.step(&m);
 
-        let predict = Tensor::empty(&test_label.size());
-        //linear.apply(&vec![test_data], &vec![&predict]);
-        //let tsum = predict.sigmoid().sub(&test_label).sum();
-        //println!("{}, loss: {}, accuracy: {}", i, loss.get().get_scale_f32(), 1.-tsum.get_scale_f32()/(test_size as f32));
-        println!("{}, loss: {}", i, loss.get().get_scale_f32());
+        input.set(test_data.clone());
+        label.set(test_label.clone());
+        m.forward();
+        let tsum = output.get().sigmoid().sub(&test_label).sum();
+        println!("{}, loss: {}, accuracy: {}", i, loss.get().get_scale_f32(), 1.-tsum.get_scale_f32()/(test_size as f32));
+        //println!("{}, loss: {}", i, loss.get().get_scale_f32());
 
     }
 }
