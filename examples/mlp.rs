@@ -1,4 +1,4 @@
-//! Logistic regression example on Breast Cancer Wisconsin (Diagnostic) Data Set
+//! 1 hidden layer MLP example on Breast Cancer Wisconsin (Diagnostic) Data Set
 //!
 //! The dataset is from http://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28diagnostic%29
 
@@ -72,23 +72,30 @@ fn main() {
     let data = data.normalize_unit();
     let label_split = label.split(&vec![train_size, test_size], 0);
     let data_split = data.split(&vec![train_size, test_size], 0);
+    
     let train_data = &data_split[0];
     let train_label = &label_split[0];
     let test_data = &data_split[1];
     let test_label = &label_split[1];
-    
-    
 
     // build the model
     let mut m = Module::new();
     let mut rng = RNG::new();
     rng.set_seed(123);
 
-    let op = Linear::new(Some(30), Some(1), true);
-    rng.normal_(op.weight(), 0., 1.);
-    rng.normal_(op.bias(), 0., 1.);
+    let op1 = Linear::new(Some(30), Some(60), true);
+    rng.normal_(op1.weight(), 0., 1.);
+    rng.normal_(op1.bias(), 0., 1.);
 
-    let linear = Op::new(Box::new(op));
+    let linear1 = Op::new(Box::new(op1));
+
+    let op2 = Linear::new(Some(30), Some(60), true);
+    rng.normal_(op2.weight(), 0., 1.);
+    rng.normal_(op2.bias(), 0., 1.);
+
+    let linear2 = Op::new(Box::new(op2));
+
+    let activator = Op::new(Box::new());
 
     let input = m.var();
     let output = input.to(&linear);
