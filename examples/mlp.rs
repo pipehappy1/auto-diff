@@ -5,7 +5,7 @@
 
 use auto_diff::tensor::Tensor;
 use auto_diff::rand::RNG;
-use auto_diff::op::{Linear, Op};
+use auto_diff::op::{Linear, Op, Sigmoid};
 use auto_diff::var::{Module, bcewithlogitsloss};
 use auto_diff::optim::{SGD, Optimizer};
 use csv;
@@ -89,16 +89,19 @@ fn main() {
 
     let linear1 = Op::new(Box::new(op1));
 
-    let op2 = Linear::new(Some(30), Some(60), true);
+    let op2 = Linear::new(Some(60), Some(1), true);
     rng.normal_(op2.weight(), 0., 1.);
     rng.normal_(op2.bias(), 0., 1.);
 
     let linear2 = Op::new(Box::new(op2));
 
-    let activator = Op::new(Box::new());
+    let activator = Op::new(Box::new(Sigmoid::new()));
 
     let input = m.var();
-    let output = input.to(&linear);
+    let output = input
+        .to(&linear1)
+        .to(&activator)
+        .to(&linear2);
     let label = m.var();
 
     let loss = bcewithlogitsloss(&output, &label);
@@ -117,9 +120,10 @@ fn main() {
         opt.step(&m);
 
         let predict = Tensor::empty(&test_label.size());
-        linear.apply(&vec![test_data], &vec![&predict]);
-        let tsum = predict.sigmoid().sub(&test_label).sum();
-        println!("{}, loss: {}, accuracy: {}", i, loss.get().get_scale_f32(), 1.-tsum.get_scale_f32()/(test_size as f32));
+        //linear.apply(&vec![test_data], &vec![&predict]);
+        //let tsum = predict.sigmoid().sub(&test_label).sum();
+        //println!("{}, loss: {}, accuracy: {}", i, loss.get().get_scale_f32(), 1.-tsum.get_scale_f32()/(test_size as f32));
+        println!("{}, loss: {}", i, loss.get().get_scale_f32());
 
     }
 }

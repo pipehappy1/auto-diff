@@ -85,10 +85,12 @@ pub use local::Mul as Mul;
 pub use local::Div as Div;
 
 
-
 pub mod linear;
 pub use linear::Linear as Linear;
 
+
+pub mod act;
+pub use act::Sigmoid as Sigmoid;
 
 
 pub mod loss;
