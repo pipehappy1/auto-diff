@@ -27,6 +27,12 @@ impl OpTrait for MSELoss {
     fn get_name(&self) -> String {
         "MSE".to_string()
     }
+    fn get_input_size(&self) -> usize {
+        2
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         // TODO: wait for Tensor to have lazy evaluation for elemwise operation.
         let tmp = input[0].sub(input[1]);
@@ -96,7 +102,12 @@ impl OpTrait for BCEWithLogitsLoss {
     fn get_name(&self) -> String {
         "BCEWithLogitsLoss".to_string()
     }
-
+    fn get_input_size(&self) -> usize {
+        2
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
     /// The first is the prediction, the second input is the label
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         if input.len() < 2 {

@@ -16,6 +16,12 @@ impl OpTrait for ELU {
     fn get_name(&self) -> String {
         "ELU".to_string()
     }
+    fn get_input_size(&self) -> usize {
+        1
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
 
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
@@ -60,7 +66,12 @@ impl OpTrait for ReLU {
     fn get_name(&self) -> String {
         "ReLU".to_string()
     }
-
+    fn get_input_size(&self) -> usize {
+        1
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         
@@ -104,7 +115,12 @@ impl OpTrait for Sigmoid {
     fn get_name(&self) -> String {
         "Sigmoid".to_string()
     }
-
+    fn get_input_size(&self) -> usize {
+        1
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
     /// The first is the prediction, the second input is the label
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         if input.len() < 1 {

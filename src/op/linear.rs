@@ -44,6 +44,12 @@ impl OpTrait for Linear {
     fn get_name(&self) -> String {
         "Linear".to_string()
     }
+    fn get_input_size(&self) -> usize {
+        2
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         if self.in_fea == None || self.out_fea == None {
             if self.in_fea == None {

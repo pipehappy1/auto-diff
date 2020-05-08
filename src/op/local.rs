@@ -13,6 +13,12 @@ macro_rules! new_binary_op {
             fn get_name(&self) -> String {
                 ($b).to_string()
             }
+            fn get_input_size(&self) -> usize {
+                2
+            }
+            fn get_output_size(&self) -> usize {
+                1
+            }
             fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
                 $c(input, output)
             }

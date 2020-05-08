@@ -8,9 +8,23 @@ use super::tensor::Tensor;
 pub trait OpTrait {
     
     fn get_name(&self) -> String;
+    fn get_input_size(&self) -> usize;
+    fn get_output_size(&self) -> usize;
 
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
+    fn call(&mut self, input: &[&Tensor]) -> Vec<Tensor> {
+        if input.len() < self.get_input_size() {
+            panic!("{} expect {} input, get {}", self.get_name(), self.get_input_size(), input.len());
+        }
+        let ret = vec![Tensor::new(); self.get_input_size()];
+        let mut ret_ref = Vec::new();
+        for i in &ret {
+            ret_ref.push(i);
+        }
+        self.apply(input, &ret_ref[..]);
+        ret
+    }
     
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
@@ -76,6 +90,16 @@ impl Clone for Op {
     }
 }
 
+pub fn _gradient_check(x: &Tensor, op: &dyn OpTrait) -> bool {
+    
+    let epsilon = Tensor::fill(&x.size(), 0.01);
+    let xp = x.add(&epsilon);
+
+    //
+
+    
+    true
+}
 
 
 pub mod local;
