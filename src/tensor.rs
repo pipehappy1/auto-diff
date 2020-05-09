@@ -334,7 +334,17 @@ impl Tensor {
         self.normalize(&vec![0. ; self.size()[self.size().len()-1]],
                        &vec![1. ; self.size()[self.size().len()-1]])
     }
-    
+
+
+    // Comparison Ops
+    tensor_method!(all_close);
+    tensor_method!(ge);
+    tensor_method!(gt);
+    tensor_method!(le);
+    tensor_method!(lt);
+    tensor_method!(max);
+    tensor_method!(min);
+    tensor_method!(ne);
 }
 
 impl fmt::Display for Tensor {

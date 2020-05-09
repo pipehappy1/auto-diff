@@ -255,6 +255,17 @@ impl TypedTensor {
     }
     typed_tensor_method_single_tensor_return!(sum);
 
+    
+    // Comparison Ops
+    typed_tensor_method!(all_close);
+    // arg_sort
+    typed_tensor_method!(ge);
+    typed_tensor_method!(gt);
+    typed_tensor_method!(le);
+    typed_tensor_method!(lt);
+    typed_tensor_method!(max);
+    typed_tensor_method!(min);
+    typed_tensor_method!(ne);
 }
 impl fmt::Display for TypedTensor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
