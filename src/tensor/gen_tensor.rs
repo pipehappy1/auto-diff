@@ -29,6 +29,14 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     // as_strided
     // from_ndarray
     // zeros
+    pub fn zeros(size: &[usize]) -> GenTensor<T> {
+        let cap = size.iter().product();
+        GenTensor {
+            d: vec![T::zero(); cap],
+            dim: size.to_vec(),
+        }
+    }
+    // zeros_like
     pub fn zeros_like(&self) -> GenTensor<T> {
         let mut new_data = Vec::with_capacity(self.d.len());
         for i in 0..self.d.len() {
@@ -42,6 +50,14 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
 
     // ones
+    pub fn ones(size: &[usize]) -> GenTensor<T> {
+        let cap = size.iter().product();
+        GenTensor {
+            d: vec![T::one(); cap],
+            dim: size.to_vec(),
+        }
+    }
+    // ones_like
     pub fn ones_like(&self) -> GenTensor<T> {
         let mut new_data = Vec::with_capacity(self.d.len());
         for i in 0..self.d.len() {

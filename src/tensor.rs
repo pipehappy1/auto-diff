@@ -130,23 +130,19 @@ impl Tensor {
     pub fn fill_like() -> Tensor {
         Tensor::new()
     }
-    pub fn empty(shape: &[usize]) -> Tensor {
-        for i in shape {
-            if *i == 0 {
-                println!("");
-            }
-        }
+
+    
+    pub fn zeros(dim: &[usize]) -> Tensor {
         Tensor {
-            v: Rc::new(RefCell::new(TypedTensor::empty(shape))),
+            v: Rc::new(RefCell::new(TypedTensor::zeros(dim))),
         }
-    }
-    pub fn new_ones(dim: &[u32]) -> Tensor {
-        Tensor::new()
-    }
-    pub fn new_zeros(dim: &[u32]) -> Tensor {
-        Tensor::new()
     }
     tensor_method_single_tensor_return!(zeros_like);
+    pub fn ones(dim: &[usize]) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::ones(dim))),
+        }
+    }
     tensor_method_single_tensor_return!(ones_like);
     pub fn range(start: f64, step: f64) -> Tensor {
         Tensor::new()
@@ -159,6 +155,16 @@ impl Tensor {
     }
     pub fn eye(n: u32, m: u32) -> Tensor {
         Tensor::new()
+    }
+    pub fn empty(shape: &[usize]) -> Tensor {
+        for i in shape {
+            if *i == 0 {
+                println!("");
+            }
+        }
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::empty(shape))),
+        }
     }
 
     

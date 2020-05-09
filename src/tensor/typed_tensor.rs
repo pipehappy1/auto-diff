@@ -9,6 +9,7 @@ pub enum TypedTensor {
     Typef64(GenTensor<f64>),
 }
 
+// used for size alike ops
 macro_rules! typed_tensor_method_single_same_return {
     ($a:ident, $b:ty) => {
         pub fn $a(&self) -> $b {
@@ -21,6 +22,7 @@ macro_rules! typed_tensor_method_single_same_return {
     }
 }
 
+// used for log alike ops
 macro_rules! typed_tensor_method_single_tensor_return {
     ($a:ident) => {
         pub fn $a(&self) -> TypedTensor {
@@ -33,6 +35,7 @@ macro_rules! typed_tensor_method_single_tensor_return {
     }
 }
 
+// used for 2in1
 macro_rules! typed_tensor_method {
     ($a:ident) => {
         pub fn $a(&self, o: &TypedTensor) -> TypedTensor {
@@ -52,7 +55,13 @@ impl TypedTensor {
         TypedTensor::Typef32(GenTensor::new())
     }
 
+    pub fn zeros(shape: &[usize]) -> TypedTensor {
+        TypedTensor::Typef32(GenTensor::<f32>::zeros(shape))
+    }
     typed_tensor_method_single_tensor_return!(zeros_like);
+    pub fn ones(shape: &[usize]) -> TypedTensor {
+        TypedTensor::Typef32(GenTensor::<f32>::ones(shape))
+    }
     typed_tensor_method_single_tensor_return!(ones_like);
     pub fn empty(shape: &[usize]) -> TypedTensor {
         TypedTensor::Typef32(GenTensor::<f32>::empty(shape))
