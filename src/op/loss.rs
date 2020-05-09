@@ -11,16 +11,16 @@ pub enum Reduction{
     Sum,
 }
 
+// L1Loss
+// MSELoss
 /// MSELoss
 /// The left-most dimension is the N.
 pub struct MSELoss {
-    reduction: Reduction,
-}
+ }
 impl MSELoss {
     pub fn new() -> MSELoss {
         MSELoss {
-            reduction: Reduction::None,
-        }
+         }
     }
 }
 impl OpTrait for MSELoss {
@@ -71,7 +71,7 @@ impl OpTrait for MSELoss {
     fn get_values(&self) -> Vec<&Tensor> {
         Vec::new()
     }
-    fn set_values(&self, v: &[Tensor]) {
+    fn set_values(&self, _v: &[Tensor]) {
     }
 
     fn get_grads(&self) -> Vec<&Tensor> {
@@ -79,6 +79,54 @@ impl OpTrait for MSELoss {
     }
 }
 
+
+// CrossEntropyLoss
+pub struct CrossEntropyLoss {}
+impl CrossEntropyLoss {
+    pub fn new() -> CrossEntropyLoss {
+        CrossEntropyLoss {}
+    }
+}
+impl OpTrait for CrossEntropyLoss {
+        fn get_name(&self) -> String {
+        "CrossEntropyLoss".to_string()
+    }
+    fn get_input_size(&self) -> usize {
+        2
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
+    /// Forward pass
+    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+        let ret = input[0].max(&input[0].zeros_like());
+        output[0].swap(ret);
+    }
+    
+    /// Given the forward input value and backward output_grad,
+    /// Update weight gradient.
+    /// return backward input gradeint.
+    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+        let ret = input[0].gt(&input[0].zeros_like());
+        input_grad[0].swap(ret.mul(output_grad[0]));
+    }
+
+    /// access weight values
+    fn get_values(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+    fn set_values(&self, _v: &[Tensor]) {
+    }
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+}
+// CTCLoss
+// NLLLoss
+// PoissonNLLLoss
+// KLDivLoss
+// BCELoss
 
 /// This loss combines a Sigmoid layer and the BCELoss in one single class.
 /// This version is more numerically stable than using a plain Sigmoid followed
@@ -142,7 +190,7 @@ impl OpTrait for BCEWithLogitsLoss {
         Vec::new()
     }
     
-    fn set_values(&self, v: &[Tensor]) {
+    fn set_values(&self, _v: &[Tensor]) {
         
     }
     
@@ -151,3 +199,13 @@ impl OpTrait for BCEWithLogitsLoss {
         Vec::new()
     }
 }
+
+// MarginRankingLoss
+// HingeEmbeddingLoss
+// MultiLabelMarginLoss
+// SmoothL1Loss
+// SoftMarginLoss
+// MultiLabelSoftMarginLoss
+// CosineEmbeddingLoss
+// MultiMarginLoss
+// TripletMarginLoss
