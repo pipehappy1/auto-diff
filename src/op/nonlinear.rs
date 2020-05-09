@@ -200,3 +200,22 @@ impl OpTrait for Sigmoid {
 //        
 //    }
 //}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::op::_gradient_checker;
+
+    #[test]
+    fn sigmoid() {
+        let mut op = Sigmoid::new();
+
+        let zero = Tensor::from_vec_f32(&vec![0., 1., 2., 4.,], &vec![2,2]);
+        let x = vec![&zero];
+        
+        let good_grad = _gradient_checker(&x, &mut op, 0.01, 0.01);
+        assert_eq!(good_grad, true);
+    }
+}
