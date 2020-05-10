@@ -88,11 +88,11 @@ impl TypedTensor {
     }
 
     
-    typed_tensor_method_single_tensor_return!(get_N);
-    typed_tensor_method_single_tensor_return!(get_C);
-    typed_tensor_method_single_tensor_return!(get_D);
-    typed_tensor_method_single_tensor_return!(get_H);
-    typed_tensor_method_single_tensor_return!(get_W);
+    typed_tensor_method_single_tensor_return!(get_n);
+    typed_tensor_method_single_tensor_return!(get_c);
+    typed_tensor_method_single_tensor_return!(get_d);
+    typed_tensor_method_single_tensor_return!(get_h);
+    typed_tensor_method_single_tensor_return!(get_w);
     typed_tensor_method_single_tensor_return!(numel_tensor);
     
     pub fn to_gentensorf32(i: &TypedTensor) -> TypedTensor {

@@ -60,6 +60,7 @@ impl Module {
     /// iterator over all data node.
     pub fn _visit_data<F>(&self, closure: F)
     where F: Fn(&Op) {
+        self.net.borrow_mut().visit_data(closure);
     }
     /// iterator over all op node.
     pub fn _visit_op<F>(&self, closure: F)
@@ -351,6 +352,13 @@ impl Net {
     pub fn visit_op<F>(&mut self, closure: F)
     where F: Fn(&Op) {
         for i in self.graph.list_op() {
+            closure(self.ops.get(&i).expect(""));
+        }
+    }
+
+    pub fn visit_data<F>(&mut self, closure: F)
+    where F: Fn(&Op) {
+        for i in self.graph.list_data() {
             closure(self.ops.get(&i).expect(""));
         }
     }

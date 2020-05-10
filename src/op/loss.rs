@@ -38,7 +38,7 @@ impl OpTrait for MSELoss {
         let tmp = input[0].sub(input[1]);
         let tmp2 = tmp.mul(&tmp);
         let tmp3 = tmp2.sum();
-        let ret = tmp3.div(&input[0].get_N().mul(&input[0].get_C()));
+        let ret = tmp3.div(&input[0].get_n().mul(&input[0].get_c()));
         output[0].swap(ret);
     }
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
@@ -164,7 +164,7 @@ impl OpTrait for BCEWithLogitsLoss {
         let ret_all = input[1].mul(&input[0].neg().log1pexp())
             .add(&(input[1].neg().add(&input[1].ones_like())).mul(&input[0].log1pexp()));
         let tmp3 = ret_all.sum();
-        let ret = tmp3.div(&input[0].get_N().mul(&input[0].get_C()));
+        let ret = tmp3.div(&input[0].get_n().mul(&input[0].get_c()));
         output[0].swap(ret);
     }
     

@@ -183,21 +183,21 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     
     // get NCHW elements
     /// get NCHW elements, always return the size of left most dimension.
-    pub fn get_N(&self) -> GenTensor<T> {
+    pub fn get_n(&self) -> GenTensor<T> {
         GenTensor {
             d: vec![T::from(self.dim[0]).expect("N")],
             dim: vec![1],
         }
     }
     /// get NCHW elements, always return the size of second left most dimension.
-    pub fn get_C(&self) -> GenTensor<T> {
+    pub fn get_c(&self) -> GenTensor<T> {
         GenTensor {
             d: vec![T::from(self.dim[1]).expect("N")],
             dim: vec![1],
         }
     }
     /// get NCDHW elements, will require the self.dim has 5 dimensions.
-    pub fn get_D(&self) -> GenTensor<T> {
+    pub fn get_d(&self) -> GenTensor<T> {
         if self.dim.len() == 5 {
             GenTensor {
                 d: vec![T::from(self.dim[2]).expect("N")],
@@ -209,7 +209,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     }
     /// get NCDHW elements, will require the self.dim has 5 dimensions or 4 dimensions.
-    pub fn get_H(&self) -> GenTensor<T> {
+    pub fn get_h(&self) -> GenTensor<T> {
         if self.dim.len() == 5 {
             GenTensor {
                 d: vec![T::from(self.dim[3]).expect("N")],
@@ -225,7 +225,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     /// get NCDHW elements, will require the self.dim has 5 dimensions or 4 dimensions.
-    pub fn get_W(&self) -> GenTensor<T> {
+    pub fn get_w(&self) -> GenTensor<T> {
         if self.dim.len() == 5 {
             GenTensor {
                 d: vec![T::from(self.dim[4]).expect("N")],
@@ -1442,14 +1442,14 @@ mod tests {
     fn test_gen_tensor_get() {
         {
             let m1 = GenTensor::<f64>::fill(1., &vec![10, 3, 28, 30]);
-            assert_eq!(m1.get_N().get_raw(), vec![10.]);
-            assert_eq!(m1.get_C().get_raw(), vec![3.]);
-            assert_eq!(m1.get_H().get_raw(), vec![28.]);
-            assert_eq!(m1.get_W().get_raw(), vec![30.]);
+            assert_eq!(m1.get_n().get_raw(), vec![10.]);
+            assert_eq!(m1.get_c().get_raw(), vec![3.]);
+            assert_eq!(m1.get_h().get_raw(), vec![28.]);
+            assert_eq!(m1.get_w().get_raw(), vec![30.]);
 
             let result = std::panic::catch_unwind(
                 ||
-                    m1.get_D().get_raw()
+                    m1.get_d().get_raw()
             );
             assert!(result.is_err());
         }

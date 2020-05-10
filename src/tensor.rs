@@ -68,11 +68,11 @@ impl Tensor {
         self.v.borrow().get_scale_f32()
     }
 
-    tensor_method_single_tensor_return!(get_N);
-    tensor_method_single_tensor_return!(get_C);
-    tensor_method_single_tensor_return!(get_D);
-    tensor_method_single_tensor_return!(get_H);
-    tensor_method_single_tensor_return!(get_W);
+    tensor_method_single_tensor_return!(get_n);
+    tensor_method_single_tensor_return!(get_c);
+    tensor_method_single_tensor_return!(get_d);
+    tensor_method_single_tensor_return!(get_h);
+    tensor_method_single_tensor_return!(get_w);
     tensor_method_single_tensor_return!(numel_tensor);
 
 
@@ -110,8 +110,14 @@ impl Tensor {
         //data
         Vec::new()
     }
-    pub fn from_vec_f64(i: &[f64]) -> Tensor {
-        Tensor::new()
+    pub fn from_vec_f64(input: &[f64], dim: &[usize]) -> Tensor {
+        let data = input.to_vec();
+        let idim = dim.to_vec();
+
+        Tensor {
+            //v: Rc::new(RefCell::new(TypedTensor::Typef32(GenTensor { d: data, dim: idim }))),
+            v: Rc::new(RefCell::new(TypedTensor::Typef64(GenTensor::new_raw(&data, &idim) ))),
+        }
     }
     pub fn from_record(&self, row: usize, record: &[f32]) -> Result<(), ()> {
         self.v.borrow_mut().from_record(row, record)
@@ -127,35 +133,71 @@ impl Tensor {
             v: Rc::new(RefCell::new(TypedTensor::fill(size, fill_value))),
         }
     }
+    // fill_like
     pub fn fill_like() -> Tensor {
         Tensor::new()
     }
-
-    
+    // zeros
     pub fn zeros(dim: &[usize]) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(TypedTensor::zeros(dim))),
         }
     }
+    // zeros_like
     tensor_method_single_tensor_return!(zeros_like);
+    // ones
     pub fn ones(dim: &[usize]) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(TypedTensor::ones(dim))),
         }
     }
+    // ones_like
     tensor_method_single_tensor_return!(ones_like);
-    pub fn range(start: f64, step: f64) -> Tensor {
+    // range
+    pub fn range(start: f32, end: f32, step: Option<f32>) -> Tensor {
+        let real_step;
+        if let Some(v) = step {
+            real_step = v;
+        } else {
+            real_step = 1.;
+        }
+
+        let mut value = start;
+        let mut index = 0;
+        let mut data = Vec::new();
+        while value <= end {
+            value += real_step;
+            data.push(value);
+            index += 1;
+        }
+        
+        Tensor::from_vec_f32(&data, &vec![index])
+    }
+    // linspace
+    pub fn linspace(start: f32, end: f32, steps: usize) -> Tensor {
+        let real_step = (end-start)/(steps as f32);
+
+        let mut value = start;
+        let mut index = 0;
+        let mut data = Vec::new();
+        while value <= end {
+            value += real_step;
+            data.push(value);
+            index += 1;
+        }
+        
+        Tensor::from_vec_f32(&data, &vec![index])
+    }
+    // logspace
+    pub fn logspace(start: f32, end: f32, steps: usize, base: f32) -> Tensor {
+        
         Tensor::new()
     }
-    pub fn linespace(start: f64, end: f64, steps: u32) -> Tensor {
-        Tensor::new()
-    }
-    pub fn logspace(start: f64, end: f64, steps: u32, base: f64) -> Tensor {
-        Tensor::new()
-    }
+    // eye
     pub fn eye(n: u32, m: u32) -> Tensor {
         Tensor::new()
     }
+    // empty
     pub fn empty(shape: &[usize]) -> Tensor {
         for i in shape {
             if *i == 0 {
@@ -310,7 +352,6 @@ impl Tensor {
             panic!("fn normalize is for two-dimensional data.");
         }
         let width = self.size()[1];
-        let total = self.size()[0];
         if width != mean.len() {
             panic!("input mean has a different size. {}, {}", width, mean.len());
         }
