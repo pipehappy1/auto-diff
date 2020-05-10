@@ -403,6 +403,18 @@ impl Tensor {
     tensor_method!(max);
     tensor_method!(min);
     tensor_method!(ne);
+
+    // higher ops
+    pub fn conv2d(&self, o: &Tensor,
+                  stride: (usize, usize),
+                  padding: (usize, usize),
+                  dilation: (usize, usize),
+                  padding_mode: usize
+    ) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().conv2d(&o.v.borrow(), stride, padding, dilation, 0))),
+        }
+    }
 }
 
 impl fmt::Display for Tensor {

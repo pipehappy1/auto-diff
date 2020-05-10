@@ -289,6 +289,19 @@ impl TypedTensor {
     typed_tensor_method!(max);
     typed_tensor_method!(min);
     typed_tensor_method!(ne);
+
+    // higher ops
+    pub fn conv2d(&self, filter: &TypedTensor,
+                  stride: (usize, usize),
+                  padding: (usize, usize),
+                  dilation: (usize, usize),
+                  padding_mode: usize) -> TypedTensor {
+            match (self, filter) {
+                (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.conv2d(v2, stride, padding, dilation, padding_mode))},
+                (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.conv2d(v2, stride, padding, dilation, padding_mode))},
+                _ => {panic!("should have same tensor type!");},
+            }
+        }
 }
 impl fmt::Display for TypedTensor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

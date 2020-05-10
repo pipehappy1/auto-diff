@@ -1354,6 +1354,34 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     // topk
     
 
+    // higher ops
+    pub fn conv2d(&self, filter: &GenTensor<T>,
+                  stride: (usize, usize),
+                  padding: (usize, usize),
+                  dilation: (usize, usize),
+                  padding_mode: usize
+    ) -> GenTensor<T> {
+        if self.dim.len() < 4 {
+            panic!("conv2d expects input data is 4 dim tensor NCHW, but get {:?}", self.dim);
+        }
+        if filter.dim.len() <4 {
+            panic!("conv2d expects input data is 4 dim tensor NCHW, but get {:?}", filter.dim);
+        }
+        if self.dim.len() != filter.dim.len() {
+            panic!("covn2d expects input and filter has the same dims, get {:?}, {:?}", self.dim, filter.dim);
+        }
+        
+        let filter_size = filter.size();
+        let out_channels = filter_size[0];
+        let in_channels = filter_size[1];
+        let sample_size = self.dim[0];
+        let data_channels = self.dim[1];
+        
+        
+        
+        GenTensor::new()
+    }
+    
 }
 
 /// ```
