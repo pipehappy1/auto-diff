@@ -9,7 +9,7 @@ use auto_diff::op::{Linear, Op, Sigmoid};
 use auto_diff::var::{Module, bcewithlogitsloss};
 use auto_diff::optim::{SGD, Optimizer};
 use csv;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeSet};
 
 fn main() {
     let mut reader = csv::ReaderBuilder::new()
@@ -17,7 +17,6 @@ fn main() {
         .from_path("examples/data/wdbc.data")
         .expect("Cannot read wdbc.data");
 
-    let mut size = 0;
     let mut id;
     let mut ill;
     let mut ids = BTreeSet::<usize>::new();
@@ -26,7 +25,7 @@ fn main() {
     for record in reader.records() {
         let line = record.expect("");
         id = line[0].trim().parse::<usize>().expect("");
-        ill = line[1].trim().parse::<String>().expect("");
+        //ill = line[1].trim().parse::<String>().expect("");
         //println!("{}, {}", id, ill);
 
         if !ids.contains(&id) {

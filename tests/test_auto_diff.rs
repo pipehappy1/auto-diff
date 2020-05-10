@@ -55,23 +55,6 @@ fn test_add_in_fn() {
 }
 
 #[test]
-fn test_bf() {
-    let mut m = Module::new();
-    let a = m.var();
-    let b = m.var();
-
-    fn my_add(a: &Var, b: &Var) -> Var {
-        a.add(b)
-    }
-    let c = my_add(&a, &b);
-    a.set(Tensor::new());
-    b.set(Tensor::new());
-    m.forward();
-    m.backward(-1.);
-}
-
-
-#[test]
 fn test_op_mse() {
     let mut m = Module::new();
     let a = m.var();

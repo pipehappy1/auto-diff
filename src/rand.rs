@@ -26,7 +26,7 @@ impl RNG {
     pub fn log_normal() {}
     
     pub fn normal(&mut self, dim: &[usize], mean: f32, std: f32) -> Tensor {
-        let elem = dim.iter().sum();
+        let elem = dim.iter().product();
         
         let mut dta = Vec::<f32>::with_capacity(elem);
         let normal = Normal::new(mean, std).expect("");
@@ -44,7 +44,7 @@ impl RNG {
     //    Tensor::new()
     //}
     pub fn uniform(&mut self, dim: &[usize], from: f32, to: f32) -> Tensor {
-        let elem: usize = dim.iter().sum();
+        let elem: usize = dim.iter().product();
 
         let mut dta = Vec::<f32>::with_capacity(elem);
         let normal = Uniform::new(from, to);

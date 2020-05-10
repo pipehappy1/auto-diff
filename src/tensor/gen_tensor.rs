@@ -1144,9 +1144,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                 collected.sort_unstable_by(|a, b| {
                     let porder = a.0.partial_cmp(&b.0).unwrap();
                     if descending {
-                        porder.reverse()
-                    } else {
                         porder
+                    } else {
+                        porder.reverse()
                     }
                 });
                 let (_left, right): (Vec<_>, Vec<_>) = collected.iter().cloned().unzip();
