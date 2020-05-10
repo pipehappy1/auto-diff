@@ -2,12 +2,13 @@ use std::cell::RefCell;
 use std::collections::{BTreeSet, BTreeMap};
 use std::fmt;
 use std::rc::Rc;
+use std::mem::drop;
 
 
-use super::collection::generational_index::*;
-use super::collection::graph::Graph;
-use super::tensor::Tensor;
-use super::op::*;
+use crate::collection::generational_index::*;
+use crate::collection::graph::Graph;
+use crate::tensor::Tensor;
+use crate::op::*;
 
 
 pub struct Module {
@@ -35,6 +36,10 @@ impl Module {
             new_var.net = Rc::clone(&self.net);
         }
         new_var
+    }
+    pub fn rm_var(&mut self, var: &Var) {
+        self.net.borrow_mut().del_var(var);
+        drop(var);
     }
 
     /// Try best evaluation of the computation graph.
@@ -245,9 +250,9 @@ impl Net {
     }
 
     /// Merge two computation graph
-    fn merge(&self, o: &Net) -> Net {
-        Net::new()
-    }
+    //fn merge(&self, o: &Net) -> Net {
+    //    Net::new()
+    //}
 
     /// Forward evaluate the computaiton graph.
     fn eval(&mut self) -> Result<(), BTreeSet<NetIndex>> {

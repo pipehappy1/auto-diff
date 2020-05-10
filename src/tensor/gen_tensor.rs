@@ -488,8 +488,18 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     /////
     // unsqueeze
-    pub fn unsqueeze(&self, dim: &[usize]) {
-        
+    pub fn unsqueeze(&self, dim: usize) -> GenTensor<T> {
+        let mut new_dim = Vec::new();
+        for i in 0..self.dim.len() {
+            if i == dim {
+                new_dim.push(1);
+            }
+            new_dim.push(self.dim[i]);
+        }
+        GenTensor {
+            d: self.d.to_vec(),
+            dim: new_dim,
+        }
     }
 
     //pub fn condition() {} // this is pytorch where
@@ -1131,7 +1141,14 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                 for k in 0..size {
                     collected.push((self.d[k*stride + j + i*inner_size*size], k));
                 }
-                collected.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+                collected.sort_unstable_by(|a, b| {
+                    let porder = a.0.partial_cmp(&b.0).unwrap();
+                    if descending {
+                        porder.reverse()
+                    } else {
+                        porder
+                    }
+                });
                 let (_left, right): (Vec<_>, Vec<_>) = collected.iter().cloned().unzip();
                 for k in 0..size {
                     d[k*stride + j + i*inner_size*size] = T::from(right[k]).expect("");

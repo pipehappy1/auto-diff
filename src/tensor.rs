@@ -270,9 +270,10 @@ impl Tensor {
     /// The returned tensor shares the same underlying data with this tensor.
     ///
     /// 
-    pub fn unsqueeze(&mut self, dim: &[usize]) -> &Tensor {
-        self.v.borrow_mut().unsqueeze(dim);
-        self
+    pub fn unsqueeze(&self, dim: usize) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().unsqueeze(dim))),
+        }
     }
     
     pub fn condition() {} // this is pytorch where

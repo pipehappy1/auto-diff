@@ -188,10 +188,10 @@ impl TypedTensor {
         }
     }
 
-    pub fn unsqueeze(&mut self, dim: &[usize]) {
-        match &self {
-            TypedTensor::Typef32(v1) => {v1.unsqueeze(dim)},
-            TypedTensor::Typef64(v1) => {v1.unsqueeze(dim)},
+    pub fn unsqueeze(&self, dim: usize) -> TypedTensor {
+        match self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.unsqueeze(dim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.unsqueeze(dim))},
             //_ => {panic!("should have same tensor type!");},
         }
     }
