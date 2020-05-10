@@ -77,6 +77,22 @@ impl TypedTensor {
         }
     }
 
+    pub fn get_f32(&self, o: &[usize]) -> f32 {
+        match &self {
+            TypedTensor::Typef32(v1) => {v1.get(o)},
+            TypedTensor::Typef64(v1) => {v1.get(o) as f32},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    // pub fn get_f32() -> f32 {}
+    pub fn set_f32(&mut self, o: &[usize], v: f32) {
+        match self {
+            TypedTensor::Typef32(v1) => {v1.set(o, v)},
+            TypedTensor::Typef64(v1) => {v1.set(o, v as f64)},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+
     typed_tensor_method_single_same_return!(size, Vec<usize>);
     typed_tensor_method_single_same_return!(numel, usize);
     pub fn get_scale_f32(&self) -> f32 {
@@ -95,10 +111,10 @@ impl TypedTensor {
     typed_tensor_method_single_tensor_return!(get_w);
     typed_tensor_method_single_tensor_return!(numel_tensor);
     
-    pub fn to_gentensorf32(i: &TypedTensor) -> TypedTensor {
+    pub fn to_gentensorf32(_i: &TypedTensor) -> TypedTensor {
         unimplemented!();
     }
-    pub fn to_gentensorf64(i: &TypedTensor) -> TypedTensor {
+    pub fn to_gentensorf64(_i: &TypedTensor) -> TypedTensor {
         unimplemented!();
     }
 
@@ -112,7 +128,7 @@ impl TypedTensor {
                         let tmp_ref;
                         match i {
                             TypedTensor::Typef32(v1) => {tmp_ref = v1;},
-                            TypedTensor::Typef64(v1) => {panic!("");},
+                            TypedTensor::Typef64(_v1) => {panic!("");},
                         }
                         converted_tensor.push(tmp_ref);
                     } else {
@@ -128,7 +144,7 @@ impl TypedTensor {
                         let tmp_ref;
                         match i {
                             TypedTensor::Typef64(v1) => {tmp_ref = v1;},
-                            TypedTensor::Typef32(v1) => {panic!("");},
+                            TypedTensor::Typef32(_v1) => {panic!("");},
                         }
                         converted_tensor.push(tmp_ref);
                     } else {
@@ -201,6 +217,13 @@ impl TypedTensor {
     typed_tensor_method_single_tensor_return!(log2);
     typed_tensor_method_single_tensor_return!(neg);
     // pow
+    pub fn pow_f32(&self, n: f32) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.pow(n))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.pow(n as f64))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
     typed_tensor_method_single_tensor_return!(reciprocal);
     typed_tensor_method_single_tensor_return!(round);
     typed_tensor_method_single_tensor_return!(rsqrt);

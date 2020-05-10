@@ -122,6 +122,12 @@ impl Tensor {
     pub fn from_record(&self, row: usize, record: &[f32]) -> Result<(), ()> {
         self.v.borrow_mut().from_record(row, record)
     }
+    pub fn get_f32(&self, o: &[usize]) -> f32 {
+        self.v.borrow().get_f32(o)
+    }
+    pub fn set_f32(&mut self, o: &[usize], v: f32) {
+        self.v.borrow_mut().set_f32(o, v);
+    }
 
     pub fn swap(&self, o: Tensor) {
         self.v.swap(&o.v);
@@ -132,10 +138,6 @@ impl Tensor {
         Tensor {
             v: Rc::new(RefCell::new(TypedTensor::fill(size, fill_value))),
         }
-    }
-    // fill_like
-    pub fn fill_like() -> Tensor {
-        Tensor::new()
     }
     // zeros
     pub fn zeros(dim: &[usize]) -> Tensor {
@@ -190,12 +192,20 @@ impl Tensor {
     }
     // logspace
     pub fn logspace(start: f32, end: f32, steps: usize, base: f32) -> Tensor {
-        
-        Tensor::new()
+        let linspace_data = Tensor::linspace(start, end, steps);
+        let mut ret_data = Vec::new();
+        for i in 0..linspace_data.numel() {
+            ret_data.push(base.powf(linspace_data.get_f32(&vec![i])));
+        }
+        Tensor::from_vec_f32(&ret_data, &vec![ret_data.len()])
     }
     // eye
-    pub fn eye(n: u32, m: u32) -> Tensor {
-        Tensor::new()
+    pub fn eye(n: usize, m: usize) -> Tensor {
+        let ret = Tensor::empty(&vec![n, m]);
+        for i in 0..n.min(m) {
+            ret.v.borrow_mut().set_f32(&vec![i, i], 1.);
+        }
+        ret
     }
     // empty
     pub fn empty(shape: &[usize]) -> Tensor {
@@ -285,8 +295,9 @@ impl Tensor {
     tensor_method_single_tensor_return!(floor);
     tensor_method_single_tensor_return!(frac);
     // lerp
-    pub fn lerp(&self, end: &Tensor, weight: f32) -> Tensor {unimplemented!()}
-    pub fn lerp_weights(&self, end: &Tensor, weight: &Tensor) -> Tensor {unimplemented!()}
+    pub fn lerp(&self, end: &Tensor, weight: f32) -> Tensor {
+        self.add(&Tensor::fill(&self.size(), weight).mul(&end.sub(self)))
+    }
     tensor_method_single_tensor_return!(log);
     tensor_method_single_tensor_return!(log10);
     tensor_method_single_tensor_return!(log1p);
@@ -294,6 +305,11 @@ impl Tensor {
     tensor_method_single_tensor_return!(log2);
     tensor_method_single_tensor_return!(neg);
     // pow
+    pub fn pow_f32(&self, n: f32) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().pow_f32(n))),
+        }
+    }
     tensor_method_single_tensor_return!(reciprocal);
     tensor_method_single_tensor_return!(round);
     tensor_method_single_tensor_return!(rsqrt);

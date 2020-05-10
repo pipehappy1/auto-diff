@@ -38,10 +38,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
     // zeros_like
     pub fn zeros_like(&self) -> GenTensor<T> {
-        let mut new_data = Vec::with_capacity(self.d.len());
-        for i in 0..self.d.len() {
-            new_data.push(T::zero());
-        }
+        let new_data = vec![T::zero(); self.d.len()];
         let new_dim = self.dim.to_vec();
         GenTensor {
             d: new_data,
@@ -59,10 +56,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
     // ones_like
     pub fn ones_like(&self) -> GenTensor<T> {
-        let mut new_data = Vec::with_capacity(self.d.len());
-        for i in 0..self.d.len() {
-            new_data.push(T::one());
-        }
+        let new_data = vec![T::one(); self.d.len()];
         let new_dim = self.dim.to_vec();
         GenTensor {
             d: new_data,
@@ -156,6 +150,15 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             index += stride[i]*o[i];
         }
         self.d[index]
+    }
+    pub fn set(&mut self, o: &[usize], v: T) {
+        let stride = self.stride();
+        let dsize = o.len();
+        let mut index = 0;
+        for i in 0..dsize {
+            index += stride[i]*o[i];
+        }
+        self.d[index] = v;
     }
     pub fn get_mut(&mut self, o: &[usize]) -> &mut T {
         let stride = self.stride();
@@ -452,7 +455,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         let old_stride = ret.stride();
         ret.dim = target_dim.to_vec();
         let new_stride = ret.stride();
-        for i in 0..ret.d.len() {
+        for _i in 0..ret.d.len() {
             for j in 0..dim_len {
                 old_index[dims[j]] = index[j];
             }
@@ -1129,7 +1132,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                     collected.push((self.d[k*stride + j + i*inner_size*size], k));
                 }
                 collected.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-                let (left, right): (Vec<_>, Vec<_>) = collected.iter().cloned().unzip();
+                let (_left, right): (Vec<_>, Vec<_>) = collected.iter().cloned().unzip();
                 for k in 0..size {
                     d[k*stride + j + i*inner_size*size] = T::from(right[k]).expect("");
                 }
@@ -1356,24 +1359,24 @@ impl<T> Eq for GenTensor<T> where T: num_traits::Float {}
 impl fmt::Display for GenTensor<f32> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.dim.len() == 2 {
-            write!(f, "[");
+            write!(f, "[")?;
             for i in 0..self.dim[0] {
-                write!(f, "[");
+                write!(f, "[")?;
                 for j in 0..self.dim[1] {
-                    write!(f, "{}, ", self.get(&vec![i, j]));
+                    write!(f, "{}, ", self.get(&vec![i, j]))?;
                 }
-                write!(f, "]\n");
+                write!(f, "]\n")?;
             }
             write!(f, "]\n")
         } else {
-            write!(f, "{:?}\n", self.dim);
+            write!(f, "{:?}\n", self.dim)?;
             write!(f, "{:?}", self.d)            
         }
     }
 }
 impl fmt::Display for GenTensor<f64> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.dim);
+        write!(f, "{:?}", self.dim)?;
         write!(f, "{:?}", self.d)
     }
 }
@@ -1381,17 +1384,17 @@ impl fmt::Display for GenTensor<f64> {
 impl fmt::Debug for GenTensor<f32> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 if self.dim.len() == 2 {
-            write!(f, "[");
+            write!(f, "[")?;
             for i in 0..self.dim[0] {
-                write!(f, "[");
+                write!(f, "[")?;
                 for j in 0..self.dim[1] {
-                    write!(f, "{}, ", self.get(&vec![i, j]));
+                    write!(f, "{}, ", self.get(&vec![i, j]))?;
                 }
-                write!(f, "]\n");
+                write!(f, "]\n")?;
             }
             write!(f, "]\n")
         } else {
-            write!(f, "{:?}\n", self.dim);
+            write!(f, "{:?}\n", self.dim)?;
             write!(f, "{:?}", self.d)            
         }
     }
@@ -1399,17 +1402,17 @@ impl fmt::Debug for GenTensor<f32> {
 impl fmt::Debug for GenTensor<f64> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.dim.len() == 2 {
-            write!(f, "[");
+            write!(f, "[")?;
             for i in 0..self.dim[0] {
-                write!(f, "[");
+                write!(f, "[")?;
                 for j in 0..self.dim[1] {
-                    write!(f, "{}, ", self.get(&vec![i, j]));
+                    write!(f, "{}, ", self.get(&vec![i, j]))?;
                 }
-                write!(f, "]\n");
+                write!(f, "]\n")?;
             }
             write!(f, "]\n")
         } else {
-            write!(f, "{:?}\n", self.dim);
+            write!(f, "{:?}\n", self.dim)?;
             write!(f, "{:?}", self.d)            
         }
     }
@@ -1607,7 +1610,7 @@ mod tests {
     // Comparison Ops
     #[test]
     fn arg_sort() {
-        let mut a = GenTensor::<f32>::new_raw(&vec![0.0785,  1.5267, -0.8521,  0.4065,
+        let a = GenTensor::<f32>::new_raw(&vec![0.0785,  1.5267, -0.8521,  0.4065,
                                                     0.1598,  0.0788, -0.0745, -1.2700,
                                                     1.2208,  1.0722, -0.7064,  1.2564,
                                                     0.0669, -0.2318, -0.8229, -0.9280,],

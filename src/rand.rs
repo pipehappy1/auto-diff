@@ -1,5 +1,5 @@
 use rand::prelude::*;
-use rand_distr::{Normal, Distribution};
+use rand_distr::{Normal, Uniform, Distribution};
 
 use super::tensor::*;
 
@@ -26,23 +26,32 @@ impl RNG {
     pub fn log_normal() {}
     
     pub fn normal(&mut self, dim: &[usize], mean: f32, std: f32) -> Tensor {
-        let mut elem = 1;
-        for i in dim {
-            elem *= i;
-        }
+        let elem = dim.iter().sum();
+        
         let mut dta = Vec::<f32>::with_capacity(elem);
         let normal = Normal::new(mean, std).expect("");
-        for i in 0..elem {
+        for _i in 0..elem {
             dta.push(normal.sample(&mut self.rng));
         }
         Tensor::from_vec_f32(&dta, dim)
     }
     
     //pub fn random() {}
-    
-    pub fn uniform<F>(dim: &[usize], from: F, to: F) -> Tensor
-    where F: num_traits::Float {
-        Tensor::new()
+
+    // TODO: will do generics
+    //pub fn uniform<F>(dim: &[usize], from: F, to: F) -> Tensor
+    //where F: num_traits::Float {
+    //    Tensor::new()
+    //}
+    pub fn uniform(&mut self, dim: &[usize], from: f32, to: f32) -> Tensor {
+        let elem: usize = dim.iter().sum();
+
+        let mut dta = Vec::<f32>::with_capacity(elem);
+        let normal = Uniform::new(from, to);
+        for _i in 0..elem {
+            dta.push(normal.sample(&mut self.rng));
+        }
+        Tensor::from_vec_f32(&dta, dim)
     }
 
     //// in place operation
@@ -52,6 +61,7 @@ impl RNG {
     }
 
     pub fn uniform_(&mut self, o: &Tensor, from: f32, to: f32) {
-        
+        let t = self.uniform(&o.size(), from, to);
+        o.swap(t);
     }
 }

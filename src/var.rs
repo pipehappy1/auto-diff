@@ -129,6 +129,9 @@ impl Var {
 
         self.net.borrow_mut().set_mark(&self.id);
     }
+    pub fn unset(&self) {
+        self.net.borrow_mut().unset_mark(&self.id);
+    }
 
     /// Get the underlying tensor.
     pub fn get(&self) -> Tensor {
@@ -371,5 +374,8 @@ mod tests {
 
     #[test]
     fn genindex_new_add_del() {
+        let mut m = Module::new();
+        let va = m.var();
+
     }
 }
