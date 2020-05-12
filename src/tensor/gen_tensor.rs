@@ -1864,18 +1864,48 @@ mod tests {
 
     #[test]
     fn conv_gen() {
-        let data = GenTensor::<f32>::ones(&vec![2, 3, 4, 6]);
+        let mut raw_data = Vec::new();
+        for i in 0..75 {
+            raw_data.push(i as f32);
+        }
+        let data = GenTensor::<f32>::new_raw(&raw_data, &vec![1, 3, 5, 5]);
+        let mut raw_data = Vec::new();
+        for i in 0..54 {
+            raw_data.push(i as f32);
+        }
+        let filter = GenTensor::<f32>::new_raw(&raw_data, &vec![2, 3, 3, 3]);
         
-        let stride = vec![2, 2];
-        let padding = vec![1, 1];
+        let stride = vec![1, 1];
+        let padding = vec![0, 0];
         let dilation = vec![1, 1];
         let padding_mode = PaddingMode::Zeros;
-
-        let filter = GenTensor::<f32>::ones(&vec![6, 3, 3, 3]);
 
         let result = data.conv_gen(&filter, &stride, &padding, &dilation, padding_mode);
 
         println!("output size: {:?}", result.size());
+        println!("output size: {:?}", result.d);
+        //assert_eq!(true, false);
+
+        let mut raw_data = Vec::new();
+        for i in 0..60 {
+            raw_data.push(i as f32);
+        }
+        let data = GenTensor::<f32>::new_raw(&raw_data, &vec![1, 3, 5, 4]);
+        let mut raw_data = Vec::new();
+        for i in 0..36 {
+            raw_data.push(i as f32);
+        }
+        let filter = GenTensor::<f32>::new_raw(&raw_data, &vec![2, 3, 3, 2]);
+        
+        let stride = vec![1, 1];
+        let padding = vec![0, 0];
+        let dilation = vec![1, 1];
+        let padding_mode = PaddingMode::Zeros;
+
+        let result = data.conv_gen(&filter, &stride, &padding, &dilation, padding_mode);
+
+        println!("output size: {:?}", result.size());
+        println!("output size: {:?}", result.d);
         assert_eq!(true, false);
     }
 }
