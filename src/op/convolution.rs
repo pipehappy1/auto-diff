@@ -15,17 +15,22 @@ impl OpTrait for Conv1d {
     fn get_name(&self) -> String {
         "Conv1d".to_string()
     }
-
+    fn get_input_size(&self) -> usize {
+        2
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        umimplemented!();
+        unimplemented!();
     }
     
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        umimplemented!();
+        unimplemented!();
     }
 
     /// access weight values
@@ -38,6 +43,8 @@ impl OpTrait for Conv1d {
     fn get_grads(&self) -> Vec<&Tensor> {
         Vec::new()
     }
+
+    
 }
 
 // Conv2d
@@ -84,9 +91,9 @@ impl Conv2d {
             bias_option: bias,
             padding_mode: padding_mode,
             
-            weight: Tensor::empty(&vec![out_channels, in_channels, kernel_size[0], kernel_size[1]]),
+            weight: Tensor::empty(&vec![out_channels, in_channels, kernel_size.0, kernel_size.1]),
             bias: Tensor::empty(&vec![out_channels, ]),
-            weight_grad: Tensor::empty(&vec![out_channels, in_channels, kernel_size[0], kernel_size[1]]),
+            weight_grad: Tensor::empty(&vec![out_channels, in_channels, kernel_size.0, kernel_size.1]),
             bias_grad: Tensor::empty(&vec![out_channels, ]),
         }
     }
@@ -95,18 +102,23 @@ impl OpTrait for Conv2d {
     fn get_name(&self) -> String {
         "Conv2d".to_string()
     }
-
+    fn get_input_size(&self) -> usize {
+        2
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        let output = input.conv2d(self.weight, stide, padding, dilation, 0);
-        output[0].swap(output);
+        //let output = input.conv2d(self.weight, stide, padding, dilation, 0);
+        //output[0].swap(output);
     }
     
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        umimplemented!();
+        unimplemented!();
     }
 
     /// access weight values

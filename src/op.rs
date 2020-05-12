@@ -146,6 +146,8 @@ pub use local::Sub as Sub;
 pub use local::Mul as Mul;
 pub use local::Div as Div;
 
+pub mod convolution;
+pub use convolution::PaddingMode as PaddingMode;
 
 pub mod linear;
 pub use linear::Linear as Linear;
