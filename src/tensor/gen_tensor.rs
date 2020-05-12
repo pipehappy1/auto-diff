@@ -65,6 +65,13 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     // arange
+    pub fn arange(end: usize) -> GenTensor<T> {
+        let mut ret = GenTensor::<T>::empty(&vec![end]);
+        for i in 0..end {
+            ret.d[i] = T::from(i).expect("");
+        }
+        ret
+    }
     // range
     // linspace
     // logspace
@@ -331,7 +338,16 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     //pub fn masked_select() {}
     //pub fn narrow() {}
     //pub fn nonzero() {}
-    //pub fn reshape() {}
+    //reshape() {}
+    pub fn reshape(&self, new_shape: &[usize]) -> GenTensor<T> {
+        if self.dim.iter().product::<usize>() != new_shape.iter().product::<usize>() {
+            panic!("reshape expects the same number of elements {:?}, {:?}", self.dim, new_shape);
+        }
+        GenTensor {
+            d: self.d.to_vec(),
+            dim: new_shape.to_vec(),
+        }
+    }
     // split
     pub fn split(&self, sections: &[usize], dim: usize) -> Vec<GenTensor<T>> {
         if sections.iter().sum::<usize>() != self.dim[dim] {
@@ -1439,20 +1455,25 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             let dilated = half*dilation[i];
             start_point.push(dilated);
         }
-        //println!("{:?}", start_point);
+        println!("start_point: {:?}", start_point);
 
         let mut output_size = Vec::new();
+        println!("{:?}, {:?}", padded_dim, stride);
         for i in 0..stride.len() {
-            output_size.push((padded_dim[i] - start_point[i]*2)/stride[i]);
+            let mut output_dim = (padded_dim[i] - start_point[i]*2)/stride[i];
+            if padded_dim[i] % 2 == 0 {
+                output_dim += 1;
+            }
+            output_size.push(output_dim);
         }
         let mut output_tensor_size = Vec::new();
         output_tensor_size.push(sample_size);
         output_tensor_size.push(filter.dim[0]);
         output_tensor_size.append(&mut output_size.clone()); // output_size moved.
         let output_inner_size = output_size.iter().product::<usize>();
-        //println!("{:?}", output_size);
-        //println!("{:?}", output_inner_size);
-        //println!("{:?}", output_tensor_size);
+        println!("{:?}", output_size);
+        println!("{:?}", output_inner_size);
+        println!("{:?}", output_tensor_size);
         
         let mut ret = GenTensor::<T>::empty(&output_tensor_size);
 
@@ -1471,7 +1492,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
                 let mut left_upper = vec![0; stride.len()];
                 for k in 0..output_inner_size {
-                    //println!("{:?}", left_upper);
+                    println!("left_upper: {:?}", left_upper);
 
                     // get_data_block
                     let mut current_data_elem = left_upper.to_vec();
@@ -1523,15 +1544,19 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                     for (x, y) in data_block.iter().zip(&filter_block) {
                         value = value + (*x)*(*y);
                     }
-                    //println!("index: {}, {}, {}", i, j, k);
-                    //println!("raw index: {}", i*inner_steps + j*output_inner_size + k);
+                    println!("index: {}, {}, {}", i, j, k);
+                    println!("raw index: {}", i*inner_steps + j*output_inner_size + k);
                     ret.d[i*inner_steps + j*output_inner_size + k] = value;
 
                     // update for next prodsum position
                     let mut current_pos = left_upper.len()-1;
                     loop {
                         left_upper[current_pos] += stride[current_pos];
-                        if left_upper[current_pos] >= padded_dim[current_pos] - start_point[current_pos]*2 {
+                        let mut compare_pos = padded_dim[current_pos] - start_point[current_pos]*2;
+                        if filter.dim[current_pos+2] % 2 == 0 {
+                            compare_pos += 1;
+                        }
+                        if left_upper[current_pos] >= compare_pos {
                             left_upper[current_pos] = 0;
                             if current_pos > 0 {
                                 current_pos -= 1;
@@ -1861,51 +1886,82 @@ mod tests {
         let c = a.ne(&b);
         assert_eq!(c, GenTensor::<f32>::new_raw(&vec![1., 0., 0., 1.], &vec![2,2]));
     }
-
+    
     #[test]
     fn conv_gen() {
-        let mut raw_data = Vec::new();
-        for i in 0..75 {
-            raw_data.push(i as f32);
+
+        {
+            let data = GenTensor::<f32>::arange(30).reshape(&vec![2, 3, 5]);
+            let filter = GenTensor::<f32>::arange(18).reshape(&vec![2, 3, 3]);
+            let stride = vec![1];
+            let padding = vec![0];
+            let dilation = vec![1];
+            let padding_mode = PaddingMode::Zeros;
+            let result = data.conv_gen(&filter, &stride, &padding, &dilation, padding_mode);
+            println!("output size: {:?}", result.size());
+            println!("output size: {:?}", result.d);
+            assert_eq!(result, GenTensor::<f32>::new_raw(&vec![312.0, 348.0, 384.0, 798.0, 915.0, 1032.0, 852.0, 888.0, 924.0, 2553.0, 2670.0, 2787.0], &vec![2, 2, 3]));
         }
-        let data = GenTensor::<f32>::new_raw(&raw_data, &vec![1, 3, 5, 5]);
-        let mut raw_data = Vec::new();
-        for i in 0..54 {
-            raw_data.push(i as f32);
+
+        {
+            let mut raw_data = Vec::new();
+            for i in 0..75 {
+                raw_data.push(i as f32);
+            }
+            let data = GenTensor::<f32>::new_raw(&raw_data, &vec![1, 3, 5, 5]);
+            let mut raw_data = Vec::new();
+            for i in 0..54 {
+                raw_data.push(i as f32);
+            }
+            let filter = GenTensor::<f32>::new_raw(&raw_data, &vec![2, 3, 3, 3]);
+            
+            let stride = vec![1, 1];
+            let padding = vec![0, 0];
+            let dilation = vec![1, 1];
+            let padding_mode = PaddingMode::Zeros;
+            
+            let result = data.conv_gen(&filter, &stride, &padding, &dilation, padding_mode);
+            
+            println!("output size: {:?}", result.size());
+            println!("output size: {:?}", result.d);
+            assert_eq!(result, GenTensor::<f32>::new_raw(&vec![15219.0, 15570.0, 15921.0, 16974.0, 17325.0, 17676.0, 18729.0, 19080.0, 19431.0, 37818.0, 38898.0, 39978.0, 43218.0, 44298.0, 45378.0, 48618.0, 49698.0, 50778.0], &vec![1, 2, 3, 3]));    
         }
-        let filter = GenTensor::<f32>::new_raw(&raw_data, &vec![2, 3, 3, 3]);
         
-        let stride = vec![1, 1];
-        let padding = vec![0, 0];
-        let dilation = vec![1, 1];
-        let padding_mode = PaddingMode::Zeros;
-
-        let result = data.conv_gen(&filter, &stride, &padding, &dilation, padding_mode);
-
-        println!("output size: {:?}", result.size());
-        println!("output size: {:?}", result.d);
-        //assert_eq!(true, false);
-
-        let mut raw_data = Vec::new();
-        for i in 0..60 {
-            raw_data.push(i as f32);
+        {
+            let mut raw_data = Vec::new();
+            for i in 0..60 {
+                raw_data.push(i as f32);
+            }
+            let data = GenTensor::<f32>::new_raw(&raw_data, &vec![1, 3, 5, 4]);
+            let mut raw_data = Vec::new();
+            for i in 0..36 {
+                raw_data.push(i as f32);
+            }
+            let filter = GenTensor::<f32>::new_raw(&raw_data, &vec![2, 3, 3, 2]);
+            
+            let stride = vec![1, 1];
+            let padding = vec![0, 0];
+            let dilation = vec![1, 1];
+            let padding_mode = PaddingMode::Zeros;
+            
+            let result = data.conv_gen(&filter, &stride, &padding, &dilation, padding_mode);
+            
+            println!("output size: {:?}", result.size());
+            println!("output size: {:?}", result.d);
+            assert_eq!(result, GenTensor::<f32>::new_raw(&vec![5289.0, 5442.0, 5595.0, 5901.0, 6054.0, 6207.0, 6513.0, 6666.0, 6819.0, 13227.0, 13704.0, 14181.0, 15135.0, 15612.0, 16089.0, 17043.0, 17520.0, 17997.0], &vec![1, 2, 3, 3]));    
         }
-        let data = GenTensor::<f32>::new_raw(&raw_data, &vec![1, 3, 5, 4]);
-        let mut raw_data = Vec::new();
-        for i in 0..36 {
-            raw_data.push(i as f32);
+
+        {
+            let data = GenTensor::<f32>::arange(375).reshape(&vec![1, 3, 5, 5, 5]);
+            let filter = GenTensor::<f32>::arange(162).reshape(&vec![2, 3, 3, 3, 3]);
+            let stride = vec![1, 1, 1];
+            let padding = vec![0, 0, 0];
+            let dilation = vec![1, 1, 1];
+            let padding_mode = PaddingMode::Zeros;
+            let result = data.conv_gen(&filter, &stride, &padding, &dilation, padding_mode);
+            println!("output size: {:?}", result.size());
+            println!("output size: {:?}", result.d);
+            assert_eq!(result, GenTensor::<f32>::new_raw(&vec![700704.0, 703944.0, 707184.0, 716904.0, 720144.0, 723384.0, 733104.0, 736344.0, 739584.0, 781704.0, 784944.0, 788184.0, 797904.0, 801144.0, 804384.0, 814104.0, 817344.0, 820584.0, 862704.0, 865944.0, 869184.0, 878904.0, 882144.0, 885384.0, 895104.0, 898344.0, 901584.0, 1724220.0, 1734021.0, 1743822.0, 1773225.0, 1783026.0, 1792827.0, 1822230.0, 1832031.0, 1841832.0, 1969245.0, 1979046.0, 1988847.0, 2018250.0, 2028051.0, 2037852.0, 2067255.0, 2077056.0, 2086857.0, 2214270.0, 2224071.0, 2233872.0, 2263275.0, 2273076.0, 2282877.0, 2312280.0, 2322081.0, 2331882.0], &vec![1, 2, 3, 3, 3]));
         }
-        let filter = GenTensor::<f32>::new_raw(&raw_data, &vec![2, 3, 3, 2]);
-        
-        let stride = vec![1, 1];
-        let padding = vec![0, 0];
-        let dilation = vec![1, 1];
-        let padding_mode = PaddingMode::Zeros;
-
-        let result = data.conv_gen(&filter, &stride, &padding, &dilation, padding_mode);
-
-        println!("output size: {:?}", result.size());
-        println!("output size: {:?}", result.d);
-        assert_eq!(true, false);
     }
 }
