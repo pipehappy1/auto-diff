@@ -1455,10 +1455,10 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             let dilated = half*dilation[i];
             start_point.push(dilated);
         }
-        println!("start_point: {:?}", start_point);
+        //println!("start_point: {:?}", start_point);
 
         let mut output_size = Vec::new();
-        println!("{:?}, {:?}", padded_dim, stride);
+        //println!("{:?}, {:?}", padded_dim, stride);
         for i in 0..stride.len() {
             let mut output_dim = (padded_dim[i] - start_point[i]*2)/stride[i];
             if padded_dim[i] % 2 == 0 {
@@ -1471,9 +1471,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         output_tensor_size.push(filter.dim[0]);
         output_tensor_size.append(&mut output_size.clone()); // output_size moved.
         let output_inner_size = output_size.iter().product::<usize>();
-        println!("{:?}", output_size);
-        println!("{:?}", output_inner_size);
-        println!("{:?}", output_tensor_size);
+        //println!("{:?}", output_size);
+        //println!("{:?}", output_inner_size);
+        //println!("{:?}", output_tensor_size);
         
         let mut ret = GenTensor::<T>::empty(&output_tensor_size);
 
@@ -1492,13 +1492,13 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
                 let mut left_upper = vec![0; stride.len()];
                 for k in 0..output_inner_size {
-                    println!("left_upper: {:?}", left_upper);
+                    //println!("left_upper: {:?}", left_upper);
 
                     // get_data_block
                     let mut current_data_elem = left_upper.to_vec();
                     for in_channel_index in 0..in_channels {
                         for inner_index in 0..conv_size/in_channels {
-                            
+
                             // assign single scale to the tmp tensor.
                             let mut push_value = T::zero();
                             let mut in_margin = false;
@@ -1515,7 +1515,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                                 real_data_elem2.append(&mut real_data_elem.clone());
                                 push_value = self.get(&real_data_elem2);
                             }
-                            
+
                             data_block[in_channel_index*(conv_size/in_channels) + inner_index] = push_value;
 
 
@@ -1544,8 +1544,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                     for (x, y) in data_block.iter().zip(&filter_block) {
                         value = value + (*x)*(*y);
                     }
-                    println!("index: {}, {}, {}", i, j, k);
-                    println!("raw index: {}", i*inner_steps + j*output_inner_size + k);
+                    //println!("index: {}, {}, {}", i, j, k);
+                    //println!("raw index: {}", i*inner_steps + j*output_inner_size + k);
                     ret.d[i*inner_steps + j*output_inner_size + k] = value;
 
                     // update for next prodsum position
@@ -1573,6 +1573,46 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         
         ret
+    }
+
+    // the 1st return is the gradient for w
+    // the 2nd return is the gradient for the input, given the output_grad
+    pub fn conv_grad_gen(&self, filter: &GenTensor<T>,
+                         stride: &[usize],
+                         padding: &[usize],
+                         dilation: &[usize],
+                         padding_mode: PaddingMode,
+                         output_grad: &GenTensor<T>
+    ) -> (GenTensor<T>, GenTensor<T>) {
+        if self.dim.len() <= 2 {
+            panic!("input data for conv has not enough dim {:?}.", self.dim);
+        }
+        if filter.dim.len() <= 2 {
+            panic!("filter for conv has not enough dim {:?}.", filter.dim);
+        }
+        if output_grad.dim.len() <= 2 {
+            panic!("output gradient for conv has not enough dim {:?}.", filter.dim);
+        }
+        if self.dim.len() != filter.dim.len() || self.dim.len() != output_grad.dim.len() {
+            panic!("covn2d expects input, output gradient and filter has the same dims, get {:?}, {:?}, {:?}", self.dim, filter.dim, output_grad.dim);
+        }
+        if filter.dim[1] != self.dim[1] {
+            panic!("covn2d expects input data channel size matches depth in filter {:?}, {:?}", self.dim, filter.dim);
+        }
+        if stride.len() != padding.len() || stride.len() != dilation.len() {
+            panic!("stride, padding, stride should have the same # of dims, {:?}, {:?}, {:?}", stride, padding, dilation);
+        }
+        
+        let filter_size = filter.size();
+        let nC_out = filter_size[0];
+        let nC_in = filter_size[1];
+        let nN = self.dim[0];
+
+
+        let og_n = output_grad.dim[0];
+        let og_cout = output_grad.dim[1];
+        
+        (GenTensor::new(), GenTensor::new())
     }
 }
 
