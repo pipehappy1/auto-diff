@@ -1,5 +1,6 @@
 use std::fmt;
 use std::ops::Range;
+use std::collections::BTreeMap;
 use crate::op::PaddingMode;
 
 /// Naive tensor implementation, single thread
@@ -1599,18 +1600,145 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if filter.dim[1] != self.dim[1] {
             panic!("covn2d expects input data channel size matches depth in filter {:?}, {:?}", self.dim, filter.dim);
         }
+        if self.dim[0] != output_grad.dim[0] {
+            panic!("conv2d expects input and output has the same N: {:?}, {:?}", self.dim, output_grad.dim);
+        }
+        if filter.dim[0] != output_grad.dim[1] {
+            panic!("conv2d expects filter and output has the same Cout: {:?}, {:?}", filter.dim, output_grad.dim);
+        }
         if stride.len() != padding.len() || stride.len() != dilation.len() {
             panic!("stride, padding, stride should have the same # of dims, {:?}, {:?}, {:?}", stride, padding, dilation);
         }
+        if stride.len()+2 != filter.dim.len() {
+            panic!("expect the same inner size, {:?}, {:?}", stride, filter.dim);
+        }
         
         let filter_size = filter.size();
-        let nC_out = filter_size[0];
-        let nC_in = filter_size[1];
-        let nN = self.dim[0];
+        let n_c_out = filter_size[0];
+        let n_c_in = filter_size[1];
+        let n_n = self.dim[0];
+        let n_d_dd = self.dim.iter().product::<usize>()/n_n/n_c_in;
+        let n_f_dd = filter.dim.iter().product::<usize>()/n_c_out/n_c_in;
+        let d_inner = self.dim.len() - 2;
+
+        for i in 0..n_n {
+            for j in 0..n_c_out {
+                // left_upper in padded dimension.
+                let mut left_upper = vec![0; d_inner];
+
+                loop {
+                    println!("{:?}", left_upper);
+
+                    // remember where to get data.
+                    // let mut data_loc = BTreeMap::<Vec::<usize>, >::new();
+
+                    for cin_index in 0..n_c_in {
+                        for dd_index in 0..n_f_dd {
+
+                            // get current position for filter elements.
+                            let mut filter_elem = Vec::new();
+                            let mut reminder = dd_index;
+                            for dim_pos in 0..d_inner {
+                                let left_product = filter_size[dim_pos+3..filter_size.len()]
+                                    .iter()
+                                    .product::<usize>();
+                                filter_elem.push(reminder / left_product);
+                                reminder = reminder % left_product;
+                            }
+                            //println!("filter_elem: {:?}", filter_elem);
+
+                            
+                            // get current position for data elements in padded dimension
+                            let mut data_elem = left_upper.to_vec();
+                            for dim_pos in 0..d_inner {
+                                data_elem[dim_pos] += filter_elem[dim_pos]*dilation[dim_pos];
+                            }
+                            //println!("data_elem: {:?}", data_elem);
 
 
-        let og_n = output_grad.dim[0];
-        let og_cout = output_grad.dim[1];
+                            // find real current position from filter
+                            let mut full_filter_elem = vec![j, cin_index];
+                            full_filter_elem.append(&mut filter_elem.clone());
+                            // println!("filter_value: {}", filter_value.to_f32().expect(""));
+                            // println!("full_filter_elem: {:?}", full_filter_elem);
+
+                            // find real current position from data
+                            let mut zero_padded_flag = false;
+                            let mut unpadded_elem = data_elem.clone();
+                            for dim_pos in 0..d_inner {
+                                if data_elem[dim_pos] < padding[dim_pos] {
+                                    match padding_mode {
+                                        PaddingMode::Zeros => {
+                                            zero_padded_flag = true;
+                                        },
+                                        PaddingMode::Reflect => {
+                                            unpadded_elem[dim_pos] = padding[dim_pos] - data_elem[dim_pos] - 1;
+                                        },
+                                        PaddingMode::Replicate => {
+                                            unpadded_elem[dim_pos] = 0;
+                                        },
+                                        PaddingMode::Circular => {
+                                            unpadded_elem[dim_pos] = self.dim[dim_pos+2] - (padding[dim_pos] - data_elem[dim_pos]);
+                                        },
+                                    }
+                                } else if data_elem[dim_pos] >= self.dim[dim_pos + 2] + padding[dim_pos] {
+                                    match padding_mode {
+                                        PaddingMode::Zeros => {
+                                            zero_padded_flag = true;
+                                        },
+                                        PaddingMode::Reflect => {
+                                            unpadded_elem[dim_pos] = self.dim[dim_pos+2] - (data_elem[dim_pos] - (self.dim[dim_pos + 2] + padding[dim_pos]) + 1);
+                                        },
+                                        PaddingMode::Replicate => {
+                                            unpadded_elem[dim_pos] = self.dim[dim_pos + 2]-1;
+                                        },
+                                        PaddingMode::Circular => {
+                                            unpadded_elem[dim_pos] = data_elem[dim_pos] - (self.dim[dim_pos + 2] + padding[dim_pos]);
+                                        },
+                                    }
+                                } else {
+                                    unpadded_elem[dim_pos] -= padding[dim_pos];
+                                }
+                            }
+                            let mut full_data_elem = vec![i, cin_index];
+                            full_data_elem.append(&mut unpadded_elem.clone());
+                            //println!("full_data_elem: {:?}", full_data_elem);
+
+                            
+                            let filter_value = filter.get(&full_filter_elem);
+                            let data_value;
+                            if zero_padded_flag {
+                                data_value = T::zero();
+                            } else {
+                                data_value = self.get(&full_data_elem);
+                            }
+
+                            
+                        }
+                    }
+
+                    // update left_upper to the next position.
+                    for current_pos in 0..d_inner {
+                        let real_pos = d_inner - current_pos - 1;
+                        left_upper[real_pos] += stride[real_pos];
+                        
+                        let compare_pos = self.dim[real_pos+2]
+                            + padding[real_pos]*2
+                            - ((filter.dim[real_pos + 2]-1)*dilation[real_pos] + 1);
+                        
+                        if left_upper[real_pos] > compare_pos {
+                            left_upper[real_pos] = 0;
+                        } else {
+                            break;
+                        }
+                    }
+                    if left_upper.iter().sum::<usize>() == 0 {
+                        break;
+                    }
+                };
+            }
+        }
+
         
         (GenTensor::new(), GenTensor::new())
     }
@@ -2003,5 +2131,41 @@ mod tests {
             println!("output size: {:?}", result.d);
             assert_eq!(result, GenTensor::<f32>::new_raw(&vec![700704.0, 703944.0, 707184.0, 716904.0, 720144.0, 723384.0, 733104.0, 736344.0, 739584.0, 781704.0, 784944.0, 788184.0, 797904.0, 801144.0, 804384.0, 814104.0, 817344.0, 820584.0, 862704.0, 865944.0, 869184.0, 878904.0, 882144.0, 885384.0, 895104.0, 898344.0, 901584.0, 1724220.0, 1734021.0, 1743822.0, 1773225.0, 1783026.0, 1792827.0, 1822230.0, 1832031.0, 1841832.0, 1969245.0, 1979046.0, 1988847.0, 2018250.0, 2028051.0, 2037852.0, 2067255.0, 2077056.0, 2086857.0, 2214270.0, 2224071.0, 2233872.0, 2263275.0, 2273076.0, 2282877.0, 2312280.0, 2322081.0, 2331882.0], &vec![1, 2, 3, 3, 3]));
         }
+    }
+
+    #[test]
+    fn conv_grad_gen() {
+
+        {/*
+            let data = GenTensor::<f32>::arange(75).reshape(&vec![1, 3, 5, 5]);
+            let filter = GenTensor::<f32>::arange(54).reshape(&vec![2, 3, 3, 3]);
+            let output_grad = GenTensor::<f32>::arange(18).reshape(&vec![1, 2, 3, 3]);
+            
+            let stride = vec![1, 1];
+            let padding = vec![0, 0];
+            let dilation = vec![1, 1];
+            let padding_mode = PaddingMode::Zeros;
+            
+            let result = data.conv_grad_gen(&filter, &stride, &padding, &dilation, padding_mode, &output_grad);
+        
+            assert_eq!(true, true);
+        */}
+
+        {
+
+            let data = GenTensor::<f32>::arange(60).reshape(&vec![1, 3, 5, 4]);
+            let filter = GenTensor::<f32>::arange(36).reshape(&vec![2, 3, 3, 2]);
+            let output_grad = GenTensor::<f32>::arange(18).reshape(&vec![1, 2, 3, 3]);
+            
+            let stride = vec![1, 1];
+            let padding = vec![0, 0];
+            let dilation = vec![1, 1];
+            let padding_mode = PaddingMode::Zeros;
+            
+            let result = data.conv_grad_gen(&filter, &stride, &padding, &dilation, padding_mode, &output_grad);
+            
+            assert_eq!(true, false);
+        }
+
     }
 }
