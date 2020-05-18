@@ -26,6 +26,16 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
+    pub fn index2dimpos(&self, index: usize) -> Vec::<usize>{
+        let mut ret = Vec::new();
+        let mut reminder = index;
+        for i in &self.dim {
+            ret.push(reminder/i);
+            reminder %= i;
+        }
+        ret
+    }
+
     // 
     // as_tensor
     // as_strided
@@ -1626,6 +1636,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                 // left_upper in padded dimension.
                 let mut left_upper = vec![0; d_inner];
 
+                
                 loop {
                     println!("{:?}", left_upper);
 
