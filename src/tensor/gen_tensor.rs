@@ -29,7 +29,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     pub fn index2dimpos(&self, index: usize) -> Vec::<usize>{
         let mut ret = Vec::new();
         let mut reminder = index;
-        for i in &self.dim {
+        for i in &self.stride() {
+            println!("{}", reminder);
             ret.push(reminder/i);
             reminder %= i;
         }
@@ -1847,6 +1848,14 @@ impl<T> Clone for GenTensor<T> where T: num_traits::Float {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_index2dimpos() {
+        let a = GenTensor::<f32>::empty(&vec![10, 5, 3, 4]);
+
+        let b = a.index2dimpos(10);
+        assert_eq!(b, vec![0, 0, 2, 2]);
+    }
 
     #[test]
     fn test_gentensor() {
