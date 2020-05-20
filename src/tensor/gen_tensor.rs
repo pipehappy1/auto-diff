@@ -26,13 +26,24 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
-    pub fn index2dimpos(&self, index: usize) -> Vec::<usize>{
+    /// Convert 1 dim index to multi-dim index.
+    pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {
         let mut ret = Vec::new();
         let mut reminder = index;
         for i in &self.stride() {
-            println!("{}", reminder);
+            //println!("{}", reminder);
             ret.push(reminder/i);
             reminder %= i;
+        }
+        ret
+    }
+
+    /// Convert multi-dim index to 1 dim index.
+    pub fn dimpos2index(&self, dimpos: &[usize]) -> usize {
+        let mut ret = 0;
+        for (st, i) in self.stride().iter().zip(dimpos.iter()) {
+            //println!("{}", reminder);
+            ret += st*i;
         }
         ret
     }
@@ -1632,14 +1643,26 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         let n_f_dd = filter.dim.iter().product::<usize>()/n_c_out/n_c_in;
         let d_inner = self.dim.len() - 2;
 
+        let output_dd = output_grad.dim.iter().product::<usize>()/n_n/n_c_out;
+
+        // save all the record
+        let mut w_grad: BTreeMap<usize, Vec<T>> = BTreeMap::new();
+        let mut x_grad: BTreeMap<usize, Vec<T>> = BTreeMap::new();
+
         for i in 0..n_n {
             for j in 0..n_c_out {
                 // left_upper in padded dimension.
                 let mut left_upper = vec![0; d_inner];
 
+                let mut output_index = 0;
                 
                 loop {
                     println!("{:?}", left_upper);
+
+                    // get the current output_gradient
+                    let output_real_index = j*output_dd + i*n_c_out*output_dd + output_index;
+                    let output_dimpos = self.index2dimpos(output_real_index);
+                    let output_gradient_value = output_grad.get(&output_dimpos);
 
                     // remember where to get data.
                     // let mut data_loc = BTreeMap::<Vec::<usize>, >::new();
@@ -1725,7 +1748,26 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                                 data_value = self.get(&full_data_elem);
                             }
 
-                            
+                            // collect all the data.
+                            if data_value != T::zero() {
+                                let w_grad_value = output_gradient_value*data_value;
+                                let x_grad_value = output_gradient_value*filter_value;
+
+                                let total_w_index = filter.dimpos2index(&full_filter_elem);
+                                let total_x_index = self.dimpos2index(&full_data_elem);
+                                
+                                if ! w_grad.contains_key(&total_w_index) {
+                                    w_grad.insert(total_w_index, vec![w_grad_value]);
+                                } else {
+                                    w_grad.get_mut(&total_w_index).expect("").push(w_grad_value);
+                                }
+                                
+                                if ! x_grad.contains_key(&total_x_index) {
+                                    x_grad.insert(total_x_index, vec![x_grad_value]);
+                                } else {
+                                    x_grad.get_mut(&total_x_index).expect("").push(x_grad_value);
+                                }
+                            }
                         }
                     }
 
@@ -1747,12 +1789,30 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                     if left_upper.iter().sum::<usize>() == 0 {
                         break;
                     }
+                    output_index += 1;
                 };
             }
         }
 
+        let mut ret_w_grad = GenTensor::empty(&filter.size());
+        let mut ret_x_grad = GenTensor::empty(&self.size());
+
+        for i in w_grad.keys() {
+            let mut sum = T::zero();
+            for w_value in w_grad.get(i).expect("") {
+                sum = sum + *w_value;
+            }
+            ret_w_grad.d[*i] = sum/T::from(w_grad.get(i).expect("").len()).expect("");
+        }
+        for i in x_grad.keys() {
+            let mut sum = T::zero();
+            for x_value in x_grad.get(i).expect("") {
+                sum = sum + *x_value;
+            }
+            ret_x_grad.d[*i] = sum/T::from(x_grad.get(i).expect("").len()).expect("");
+        }
         
-        (GenTensor::new(), GenTensor::new())
+        (ret_w_grad, ret_x_grad)
     }
 }
 
