@@ -1564,9 +1564,14 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                             let mut in_margin = false;
                             for i in 0..current_data_elem.len() {
                                 if current_data_elem[i] < padding[i] || current_data_elem[i] >= (padding[i] + self.dim[i+2]){
-                                    push_value = T::zero();
-                                    in_margin = true;
-                                    break
+                                    match padding_mode {
+                                        PaddingMode::Zeros => {
+                                            push_value = T::zero();
+                                            in_margin = true;
+                                            break;
+                                        },
+                                        _ => {unimplemented!();}
+                                    }
                                 }
                             }
                             if ! in_margin {
@@ -1642,7 +1647,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                          padding: &[usize],
                          dilation: &[usize],
                          padding_mode: PaddingMode,
-                         output_grad: &GenTensor<T>
+                         output_grad: &GenTensor<T>,
     ) -> (GenTensor<T>, GenTensor<T>) {
         if self.dim.len() <= 2 {
             panic!("input data for conv has not enough dim {:?}.", self.dim);
@@ -1694,15 +1699,15 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                 let mut output_index = 0;
                 
                 loop {
-                    println!("left_upper: {:?}", left_upper);
+                    //println!("left_upper: {:?}", left_upper);
 
                     // get the current output_gradient
                     let output_real_index = j*output_dd + i*n_c_out*output_dd + output_index;
-                    println!("output_real_index: {:?}", output_real_index);
+                    //println!("output_real_index: {:?}", output_real_index);
                     let output_dimpos = output_grad.index2dimpos(output_real_index);
-                    println!("output_dimpos: {:?}", output_dimpos);
+                    //println!("output_dimpos: {:?}", output_dimpos);
                     let output_gradient_value = output_grad.get(&output_dimpos);
-                    println!("output_gradient_value: {:?}", output_gradient_value.to_f32());
+                    //println!("output_gradient_value: {:?}", output_gradient_value.to_f32());
 
                     // remember where to get data.
                     // let mut data_loc = BTreeMap::<Vec::<usize>, >::new();
@@ -1740,7 +1745,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                             // find real current position from data
                             let mut zero_padded_flag = false;
                             let mut unpadded_elem = data_elem.clone();
-                            println!("data_elem: {:?}", data_elem);
+                            //println!("data_elem: {:?}", data_elem);
                             for dim_pos in 0..d_inner {
                                 if data_elem[dim_pos] < padding[dim_pos] {
                                     match padding_mode {
@@ -1780,7 +1785,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                             if zero_padded_flag {
                                 continue;
                             } else {
-                                println!("unpadded_elem: {:?}", unpadded_elem);
+                                //println!("unpadded_elem: {:?}", unpadded_elem);
                                 let mut full_data_elem = vec![i, cin_index];
                                 full_data_elem.append(&mut unpadded_elem.clone());
                                 //println!("full_data_elem: {:?}", full_data_elem);
@@ -1795,10 +1800,10 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                                 let total_w_index = filter.dimpos2index(&full_filter_elem);
                                 let total_x_index = self.dimpos2index(&full_data_elem);
                                 
-                                println!("full_data_elem: {:?}, total_x_index: {:?}, data_value: {:?}",
-                                         full_data_elem,
-                                         total_x_index,
-                                         data_value.to_f32());
+                                //println!("full_data_elem: {:?}, total_x_index: {:?}, data_value: {:?}",
+                                //         full_data_elem,
+                                //         total_x_index,
+                                //         data_value.to_f32());
                                 //println!("full_filter_elem: {:?}, total_w_index: {:?}, filter_value: {:?}, w_grad_value: {:?}, output_gradient_value: {:?}, data_vluae: {:?}",
                                 //         full_filter_elem,
                                 //         total_w_index,
@@ -1860,7 +1865,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             ret_w_grad.d[*i] = sum;
         }
         for i in x_grad.keys() {
-            println!("i: {:?}", i);
+            //println!("i: {:?}", i);
             let mut sum = T::zero();
             for x_value in x_grad.get(i).expect("") {
                 sum = sum + *x_value;
