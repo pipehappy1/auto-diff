@@ -28,6 +28,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     /// Convert 1 dim index to multi-dim index.
     pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {
+        if index >= self.d.len() {
+            panic!("index out of range, {:?}, {:?}", index, self.d.len());
+        }
         let mut ret = Vec::new();
         let mut reminder = index;
         for i in &self.stride() {
@@ -40,6 +43,14 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     /// Convert multi-dim index to 1 dim index.
     pub fn dimpos2index(&self, dimpos: &[usize]) -> usize {
+        if dimpos.len() != self.dim.len() {
+            panic!("get expects the same dim self.dim: {:?}, o: {:?}", self.dim, dimpos);
+        }
+        for (i, j) in self.dim.iter().zip(dimpos.iter()) {
+            if j >= i {
+                panic!("get expects the dim within range self.dim: {:?}, o: {:?}", self.dim, dimpos);
+            }
+        }
         let mut ret = 0;
         for (st, i) in self.stride().iter().zip(dimpos.iter()) {
             //println!("{}", reminder);
@@ -1683,7 +1694,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                 let mut output_index = 0;
                 
                 loop {
-                    // println!("{:?}", left_upper);
+                    println!("left_upper: {:?}", left_upper);
 
                     // get the current output_gradient
                     let output_real_index = j*output_dd + i*n_c_out*output_dd + output_index;
@@ -1729,6 +1740,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                             // find real current position from data
                             let mut zero_padded_flag = false;
                             let mut unpadded_elem = data_elem.clone();
+                            println!("data_elem: {:?}", data_elem);
                             for dim_pos in 0..d_inner {
                                 if data_elem[dim_pos] < padding[dim_pos] {
                                     match padding_mode {
@@ -1764,50 +1776,50 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                                     unpadded_elem[dim_pos] -= padding[dim_pos];
                                 }
                             }
-                            let mut full_data_elem = vec![i, cin_index];
-                            full_data_elem.append(&mut unpadded_elem.clone());
-                            //println!("full_data_elem: {:?}", full_data_elem);
 
-                            
-                            let filter_value = filter.get(&full_filter_elem);
-                            let data_value;
                             if zero_padded_flag {
-                                data_value = T::zero();
+                                continue;
                             } else {
-                                data_value = self.get(&full_data_elem);
+                                println!("unpadded_elem: {:?}", unpadded_elem);
+                                let mut full_data_elem = vec![i, cin_index];
+                                full_data_elem.append(&mut unpadded_elem.clone());
+                                //println!("full_data_elem: {:?}", full_data_elem);
+                                
+                                let filter_value = filter.get(&full_filter_elem);
+                                let data_value = self.get(&full_data_elem);
+                                
+                                // collect all the data.
+                                let w_grad_value = output_gradient_value*data_value;
+                                let x_grad_value = output_gradient_value*filter_value;
+                                
+                                let total_w_index = filter.dimpos2index(&full_filter_elem);
+                                let total_x_index = self.dimpos2index(&full_data_elem);
+                                
+                                println!("full_data_elem: {:?}, total_x_index: {:?}, data_value: {:?}",
+                                         full_data_elem,
+                                         total_x_index,
+                                         data_value.to_f32());
+                                //println!("full_filter_elem: {:?}, total_w_index: {:?}, filter_value: {:?}, w_grad_value: {:?}, output_gradient_value: {:?}, data_vluae: {:?}",
+                                //         full_filter_elem,
+                                //         total_w_index,
+                                //         filter_value.to_f32(),
+                                //         w_grad_value.to_f32(),
+                                //         output_gradient_value.to_f32(),
+                                //         data_value.to_f32());
+                                
+                                if ! w_grad.contains_key(&total_w_index) {
+                                    w_grad.insert(total_w_index, vec![w_grad_value]);
+                                } else {
+                                    w_grad.get_mut(&total_w_index).expect("").push(w_grad_value);
+                                }
+                                
+                                if ! x_grad.contains_key(&total_x_index) {
+                                    x_grad.insert(total_x_index, vec![x_grad_value]);
+                                } else {
+                                    x_grad.get_mut(&total_x_index).expect("").push(x_grad_value);
+                                }    
                             }
-
-
-                            // collect all the data.
-                            let w_grad_value = output_gradient_value*data_value;
-                            let x_grad_value = output_gradient_value*filter_value;
-
-                            let total_w_index = filter.dimpos2index(&full_filter_elem);
-                            let total_x_index = self.dimpos2index(&full_data_elem);
-
-                            //println!("full_data_elem: {:?}, total_x_index: {:?}, data_value: {:?}",
-                            //         full_data_elem,
-                            //         total_x_index,
-                            //         data_value.to_f32());
-                            println!("full_filter_elem: {:?}, total_w_index: {:?}, filter_value: {:?}, w_grad_value: {:?}, output_gradient_value: {:?}, data_vluae: {:?}",
-                                     full_filter_elem,
-                                     total_w_index,
-                                     filter_value.to_f32(),
-                                     w_grad_value.to_f32(),
-                                     output_gradient_value.to_f32(),
-                                     data_value.to_f32());
                             
-                            if ! w_grad.contains_key(&total_w_index) {
-                                w_grad.insert(total_w_index, vec![w_grad_value]);
-                            } else {
-                                w_grad.get_mut(&total_w_index).expect("").push(w_grad_value);
-                            }
-                            
-                            if ! x_grad.contains_key(&total_x_index) {
-                                x_grad.insert(total_x_index, vec![x_grad_value]);
-                            } else {
-                                x_grad.get_mut(&total_x_index).expect("").push(x_grad_value);
-                            }
                         }
                     }
 
@@ -1838,17 +1850,17 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         let mut ret_x_grad = GenTensor::zeros(&self.size());
 
         for i in w_grad.keys() {
-            println!("i: {:?}", i);
+            //println!("i: {:?}", i);
             let mut sum = T::zero();
             for w_value in w_grad.get(i).expect("") {
                 sum = sum + *w_value;
-                println!("w_value: {}", w_value.to_f32().expect("") );
+                //println!("w_value: {}", w_value.to_f32().expect("") );
             }
             //ret_w_grad.d[*i] = sum/T::from(w_grad.get(i).expect("").len()).expect("");
             ret_w_grad.d[*i] = sum;
         }
         for i in x_grad.keys() {
-            //println!("i: {:?}", i);
+            println!("i: {:?}", i);
             let mut sum = T::zero();
             for x_value in x_grad.get(i).expect("") {
                 sum = sum + *x_value;
@@ -2263,7 +2275,7 @@ mod tests {
     #[test]
     fn conv_grad_gen() {
 
-        {/*
+        {
             let data = GenTensor::<f32>::arange(75).reshape(&vec![1, 3, 5, 5]);
             let filter = GenTensor::<f32>::arange(54).reshape(&vec![2, 3, 3, 3]);
             let output_grad = GenTensor::<f32>::arange(18).reshape(&vec![1, 2, 3, 3]);
@@ -2273,27 +2285,11 @@ mod tests {
             let dilation = vec![1, 1];
             let padding_mode = PaddingMode::Zeros;
             
-            let result = data.conv_grad_gen(&filter, &stride, &padding, &dilation, padding_mode, &output_grad);
+            let (w_grad, x_grad) = data.conv_grad_gen(&filter, &stride, &padding, &dilation, padding_mode, &output_grad);
+            println!("w_grad: {:?}", w_grad);
         
-            assert_eq!(true, true);
-        */}
-
-        //{
-        //
-        //    let data = GenTensor::<f32>::arange(60).reshape(&vec![1, 3, 5, 4]);
-        //    let filter = GenTensor::<f32>::arange(36).reshape(&vec![2, 3, 3, 2]);
-        //    let output_grad = GenTensor::<f32>::arange(18).reshape(&vec![1, 2, 3, 3]);
-        //    
-        //    let stride = vec![1, 1];
-        //    let padding = vec![0, 0];
-        //    let dilation = vec![1, 1];
-        //    let padding_mode = PaddingMode::Zeros;
-        //    
-        //    let (w_grad, x_grad) = data.conv_grad_gen(&filter, &stride, &padding, &dilation, padding_mode, &output_grad);
-        //    println!("{:?}, {:?}", w_grad, x_grad);
-        //
-        //    assert_eq!(true, false);
-        //}
+            assert_eq!(w_grad, GenTensor::new_raw(&vec![312.0, 348.0, 384.0, 492.0, 528.0, 564.0, 672.0, 708.0, 744.0, 1212.0, 1248.0, 1284.0, 1392.0, 1428.0, 1464.0, 1572.0, 1608.0, 1644.0, 2112.0, 2148.0, 2184.0, 2292.0, 2328.0, 2364.0, 2472.0, 2508.0, 2544.0, 798.0, 915.0, 1032.0, 1383.0, 1500.0, 1617.0, 1968.0, 2085.0, 2202.0, 3723.0, 3840.0, 3957.0, 4308.0, 4425.0, 4542.0, 4893.0, 5010.0, 5127.0, 6648.0, 6765.0, 6882.0, 7233.0, 7350.0, 7467.0, 7818.0, 7935.0, 8052.0], &vec![2, 3, 3, 3]));
+        }
 
         {
         
@@ -2312,6 +2308,39 @@ mod tests {
             //println!("w_grad: {:?}", w_grad);
             assert_eq!(w_grad, GenTensor::new_raw(&vec![258.0, 294.0, 402.0, 438.0, 546.0, 582.0, 978.0, 1014.0, 1122.0, 1158.0, 1266.0, 1302.0, 1698.0, 1734.0, 1842.0, 1878.0, 1986.0, 2022.0, 663.0, 780.0, 1131.0, 1248.0, 1599.0, 1716.0, 3003.0, 3120.0, 3471.0, 3588.0, 3939.0, 4056.0, 5343.0, 5460.0, 5811.0, 5928.0, 6279.0, 6396.0], &vec![2, 3, 3, 2]));
         
+        }
+
+
+        {
+            let data = GenTensor::<f32>::arange(75).reshape(&vec![1, 3, 5, 5]);
+            let filter = GenTensor::<f32>::arange(54).reshape(&vec![2, 3, 3, 3]);
+            let output_grad = GenTensor::<f32>::arange(50).reshape(&vec![1, 2, 5, 5]);
+            
+            let stride = vec![1, 1];
+            let padding = vec![1, 1]; // <- THIS IS THE CHANGE
+            let dilation = vec![1, 1];
+            let padding_mode = PaddingMode::Zeros;
+            
+            let (w_grad, x_grad) = data.conv_grad_gen(&filter, &stride, &padding, &dilation, padding_mode, &output_grad);
+            //println!("w_grad: {:?}", w_grad);
+        
+            assert_eq!(w_grad, GenTensor::new_raw(&vec![2680.0, 3420.0, 2760.0, 3900.0, 4900.0, 3900.0, 2760.0, 3420.0, 2680.0, 8680.0, 10670.0, 8360.0, 10150.0, 12400.0, 9650.0, 6760.0, 8170.0, 6280.0, 14680.0, 17920.0, 13960.0, 16400.0, 19900.0, 15400.0, 10760.0, 12920.0, 9880.0, 6280.0, 8170.0, 6760.0, 9650.0, 12400.0, 10150.0, 8360.0, 10670.0, 8680.0, 22280.0, 27920.0, 22360.0, 28400.0, 35525.0, 28400.0, 22360.0, 27920.0, 22280.0, 38280.0, 47670.0, 37960.0, 47150.0, 58650.0, 46650.0, 36360.0, 45170.0, 35880.0], &vec![2, 3, 3, 3]));
+        }
+
+        {
+            let data = GenTensor::<f32>::arange(75).reshape(&vec![1, 3, 5, 5]);
+            let filter = GenTensor::<f32>::arange(150).reshape(&vec![2, 3, 5, 5]);
+            let output_grad = GenTensor::<f32>::arange(50).reshape(&vec![1, 2, 5, 5]);
+            
+            let stride = vec![1, 1];
+            let padding = vec![2, 2]; // <- THIS IS THE CHANGE
+            let dilation = vec![1, 1];
+            let padding_mode = PaddingMode::Zeros;
+            
+            let (w_grad, x_grad) = data.conv_grad_gen(&filter, &stride, &padding, &dilation, padding_mode, &output_grad);
+            //println!("w_grad: {:?}", w_grad);
+        
+            assert_eq!(w_grad, GenTensor::new_raw(&vec![1128.0, 1580.0, 2065.0, 1700.0, 1308.0, 1964.0, 2680.0, 3420.0, 2760.0, 2084.0, 2905.0, 3900.0, 4900.0, 3900.0, 2905.0, 2084.0, 2760.0, 3420.0, 2680.0, 1964.0, 1308.0, 1700.0, 2065.0, 1580.0, 1128.0, 5178.0, 6830.0, 8440.0, 6650.0, 4908.0, 6614.0, 8680.0, 10670.0, 8360.0, 6134.0, 7780.0, 10150.0, 12400.0, 9650.0, 7030.0, 5234.0, 6760.0, 8170.0, 6280.0, 4514.0, 3108.0, 3950.0, 4690.0, 3530.0, 2478.0, 9228.0, 12080.0, 14815.0, 11600.0, 8508.0, 11264.0, 14680.0, 17920.0, 13960.0, 10184.0, 12655.0, 16400.0, 19900.0, 15400.0, 11155.0, 8384.0, 10760.0, 12920.0, 9880.0, 7064.0, 4908.0, 6200.0, 7315.0, 5480.0, 3828.0, 2478.0, 3530.0, 4690.0, 3950.0, 3108.0, 4514.0, 6280.0, 8170.0, 6760.0, 5234.0, 7030.0, 9650.0, 12400.0, 10150.0, 7780.0, 6134.0, 8360.0, 10670.0, 8680.0, 6614.0, 4908.0, 6650.0, 8440.0, 6830.0, 5178.0, 12153.0, 16280.0, 20440.0, 16400.0, 12333.0, 16664.0, 22280.0, 27920.0, 22360.0, 16784.0, 21280.0, 28400.0, 35525.0, 28400.0, 21280.0, 16784.0, 22360.0, 27920.0, 22280.0, 16664.0, 12333.0, 16400.0, 20440.0, 16280.0, 12153.0, 21828.0, 29030.0, 36190.0, 28850.0, 21558.0, 28814.0, 38280.0, 47670.0, 37960.0, 28334.0, 35530.0, 47150.0, 58650.0, 46650.0, 34780.0, 27434.0, 36360.0, 45170.0, 35880.0, 26714.0, 19758.0, 26150.0, 32440.0, 25730.0, 19128.0], &vec![2, 3, 5, 5]));
         }
 
     }
