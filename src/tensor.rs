@@ -16,7 +16,7 @@ pub mod typed_tensor;
 
 use typed_tensor::TypedTensor;
 use gen_tensor::GenTensor;
-
+use crate::op::PaddingMode;
 
 macro_rules! tensor_method {
     ($a:ident) => {
@@ -404,15 +404,26 @@ impl Tensor {
     tensor_method!(min);
     tensor_method!(ne);
 
-    // higher ops
+    // conv ops
     pub fn conv2d(&self, o: &Tensor,
                   stride: (usize, usize),
                   padding: (usize, usize),
                   dilation: (usize, usize),
-                  padding_mode: usize
+                  padding_mode: PaddingMode
     ) -> Tensor {
         Tensor {
-            v: Rc::new(RefCell::new(self.v.borrow().conv2d(&o.v.borrow(), stride, padding, dilation, 0))),
+            v: Rc::new(RefCell::new(self.v.borrow().conv2d(&o.v.borrow(), stride, padding, dilation, padding_mode))),
+        }
+    }
+    pub fn conv2d_grad(&self, o: &Tensor,
+                       stride: (usize, usize),
+                       padding: (usize, usize),
+                       dilation: (usize, usize),
+                       padding_mode: PaddingMode,
+                       output_grad: &Tensor
+    ) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().conv2d(&o.v.borrow(), stride, padding, dilation, padding_mode, output_grad))),
         }
     }
 }

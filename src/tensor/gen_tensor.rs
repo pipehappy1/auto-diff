@@ -1436,45 +1436,13 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                   stride: (usize, usize),
                   padding: (usize, usize),
                   dilation: (usize, usize),
-                  padding_mode: usize
+                  padding_mode: PaddingMode
     ) -> GenTensor<T> {
-        if self.dim.len() < 4 {
-            panic!("conv2d expects input data is 4 dim tensor NCHW, but get {:?}", self.dim);
-        }
-        if filter.dim.len() <4 {
-            panic!("conv2d expects input data is 4 dim tensor NCHW, but get {:?}", filter.dim);
-        }
-        if self.dim.len() != filter.dim.len() {
-            panic!("covn2d expects input and filter has the same dims, get {:?}, {:?}", self.dim, filter.dim);
-        }
-        
-        let filter_size = filter.size();
-        let out_channels = filter_size[0];
-        let in_channels = filter_size[1];
-        let sample_size = self.dim[0];
-        let data_channels = self.dim[1];
-
-
-        if in_channels != data_channels {
-            panic!("covn2d expects input data channel size matches depth in filter {:?}, {:?}", self.dim, filter.dim);
-        }
-        
-        // prepare the padded input
-        let mut padded_dim = Vec::new();
-        for i in 2..self.dim.len() {
-            padded_dim.push(i);
-        }
-        
-        //let row_range = Vec::new();
-        //let height_range = Vec::new();
-        //
-        //for i in row_range {
-        //    for j in height_range {
-        //        
-        //    }
-        //}
-        
-        GenTensor::new()
+        self.conv_gen(filter,
+                      &vec![stride.0, stride.1],
+                      &vec![padding.0, padding.1],
+                      &vec![dilation.0, dilation.1],
+                      padding_mode)
     }
 
     // gneral convolutional operator, should work for 2d and 3d cases.

@@ -110,26 +110,30 @@ impl OpTrait for Conv2d {
     }
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        //let output = input.conv2d(self.weight, stide, padding, dilation, 0);
-        //output[0].swap(output);
+        let conv_output = input[0].conv2d(&self.weight, self.stride, self.padding, self.dilation, self.padding_mode);
+        output[0].swap(conv_output);
     }
     
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        unimplemented!();
+        let (w_grad, d_grad) = input[0].conv2d_grad(&self.weight, self.stride, self.padding, self.dilation, self.padding_mode, output_grad[0]);
+        self.weight_grad.swap(w_grad);
+        input_grad[0].swap(d_grad);
     }
 
     /// access weight values
     fn get_values(&self) -> Vec<&Tensor> {
-        Vec::new()
+        vec![&self.weight, &self.bias]
     }
     fn set_values(&self, v: &[Tensor]) {
+        self.weight.swap(v[0]);
+        self.bias.swap(v[1]);
     }
     /// access gradient values
     fn get_grads(&self) -> Vec<&Tensor> {
-        Vec::new()
+        vec![&self.weight_grad, &self.bias_grad]
     }
 }
 // Conv3d
