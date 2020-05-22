@@ -375,12 +375,12 @@ impl Net {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    //use super::*;
 
-    #[test]
-    fn genindex_new_add_del() {
-        let mut m = Module::new();
-        let va = m.var();
-
-    }
+    //#[test]
+    //fn genindex_new_add_del() {
+    //    let mut m = Module::new();
+    //    let va = m.var();
+    //
+    //}
 }

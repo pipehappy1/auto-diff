@@ -1431,7 +1431,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     // topk
     
 
-    // higher ops
+    // conv2d ops
     pub fn conv2d(&self, filter: &GenTensor<T>,
                   stride: (usize, usize),
                   padding: (usize, usize),
@@ -1443,6 +1443,20 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                       &vec![padding.0, padding.1],
                       &vec![dilation.0, dilation.1],
                       padding_mode)
+    }
+    pub fn conv2d_grad(&self, filter: &GenTensor<T>,
+                       stride: (usize, usize),
+                       padding: (usize, usize),
+                       dilation: (usize, usize),
+                       padding_mode: PaddingMode,
+                       output_grad: &GenTensor<T>
+    ) -> (GenTensor<T>, GenTensor<T>){
+            self.conv_grad_gen(filter,
+                           &vec![stride.0, stride.1],
+                           &vec![padding.0, padding.1],
+                           &vec![dilation.0, dilation.1],
+                           padding_mode,
+                           output_grad)
     }
 
     // gneral convolutional operator, should work for 2d and 3d cases.
@@ -1649,7 +1663,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         let n_c_out = filter_size[0];
         let n_c_in = filter_size[1];
         let n_n = self.dim[0];
-        let n_d_dd = self.dim.iter().product::<usize>()/n_n/n_c_in;
+        //let n_d_dd = self.dim.iter().product::<usize>()/n_n/n_c_in;
         let n_f_dd = filter.dim.iter().product::<usize>()/n_c_out/n_c_in;
         let d_inner = self.dim.len() - 2;
 

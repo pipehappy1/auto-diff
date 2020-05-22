@@ -309,10 +309,16 @@ impl TypedTensor {
                        dilation: (usize, usize),
                        padding_mode: PaddingMode,
                        output_grad: &TypedTensor
-    ) -> TypedTensor {
-        match (self, filter) {
-            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.conv2d(v2, stride, padding, dilation, padding_mode))},
-            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.conv2d(v2, stride, padding, dilation, padding_mode))},
+    ) -> (TypedTensor, TypedTensor) {
+        match (self, filter, output_grad) {
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2), TypedTensor::Typef32(v3)) => {
+                let (r1, r2) = v1.conv2d_grad(v2, stride, padding, dilation, padding_mode, v3);
+                (TypedTensor::Typef32(r1), TypedTensor::Typef32(r2))
+            },
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2), TypedTensor::Typef64(v3)) => {
+                let (r1, r2) = v1.conv2d_grad(v2, stride, padding, dilation, padding_mode, v3);
+                (TypedTensor::Typef64(r1), TypedTensor::Typef64(r2))
+            },
             _ => {panic!("should have same tensor type!");},
         }
     }

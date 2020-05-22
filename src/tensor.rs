@@ -421,10 +421,11 @@ impl Tensor {
                        dilation: (usize, usize),
                        padding_mode: PaddingMode,
                        output_grad: &Tensor
-    ) -> Tensor {
-        Tensor {
-            v: Rc::new(RefCell::new(self.v.borrow().conv2d(&o.v.borrow(), stride, padding, dilation, padding_mode, output_grad))),
-        }
+    ) -> (Tensor, Tensor) {
+        let (r1, r2) = self.v.borrow().conv2d_grad(&o.v.borrow(), stride, padding, dilation, padding_mode, &output_grad.v.borrow());
+        (Tensor { v: Rc::new(RefCell::new(r1))},
+         Tensor { v: Rc::new(RefCell::new(r2))},
+        )
     }
 }
 
