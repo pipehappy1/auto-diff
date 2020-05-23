@@ -1,0 +1,28 @@
+[package]
+name = "tensorboard-rs"
+version = "0.1.1"
+authors = ["yguan <yguan@example.com>"]
+edition = "2018"
+description = """
+Write data for Tensorboard from Rust.
+
+
+"""
+documentation = "https://docs.rs/tensorboard-rs"
+homepage = "https://github.com/pipehappy1/tensorboard-rs"
+repository = "https://github.com/pipehappy1/tensorboard-rs"
+readme = "README.md"
+license = "MIT"
+keywords = ["machine-learning", "neural-network", "deep-learning"]
+exclude = ["/dev/**"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+
+[dev-dependencies]
+
+
+[features]
+
