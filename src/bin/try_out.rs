@@ -3,9 +3,13 @@
 
 use tensorboard_rs::proto::summary::{Summary, Summary_Value};
 use tensorboard_rs::proto::event::Event;
+use tensorboard_rs::masked_crc32c::masked_crc32c;
 use protobuf::RepeatedField;
 //use protobuf::text_format::print_to_string;
 use protobuf::Message;
+
+use std::fs::File;
+use std::io::Write;
 
 
 fn main() {
@@ -31,12 +35,27 @@ fn main() {
     let mut dump: Vec<u8> = Vec::new();
     println!("{:?}", evn);
     // the following is good
-    evn.write_to_vec(&mut dump);
-    //println!("{:x?}", dump);
+    evn.write_to_vec(&mut dump).expect("");
+    println!("{:x?}", dump);
 
+    println!("{}", masked_crc32c(&dump));
+    
     //header = struct.pack('<Q', len(data))
     //header_crc = struct.pack('<I', masked_crc32c(header))
     //footer_crc = struct.pack('<I', masked_crc32c(data))
     //self._writer.write(header + header_crc + data + footer_crc)
+
+    let header = dump.len() as u64;
+    let header_crc = (masked_crc32c(&(header.to_le_bytes())) as u32).to_le_bytes();
+    let footer_crc = (masked_crc32c(&dump) as u32).to_le_bytes();
+    let header = header.to_le_bytes();
+
+    let mut file = File::create("test.log").expect("");
+    file.write_all(&header).expect("");
+    file.write_all(&header_crc).expect("");
+    file.write_all(&dump).expect("");
+    file.write_all(&footer_crc).expect("");
+    
+    
 }
 
