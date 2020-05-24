@@ -1,6 +1,8 @@
-# README #
+# Write to tensorboard in Rust #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+Write TensorBoard events in Rust.
+
+* Can write `scalar`.
 
 ### What is this repository for? ###
 
