@@ -2,3 +2,4 @@ Cargo.lock
 target/
 *~
 examples/data/*.data
+logdir
