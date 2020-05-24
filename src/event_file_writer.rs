@@ -21,8 +21,10 @@ impl EventFileWriter {
         fs::create_dir_all(&logdir).expect("");
 
         let mut time = 0;
+        let mut time_full = 0.0;
         if let Ok(n) = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
             time = n.as_secs();
+            time_full = n.as_secs_f64();
         }
         let hostname = gethostname().into_string().expect("");
         let pid = id();
@@ -31,10 +33,18 @@ impl EventFileWriter {
         let file_writer = File::create(logdir.join(file_name)).expect("");
         let writer = RecordWriter::new(file_writer);
         
-        EventFileWriter {
+        let mut ret = EventFileWriter {
             logdir: logdir,
             writer: writer,
-        }
+        };
+
+        let mut evn = Event::new();
+        evn.set_wall_time(time_full);
+        evn.set_file_version("brain.Event:2".to_string());
+        ret.add_event(&evn).expect("");
+        ret.flush().expect("");
+
+        ret
     }
 }
 
