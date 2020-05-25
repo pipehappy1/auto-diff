@@ -11,6 +11,8 @@ use auto_diff::optim::{SGD, Optimizer};
 use csv;
 use std::collections::{BTreeSet};
 
+use tensorboard_rs::summary_writer::SummaryWriter;
+
 fn main() {
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -110,6 +112,7 @@ fn main() {
 
     let mut opt = SGD::new(0.2);
 
+    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
 
     for i in 0..500 {
         input.set(train_data.clone());
@@ -123,8 +126,13 @@ fn main() {
         label.set(test_label.clone());
         m.forward();
         let tsum = output.get().sigmoid().sub(&test_label).sum();
-        println!("{}, loss: {}, accuracy: {}", i, loss.get().get_scale_f32(), 1.-tsum.get_scale_f32()/(test_size as f32));
+        let loss_value = loss.get().get_scale_f32();
+        let accuracy = 1.-tsum.get_scale_f32()/(test_size as f32);
+        println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
         //println!("{}, loss: {}", i, loss.get().get_scale_f32());
 
+        writer.add_scalar("run1/loss", loss_value, i).expect("");
+        writer.add_scalar("run1/accuracy", accuracy, i).expect("");
+        writer.flush().expect("");
     }
 }
