@@ -1,5 +1,6 @@
 use std::path::{PathBuf, Path};
 use std::time::SystemTime;
+use std::collections::HashMap;
 use crate::event_file_writer::EventFileWriter;
 use crate::proto::event::Event;
 use crate::proto::summary::{Summary};
@@ -46,18 +47,31 @@ impl FileWriter {
 
 pub struct SummaryWriter {
     writer: FileWriter,
+    all_writers: HashMap<PathBuf, FileWriter>,
 }
 impl SummaryWriter {
     pub fn new<P: AsRef<Path>>(logdir: P) -> SummaryWriter {
         SummaryWriter {
             writer: FileWriter::new(logdir),
+            all_writers: HashMap::new(),
         }
     }
     pub fn add_hparams(&mut self) {unimplemented!();}
     pub fn add_scalar(&mut self, tag: &str, scalar_value: f32, step: usize) -> std::io::Result<()> {
         self.writer.add_summary(scalar(tag, scalar_value), step)
     }
-    pub fn add_scalars(&mut self) {unimplemented!();}
+    pub fn add_scalars(&mut self, main_tag: &str, tag_scalar: &HashMap<String, f32>, step: usize) {
+        let base_logdir = self.writer.get_logdir();
+        for (tag, scalar_value) in tag_scalar.iter() {
+            let fw_tag = base_logdir.join(main_tag).join(tag);
+            if ! self.all_writers.contains_key(&fw_tag) {
+                let new_writer = FileWriter::new(fw_tag.clone());
+                self.all_writers.insert(fw_tag.clone(), new_writer);
+            }
+            let fw = self.all_writers.get_mut(&fw_tag).expect("");
+            fw.add_summary(scalar(main_tag, *scalar_value), step);
+        }
+    }
 
     pub fn export_scalars_to_json(&self) {unimplemented!();}
     pub fn add_histogram(&mut self) {unimplemented!();}
