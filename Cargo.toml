@@ -23,8 +23,12 @@ protobuf = "2.14"
 
 gethostname = "0.2.1"
 
+image = "0.23.4"
+
 [dev-dependencies]
 protobuf-codegen = "2.14"
+
+auto-diff = "0.3.3"
 
 [features]
 
