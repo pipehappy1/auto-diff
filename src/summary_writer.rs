@@ -69,7 +69,7 @@ impl SummaryWriter {
                 self.all_writers.insert(fw_tag.clone(), new_writer);
             }
             let fw = self.all_writers.get_mut(&fw_tag).expect("");
-            fw.add_summary(scalar(main_tag, *scalar_value), step);
+            fw.add_summary(scalar(main_tag, *scalar_value), step).expect("");
         }
     }
 
