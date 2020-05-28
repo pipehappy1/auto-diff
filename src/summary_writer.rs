@@ -19,7 +19,7 @@ impl FileWriter {
     pub fn get_logdir(&self) -> PathBuf {
         self.writer.get_logdir()
     }
-    pub fn add_event(&mut self, event: &Event, step: usize) -> std::io::Result<()> {
+    pub fn add_event(&mut self, event: &Event, step: usize) {
         let mut event = event.clone();
         
         let mut time_full = 0.0;
@@ -32,7 +32,7 @@ impl FileWriter {
         
         self.writer.add_event(&event)
     }
-    pub fn add_summary(&mut self, summary: Summary, step: usize) -> std::io::Result<()> {
+    pub fn add_summary(&mut self, summary: Summary, step: usize) {
         let mut evn = Event::new();
         evn.set_summary(summary);
         self.add_event(&evn, step)
@@ -40,7 +40,7 @@ impl FileWriter {
     pub fn add_graph(&mut self) {
         unimplemented!();
     }
-    pub fn flush(&mut self) -> std::io::Result<()> {
+    pub fn flush(&mut self) {
         self.writer.flush()
     }
 }
@@ -57,8 +57,8 @@ impl SummaryWriter {
         }
     }
     pub fn add_hparams(&mut self) {unimplemented!();}
-    pub fn add_scalar(&mut self, tag: &str, scalar_value: f32, step: usize) -> std::io::Result<()> {
-        self.writer.add_summary(scalar(tag, scalar_value), step)
+    pub fn add_scalar(&mut self, tag: &str, scalar_value: f32, step: usize) {
+        self.writer.add_summary(scalar(tag, scalar_value), step);
     }
     pub fn add_scalars(&mut self, main_tag: &str, tag_scalar: &HashMap<String, f32>, step: usize) {
         let base_logdir = self.writer.get_logdir();
@@ -69,15 +69,15 @@ impl SummaryWriter {
                 self.all_writers.insert(fw_tag.clone(), new_writer);
             }
             let fw = self.all_writers.get_mut(&fw_tag).expect("");
-            fw.add_summary(scalar(main_tag, *scalar_value), step).expect("");
+            fw.add_summary(scalar(main_tag, *scalar_value), step);
         }
     }
 
     pub fn export_scalars_to_json(&self) {unimplemented!();}
     pub fn add_histogram(&mut self) {unimplemented!();}
     pub fn add_histogram_raw(&mut self) {unimplemented!();}
-    pub fn add_image(&mut self, tag: &str, data: &[u8], dim: &[usize], step: usize) -> std::io::Result<()> {
-        self.writer.add_summary(image(tag, data, dim), step)
+    pub fn add_image(&mut self, tag: &str, data: &[u8], dim: &[usize], step: usize) {
+        self.writer.add_summary(image(tag, data, dim), step);
     }
     pub fn add_images(&mut self) {unimplemented!();}
     pub fn add_image_with_boxes(&mut self) {unimplemented!();}
@@ -96,7 +96,7 @@ impl SummaryWriter {
     pub fn add_custom_scalars(&mut self) {unimplemented!();}
     pub fn add_mesh(&mut self) {unimplemented!();}
 
-    pub fn flush(&mut self) -> std::io::Result<()> {
-        self.writer.flush()
+    pub fn flush(&mut self) {
+        self.writer.flush();
     }
 }

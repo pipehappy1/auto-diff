@@ -12,9 +12,9 @@ pub fn main() {
         scalar += (i as f32)*0.1;
         step += i;
 
-        writer.add_scalar(name, scalar, step).expect("");
+        writer.add_scalar(name, scalar, step);
     }
-    writer.flush().expect("");
+    writer.flush();
 
     for n_iter in 0..100 {
         let mut map = HashMap::new();
@@ -23,5 +23,5 @@ pub fn main() {
         map.insert("arctanx".to_string(), (n_iter as f32).atan());
         writer.add_scalars(&"data/scalar_group".to_string(), &map, n_iter);
     }
-    writer.flush().expect("");
+    writer.flush();
 }

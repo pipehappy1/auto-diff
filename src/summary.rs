@@ -53,7 +53,7 @@ pub fn image(tag: &str, data: &[u8], dim: &[usize]) -> Summary {
 
 pub fn custom_scalars(layout: f32) {
     let mut layout = Layout::new();
-    let mut value = Category::new();
+    let value = Category::new();
     let values = RepeatedField::from(vec![value]);
     layout.set_category(values);
 

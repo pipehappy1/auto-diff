@@ -11,6 +11,6 @@ pub fn main() {
     let (width, height) = img.dimensions();
 
     
-    writer.add_image(&"test_image".to_string(), &img.into_raw()[..], &vec![3, width as usize, height as usize][..], 12).expect("");
-    writer.flush().expect("");
+    writer.add_image(&"test_image".to_string(), &img.into_raw()[..], &vec![3, width as usize, height as usize][..], 12);
+    writer.flush();
 }
