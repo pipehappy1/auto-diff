@@ -75,7 +75,11 @@ impl Tensor {
     tensor_method_single_tensor_return!(get_w);
     tensor_method_single_tensor_return!(numel_tensor);
 
-
+    pub fn get_patch(&self, range: &[(usize, usize)], step: Option<&[usize]>) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().get_patch(range, step)))
+        }
+    }
 
     pub fn same_shape(&self, o: &Tensor) -> bool {
         let a = self.size();

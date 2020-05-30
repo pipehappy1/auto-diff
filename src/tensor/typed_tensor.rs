@@ -112,6 +112,14 @@ impl TypedTensor {
     typed_tensor_method_single_tensor_return!(get_w);
     typed_tensor_method_single_tensor_return!(numel_tensor);
 
+    pub fn get_patch(&self, range: &[(usize, usize)], step: Option<&[usize]>) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.get_patch(range, step))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.get_patch(range, step))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+
     /// convert itself to f32
     pub fn to_gentensorf32(_i: &TypedTensor) -> TypedTensor {
         unimplemented!();

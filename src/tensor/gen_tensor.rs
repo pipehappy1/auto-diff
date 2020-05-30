@@ -339,10 +339,72 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
+    /// Return portion of the image.
+    /// Every range of each dim with inclusive start and exclusive end.
+    pub fn get_patch(&self, range: &[(usize, usize)], step: Option<&[usize]>) -> GenTensor<T> {
+        if range.len() != self.dim.len() {
+            panic!("Expect range covers all dimension range: {:?}, dim: {:?}", range, self.dim);
+        }
+        let mut step_dim = vec![1; self.dim.len()];
+        if step.is_some() {
+            step_dim = step.expect("").to_vec();
+        }
+        
+        let mut index = Vec::<Vec::<usize>>::new();
+        let mut total_elem = 1;
+        let mut ret_dim = Vec::new();
+        for (i, dim_index) in range.iter().zip(0..self.dim.len()) {
+            let mut pos = i.0;
+            let mut all_index = Vec::new();
+            while pos < i.1 {
+                all_index.push(pos);
+                pos += step_dim[dim_index];
+            }
+            //println!("{:?}", &all_index);
+            ret_dim.push(all_index.len());
+            total_elem *= all_index.len();
+            index.push(all_index);
+        }
+        let mut ret_data = Vec::<T>::with_capacity(total_elem);
+        unsafe{ ret_data.set_len(total_elem); }
+        let mut ret = GenTensor {
+            d: ret_data,
+            dim: ret_dim,
+        };
+
+        let d = self.dim.len();
+        let mut pos_index = vec![0; d];
+        let mut self_index = vec![0; d];
+        loop {
+            println!("pos_index: {:?}", pos_index);
+            for i in 0..d {
+                self_index[i] = index[i][pos_index[i]];
+            }
+            let value = self.get(&self_index);
+            ret.set(&pos_index, value);
+
+            for dim_index in 0..d {
+                pos_index[d-1-dim_index] += 1;
+                if pos_index[d-1-dim_index] >= ret.dim[d-1-dim_index] {
+                    pos_index[d-1-dim_index] = 0;
+                } else {
+                    break;
+                }
+            }
+
+            if pos_index == vec![0; d] {
+                break;
+            }
+        }
+        
+        ret
+    }
+
 
     // Indexing, Slicing, Joining, Mutating Ops
 
     // cat
+    /// Concatenates the given sequence of seq tensors in the given dimension.
     pub fn cat(&self, tensors: &[&GenTensor<T>], dim: usize) -> GenTensor<T> {
         for i in tensors {
             if i.dim.len() != self.dim.len() {
@@ -402,6 +464,25 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     //pub fn chunk() {}
+    /// Splits a tensor into a specific number of chunks.
+    pub fn chunk(&self, chunks: usize, dim: usize) -> Vec<GenTensor<T>> {
+        let mut ret = Vec::new();
+        let mut chunk_size = self.dim[dim] / chunks;
+        if self.dim[dim] % chunks > 0 {
+            chunk_size += 1;
+        }
+        let mut start;
+        let mut end;
+        for i in 0..chunks {
+            start = i*chunk_size;
+            end = (i+1)*chunk_size;
+            if end > self.dim[dim] {
+                end = self.dim[dim];
+            }
+            
+        }
+        ret
+    }
     //pub fn gather() {}
     //pub fn index_select() {}
     //pub fn masked_select() {}
@@ -418,6 +499,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     // split
+    /// Splits the tensor into chunks. Each chunk is a view of the original tensor.
     pub fn split(&self, sections: &[usize], dim: usize) -> Vec<GenTensor<T>> {
         if sections.iter().sum::<usize>() != self.dim[dim] {
             panic!("sum of sections should be the size on dim.");
@@ -461,7 +543,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
     //pub fn squeeze() {}
     // stack
-        /// Concatenates sequence of tensors along a new dimension.
+    /// Concatenates sequence of tensors along a new dimension.
     ///
     /// All tensors need to be of the same size.
     /// ```
@@ -514,6 +596,16 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     //pub fn t() {}
     //pub fn take() {}
+    /// Returns a new tensor with the elements of input at the given indices. 
+    /// The input tensor is treated as if it were viewed as a 1-D tensor.
+    /// The result takes the same shape as the indices.
+    pub fn take(&self, index: &[usize]) -> Vec::<T> {
+        let mut ret = Vec::<T>::with_capacity(index.len());
+        for i in index {
+            ret.push(self.d[*i]);
+        }
+        ret
+    }
     //pub fn transpose() {}
     //pub fn unbind() {}
     // permute 
@@ -1282,6 +1374,14 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// assert_eq!(m1.equal(&m2), true)
     /// ```
     pub fn equal(&self, o: &GenTensor<T>) -> bool {
+        if self.dim.len() != o.dim.len() || self.dim != o.dim {
+            return false;
+        }
+
+        if self.d.len() != o.d.len() {
+            return false;
+        }
+        
         let mut same = true;
         for (v1, v2) in self.d.iter().zip(o.d.iter()) {
             if (*v1-*v2).abs() > T::min_positive_value().sqrt() {
@@ -2050,6 +2150,13 @@ mod tests {
         //println!("{}", c);
         let d = b.outer(&a);
         assert_eq!(d.size(), vec![10, 3, 2]);
+    }
+
+    #[test]
+    fn get_patch() {
+        let a = GenTensor::<f32>::arange(30).reshape(&vec![2, 3, 5]);
+        let b = a.get_patch(&vec![(0, 2), (0, 2), (2, 3)][..], Option::None);
+        assert_eq!(b, GenTensor::<f32>::new_raw(&vec![2.0, 7.0, 17.0, 22.0][..], &vec![2, 2, 1][..]));
     }
 
     #[test]
