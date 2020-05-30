@@ -111,12 +111,34 @@ impl TypedTensor {
     typed_tensor_method_single_tensor_return!(get_h);
     typed_tensor_method_single_tensor_return!(get_w);
     typed_tensor_method_single_tensor_return!(numel_tensor);
-    
+
+    /// convert itself to f32
     pub fn to_gentensorf32(_i: &TypedTensor) -> TypedTensor {
         unimplemented!();
     }
+    /// convert itself to f64
     pub fn to_gentensorf64(_i: &TypedTensor) -> TypedTensor {
         unimplemented!();
+    }
+
+    pub fn get_raw_f32(&self) -> Vec<f32> {
+        match &self {
+            TypedTensor::Typef32(v1) => v1.clone().get_raw(),
+            _ => panic!("This is not f32 tensor"),
+        }
+    }
+    pub fn get_raw_f64(&self) -> Vec<f64> {
+        match &self {
+            TypedTensor::Typef64(v1) => v1.clone().get_raw(),
+            _ => panic!("This is not f64 tensor"),
+        }
+    }
+    pub fn get_u8(&self) -> Option<Vec<u8>> {
+        match &self {
+            TypedTensor::Typef32(v1) => v1.get_u8(),
+            TypedTensor::Typef64(v1) => v1.get_u8(),
+            //_ => panic!("This is not f64 tensor"),
+        }
     }
 
     // Indexing, Slicing, Joining, Mutating Ops

@@ -98,17 +98,10 @@ impl Tensor {
             v: Rc::new(RefCell::new(TypedTensor::Typef32(GenTensor::new_raw(&data, &idim) ))),
         }
     }
-    pub fn to_vec_f32(&mut self) -> Vec<f32> {
-        //let mut data = Vec::<f32>::new();
-        //if let TypedTensor::Typef32(gt) = *self.v.borrow() {
-        //    for item in &gt.d {
-        //        data.push(item.clone())
-        //    }
-        //} else {
-        //    ()
-        //}
-        //data
-        Vec::new()
+    /// return the internal buffer
+    /// May fail if the underlying data is f64
+    pub fn get_raw_f32(&self) -> Vec<f32> {
+        self.v.borrow().get_raw_f32()
     }
     pub fn from_vec_f64(input: &[f64], dim: &[usize]) -> Tensor {
         let data = input.to_vec();
@@ -119,6 +112,18 @@ impl Tensor {
             v: Rc::new(RefCell::new(TypedTensor::Typef64(GenTensor::new_raw(&data, &idim) ))),
         }
     }
+    /// return the internal buffer
+    /// May fail if the underlying data is f32
+    pub fn get_raw_f64(&self) -> Vec<f64> {
+        self.v.borrow().get_raw_f64()
+    }
+
+    /// try convert to Vec<u8>, value should be between 0, 255
+    pub fn get_u8(&self) -> Option<Vec<u8>> {
+        self.v.borrow().get_u8()
+    }
+
+    
     pub fn from_record(&self, row: usize, record: &[f32]) -> Result<(), ()> {
         self.v.borrow_mut().from_record(row, record)
     }

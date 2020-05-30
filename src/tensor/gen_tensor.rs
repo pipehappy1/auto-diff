@@ -242,6 +242,15 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     pub fn get_raw(&self) -> Vec<T> {
         self.d.to_vec()
     }
+    pub fn get_u8(&self) -> Option<Vec<u8>> {
+        let mut ret = Vec::<u8>::with_capacity(self.d.len());
+        for i in &self.d {
+            let val = i.to_u8()?;
+            ret.push(val);
+        }
+        Some(ret)
+    }
+    
     /// dump the single value in the tensor
     /// if it is the single value in the tensor.
     pub fn get_scale(&self) -> T {
