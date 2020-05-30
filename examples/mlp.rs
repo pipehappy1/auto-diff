@@ -131,8 +131,8 @@ fn main() {
         println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
         //println!("{}, loss: {}", i, loss.get().get_scale_f32());
 
-        writer.add_scalar("run1/loss", loss_value, i).expect("");
-        writer.add_scalar("run1/accuracy", accuracy, i).expect("");
-        writer.flush().expect("");
+        writer.add_scalar("run1/loss", loss_value, i);
+        writer.add_scalar("run1/accuracy", accuracy, i);
+        writer.flush();
     }
 }

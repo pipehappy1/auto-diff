@@ -36,7 +36,7 @@ openblas-src = "0.9" # or another backend of your choice
 # for examples
 csv = "1.1"
 
-tensorboard-rs = "0.2.0"
+tensorboard-rs = "0.2.2"
 
 [features]
 
