@@ -7,7 +7,7 @@ use auto_diff::tensor::Tensor;
 
 use tensorboard_rs::summary_writer::SummaryWriter;
 
-fn load_images<P: AsRef<Path>>(path: P) -> Tensor {
+pub fn load_images<P: AsRef<Path>>(path: P) -> Tensor {
     let ref mut reader = io::BufReader::new(File::open(path).expect(""));
     let magic = read_as_u32(reader);
     if magic != 2051 {
@@ -26,7 +26,7 @@ fn load_images<P: AsRef<Path>>(path: P) -> Tensor {
     ret
 }
 
-fn load_labels<P: AsRef<Path>>(path: P) -> Tensor {
+pub fn load_labels<P: AsRef<Path>>(path: P) -> Tensor {
     let ref mut reader = io::BufReader::new(File::open(path).expect(""));
     let magic = read_as_u32(reader);
     if magic != 2049 {

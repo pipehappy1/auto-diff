@@ -251,7 +251,11 @@ impl Tensor {
     pub fn masked_select() {}
     pub fn narrow() {}
     pub fn nonzero() {}
-    pub fn reshape() {}
+    pub fn reshape(&self, new_shape: &[usize]) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().reshape(new_shape))),
+        }
+    }
     pub fn split(&self, sections: &[usize], dim: usize) -> Vec<Tensor> {
         let typts = self.v.borrow().split(sections, dim);
         let mut ret = Vec::new();
