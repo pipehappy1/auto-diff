@@ -376,7 +376,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         let mut pos_index = vec![0; d];
         let mut self_index = vec![0; d];
         loop {
-            println!("pos_index: {:?}", pos_index);
+            //println!("pos_index: {:?}", pos_index);
             for i in 0..d {
                 self_index[i] = index[i][pos_index[i]];
             }
@@ -466,22 +466,23 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     //pub fn chunk() {}
     /// Splits a tensor into a specific number of chunks.
     pub fn chunk(&self, chunks: usize, dim: usize) -> Vec<GenTensor<T>> {
-        let mut ret = Vec::new();
-        let mut chunk_size = self.dim[dim] / chunks;
-        if self.dim[dim] % chunks > 0 {
-            chunk_size += 1;
-        }
-        let mut start;
-        let mut end;
-        for i in 0..chunks {
-            start = i*chunk_size;
-            end = (i+1)*chunk_size;
-            if end > self.dim[dim] {
-                end = self.dim[dim];
-            }
-            
-        }
-        ret
+        //let mut ret = Vec::new();
+        //let mut chunk_size = self.dim[dim] / chunks;
+        //if self.dim[dim] % chunks > 0 {
+        //    chunk_size += 1;
+        //}
+        //let mut start;
+        //let mut end;
+        //for i in 0..chunks {
+        //    start = i*chunk_size;
+        //    end = (i+1)*chunk_size;
+        //    if end > self.dim[dim] {
+        //        end = self.dim[dim];
+        //    }
+        //    
+        //}
+        //ret
+        unimplemented!();
     }
     //pub fn gather() {}
     //pub fn index_select() {}
@@ -558,6 +559,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// assert_eq!(result.size(), vec![3,2,2]);
     /// ```
     pub fn stack(tensors: &[&Self], dim: usize) -> GenTensor<T> {
+        
         let cap = tensors.len()*tensors[0].d.len();
         let mut odim = Vec::new();
         for i in 0..tensors[0].dim.len() {
@@ -1471,14 +1473,30 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         ret
     }
-    // max, there are 3 versions.
+    // max, 
+    //pub fn max(&self, o: Option<&GenTensor<T>>, dim: Option<usize>, keep_dim: Option<bool>) -> GenTensor<T> {
+    //    if o.is_none() && dim.is_none() && keep_dim.is_none() {
+    //        max_all()
+    //    } else if o.is_some() && dim.is_none() && keep_dim.is_none() {
+    //        max_pair()
+    //    }
+    //}
     pub fn max_all(&self) -> GenTensor<T> {
+        let mut max_value = self.d[0];
+        for i in self.d.iter() {
+            if *i > max_value {
+                max_value = *i;
+            } 
+        }
+        GenTensor {
+            d: vec![max_value],
+            dim: vec![1],
+        }
+    }
+    pub fn max_along(&self, dim: usize, keep_dim: bool) -> GenTensor<T> {
         unimplemented!()
     }
-    pub fn max_along(&self) -> (GenTensor<T>, GenTensor<T>) {
-        unimplemented!()
-    }
-    pub fn max(&self, o: &GenTensor<T>) -> GenTensor<T> {
+    pub fn max_pair(&self, o: &GenTensor<T>) -> GenTensor<T> {
         if self.size() != o.size() {
             panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
         }
@@ -1493,14 +1511,23 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         ret
     }
-    // min, there are 3 versions.
+    // min, 
     pub fn min_all(&self) -> GenTensor<T> {
+        let mut min_value = self.d[0];
+        for i in self.d.iter() {
+            if *i < min_value {
+                min_value = *i;
+            } 
+        }
+        GenTensor {
+            d: vec![min_value],
+            dim: vec![1],
+        }
+    }
+    pub fn min_along(&self, dim: usize, keep_dim: bool) -> GenTensor<T> {
         unimplemented!()
     }
-    pub fn min_along(&self) -> (GenTensor<T>, GenTensor<T>) {
-        unimplemented!()
-    }
-    pub fn min(&self, o: &GenTensor<T>) -> GenTensor<T> {
+    pub fn min_pair(&self, o: &GenTensor<T>) -> GenTensor<T> {
         if self.size() != o.size() {
             panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
         }
@@ -2271,22 +2298,6 @@ mod tests {
                                                      3., 2., 1., 0.], 
                                                &vec![4, 4]);
         assert_eq!(index, expect);
-    }
-
-    #[test]
-    fn max() {
-        let a = GenTensor::<f32>::new_raw(&vec![1., 3., 10., 11.], &vec![2,2]);
-        let b = GenTensor::<f32>::new_raw(&vec![2., 4., 5., 6.], &vec![2,2]);
-        let c = a.max(&b);
-        assert_eq!(c, GenTensor::<f32>::new_raw(&vec![2., 4., 10., 11.], &vec![2,2]));
-    }
-
-    #[test]
-    fn min() {
-        let a = GenTensor::<f32>::new_raw(&vec![1., 3., 10., 11.], &vec![2,2]);
-        let b = GenTensor::<f32>::new_raw(&vec![2., 4., 5., 6.], &vec![2,2]);
-        let c = a.min(&b);
-        assert_eq!(c, GenTensor::<f32>::new_raw(&vec![1., 3., 5., 6.], &vec![2,2]));
     }
 
     #[test]

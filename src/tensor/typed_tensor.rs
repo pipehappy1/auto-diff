@@ -4,6 +4,7 @@ use std::mem::discriminant;
 
 use super::gen_tensor::*;
 use crate::op::PaddingMode;
+use super::compare_tensor::CompareTensor;
 
 pub enum TypedTensor {
     Typef32(GenTensor<f32>),
@@ -211,6 +212,10 @@ impl TypedTensor {
 
     }
 
+    // Concatenates sequence of tensors along a new dimension.
+    //pub fn stack(&self, tensors: &[&Self], dim: usize) -> TypedTensor {
+    //}
+
     pub fn permute(&self, dim: &[usize]) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.permute(dim))},
@@ -317,8 +322,54 @@ impl TypedTensor {
     typed_tensor_method!(gt);
     typed_tensor_method!(le);
     typed_tensor_method!(lt);
-    typed_tensor_method!(max);
-    typed_tensor_method!(min);
+    pub fn min(&self, o: Option<&TypedTensor>, dim: Option<usize>, keep_dim: Option<bool>) -> TypedTensor {
+        match self {
+            TypedTensor::Typef32(v1) => {
+                if o.is_some() {
+                    let other_tensor;
+                    match o.unwrap() {
+                        TypedTensor::Typef32(v2) => {other_tensor = v2;},
+                        _ => {panic!("min expect the same type.");},
+                    }
+                    TypedTensor::Typef32(v1.min(Some(other_tensor), dim, keep_dim))
+                } else {
+                    TypedTensor::Typef32(v1.min(None, dim, keep_dim))
+                }
+            },
+            //(TypedTensor::Typef64(v1)) => {
+            //    if o.is_some() {
+            //        
+            //    } else {
+            //        TypedTensor::Typef64(v1.min(None, dim, keep_dim))
+            //    }
+            //},
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
+    pub fn max(&self, o: Option<&TypedTensor>, dim: Option<usize>, keep_dim: Option<bool>) -> TypedTensor {
+        match self {
+            TypedTensor::Typef32(v1) => {
+                if o.is_some() {
+                    let other_tensor;
+                    match o.unwrap() {
+                        TypedTensor::Typef32(v2) => {other_tensor = v2;},
+                        _ => {panic!("max expect the same type.");},
+                    }
+                    TypedTensor::Typef32(v1.max(Some(other_tensor), dim, keep_dim))
+                } else {
+                    TypedTensor::Typef32(v1.max(None, dim, keep_dim))
+                }
+            },
+            //(TypedTensor::Typef64(v1)) => {
+            //    if o.is_some() {
+            //        
+            //    } else {
+            //        TypedTensor::Typef64(v1.min(None, dim, keep_dim))
+            //    }
+            //},
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
     typed_tensor_method!(ne);
 
     // conv ops

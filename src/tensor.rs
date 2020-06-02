@@ -7,12 +7,13 @@
 // Right dimension of the tensor changes fastest.
 use std::rc::Rc;
 use std::cell::RefCell;
+//use std::ops::Index;
 
 use std::fmt;
 
 pub mod gen_tensor;
 pub mod typed_tensor;
-
+pub mod compare_tensor;
 
 use typed_tensor::TypedTensor;
 use gen_tensor::GenTensor;
@@ -409,8 +410,28 @@ impl Tensor {
     tensor_method!(gt);
     tensor_method!(le);
     tensor_method!(lt);
-    tensor_method!(max);
-    tensor_method!(min);
+    pub fn min(&self, o: Option<&Tensor>, dim: Option<usize>, keep_dim: Option<bool>) -> Tensor {
+        if o.is_some() {
+            Tensor {
+                v: Rc::new(RefCell::new(self.v.borrow().min(Some(&o.unwrap().v.borrow()), dim, keep_dim))),
+            }
+        } else {
+            Tensor {
+                v: Rc::new(RefCell::new(self.v.borrow().min(None, dim, keep_dim))),
+            }
+        }
+    }
+    pub fn max(&self, o: Option<&Tensor>, dim: Option<usize>, keep_dim: Option<bool>) -> Tensor {
+        if o.is_some() {
+            Tensor {
+                v: Rc::new(RefCell::new(self.v.borrow().max(Some(&o.unwrap().v.borrow()), dim, keep_dim))),
+            }
+        } else {
+            Tensor {
+                v: Rc::new(RefCell::new(self.v.borrow().max(None, dim, keep_dim))),
+            }
+        }
+    }
     tensor_method!(ne);
 
     // conv ops
@@ -462,6 +483,22 @@ impl Clone for Tensor {
         }
     }
 }
+
+
+// index and slicing
+//pub struct TensorView {
+//    dim_index: usize,
+//}
+//
+//impl Index<usize> for Tensor {
+//    type Output = TensorView;
+//
+//    fn index(&self, dim_index: usize) -> &Self::Output {
+//        TensorView {
+//            dim_index: dim_index,
+//        }
+//    }
+//}
 
 
 #[cfg(test)]

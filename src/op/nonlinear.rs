@@ -25,8 +25,8 @@ impl OpTrait for ELU {
 
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        let positive = input[0].max(&input[0].zeros_like());
-        let negative = input[0].expm1().mul(&Tensor::fill(&input[0].size(), self.alpha)).min(&input[0].zeros_like());
+        let positive = input[0].max(Some(&input[0].zeros_like()), None, None);
+        let negative = input[0].expm1().mul(&Tensor::fill(&input[0].size(), self.alpha)).min(Some(&input[0].zeros_like()), None, None);
         let ret = positive.add(&negative);
         output[0].swap(ret);
     }
@@ -81,7 +81,7 @@ impl OpTrait for ReLU {
     }
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        let ret = input[0].max(&input[0].zeros_like());
+        let ret = input[0].max(Some(&input[0].zeros_like()), None, None);
         output[0].swap(ret);
     }
     

@@ -99,7 +99,7 @@ impl OpTrait for CrossEntropyLoss {
     }
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        let ret = input[0].max(&input[0].zeros_like());
+        let ret = input[0].max(Some(&input[0].zeros_like()), None, None);
         output[0].swap(ret);
     }
     
