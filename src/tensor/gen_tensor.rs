@@ -325,6 +325,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     pub fn size(&self) -> Vec<usize> {
         self.dim.to_vec()
     }
+    pub fn get_data(&self) -> Vec<T> {
+        self.d.to_vec()
+    }
 
     /// Returns the total number of elements in the input tensor
     pub fn numel(&self) -> usize {
@@ -542,7 +545,10 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         
         ret
     }
-    //pub fn squeeze() {}
+    // move this to index_slicing.rs
+    //pub fn squeeze(&self, dim: Option<usize>) -> GenTensor<T> {
+    //    GenTensor::new()
+    //}
     // stack
     /// Concatenates sequence of tensors along a new dimension.
     ///
@@ -668,20 +674,6 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     /////
     // unsqueeze
-    pub fn unsqueeze(&self, dim: usize) -> GenTensor<T> {
-        let mut new_dim = Vec::new();
-        for i in 0..self.dim.len() {
-            if i == dim {
-                new_dim.push(1);
-            }
-            new_dim.push(self.dim[i]);
-        }
-        GenTensor {
-            d: self.d.to_vec(),
-            dim: new_dim,
-        }
-    }
-
     //pub fn condition() {} // this is pytorch where
 
 

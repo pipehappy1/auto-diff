@@ -88,7 +88,7 @@ impl CrossEntropyLoss {
     }
 }
 impl OpTrait for CrossEntropyLoss {
-        fn get_name(&self) -> String {
+    fn get_name(&self) -> String {
         "CrossEntropyLoss".to_string()
     }
     fn get_input_size(&self) -> usize {
@@ -97,10 +97,17 @@ impl OpTrait for CrossEntropyLoss {
     fn get_output_size(&self) -> usize {
         1
     }
-    /// Forward pass
+    /// The first is the prediction, the second input is the label
+    /// ORDER IS IMPORTANT, SECOND ARGUMENT WON'T GET GRADEINT.
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        let ret = input[0].max(Some(&input[0].zeros_like()), None, None);
-        output[0].swap(ret);
+        if input.len() < 2 {
+            panic!("{} expect two input, get {}", self.get_name(), input.len());
+        }
+        if input[0].size().len() != (input[1].size().len()+1) {
+            panic!("{} expect dim+1 and dim, get {}, {}", self.get_name(), input[0].size().len(), input[1].size().len());
+        }
+        
+        
     }
     
     /// Given the forward input value and backward output_grad,
@@ -157,6 +164,7 @@ impl OpTrait for BCEWithLogitsLoss {
         1
     }
     /// The first is the prediction, the second input is the label
+    /// ORDER IS IMPORTANT, SECOND ARGUMENT WON'T GET GRADEINT.
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
         if input.len() < 2 {
             panic!("{} expect two input, get {}", self.get_name(), input.len());

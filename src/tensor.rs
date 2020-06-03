@@ -14,6 +14,7 @@ use std::fmt;
 pub mod gen_tensor;
 pub mod typed_tensor;
 pub mod compare_tensor;
+pub mod index_slicing;
 
 use typed_tensor::TypedTensor;
 use gen_tensor::GenTensor;

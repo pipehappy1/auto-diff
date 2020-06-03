@@ -5,6 +5,7 @@ use std::mem::discriminant;
 use super::gen_tensor::*;
 use crate::op::PaddingMode;
 use super::compare_tensor::CompareTensor;
+use super::index_slicing::IndexSlicing;
 
 pub enum TypedTensor {
     Typef32(GenTensor<f32>),
