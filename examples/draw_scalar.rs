@@ -21,7 +21,7 @@ pub fn main() {
         map.insert("xsinx".to_string(), (n_iter as f32) * (n_iter as f32).sin());
         map.insert("xcosx".to_string(), (n_iter as f32) * (n_iter as f32).cos());
         map.insert("arctanx".to_string(), (n_iter as f32).atan());
-        writer.add_scalars(&"data/scalar_group".to_string(), &map, n_iter);
+        writer.add_scalars("data/scalar_group", &map, n_iter);
     }
     writer.flush();
 }
