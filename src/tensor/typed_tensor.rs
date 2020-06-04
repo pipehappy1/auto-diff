@@ -97,7 +97,7 @@ impl TypedTensor {
         }
     }
 
-    typed_tensor_method_single_same_return!(size, Vec<usize>);
+    typed_tensor_method_single_same_return!(size, &Vec<usize>);
     typed_tensor_method_single_same_return!(numel, usize);
     pub fn get_scale_f32(&self) -> f32 {
         match &self {

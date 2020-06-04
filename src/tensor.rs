@@ -64,7 +64,9 @@ impl Tensor {
         true
     }
 
-    tensor_method_single_same_return!(size, Vec<usize>);
+    pub fn size(&self) -> Vec<usize> {
+        self.v.borrow().size().clone()
+    }
     tensor_method_single_same_return!(numel, usize);
 
     pub fn get_scale_f32(&self) -> f32 {

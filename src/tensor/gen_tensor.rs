@@ -326,8 +326,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
 
     /// Returns the size of the self tensor.
-    pub fn size(&self) -> Vec<usize> {
-        self.dim.to_vec()
+    pub fn size(&self) -> &Vec<usize> {
+        &self.dim
     }
     pub fn get_data(&self) -> &Vec<T> {
         &self.d
@@ -1424,11 +1424,11 @@ mod tests {
     fn mean() {
         let a = GenTensor::<f32>::fill(1., &vec![3, 4, 3]);
         let b = a.mean(1, false);
-        assert_eq!(b.size(), vec![3, 3]);
+        assert_eq!(*b.size(), vec![3, 3]);
         assert_eq!(b.numel(), 9);
         //println!("{}", b);
         let c = a.mean(1, true);
-        assert_eq!(c.size(), vec![3, 1, 3]);
+        assert_eq!(*c.size(), vec![3, 1, 3]);
         assert_eq!(c.numel(), 9);
         //println!("{}", c);
     }
@@ -1437,12 +1437,12 @@ mod tests {
     fn var() {
         let a = GenTensor::<f32>::new_raw(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
         let b = a.var(0, false);
-        assert_eq!(b.size(), vec![2]);
+        assert_eq!(*b.size(), vec![2]);
         assert_eq!(b.numel(), 2);
         assert_eq!(b, GenTensor::<f32>::new_raw(&vec![2.666667, 2.666666], &vec![2]));
         //println!("{}", b);
         let c = a.var(1, true);
-        assert_eq!(c.size(), vec![3, 1]);
+        assert_eq!(*c.size(), vec![3, 1]);
         assert_eq!(c.numel(), 3);
         assert_eq!(c, GenTensor::<f32>::new_raw(&vec![0.25, 0.25, 0.25], &vec![3, 1]));
         //println!("{}", c);
@@ -1452,12 +1452,12 @@ mod tests {
     fn std() {
         let a = GenTensor::<f32>::new_raw(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
         let b = a.std(0, false);
-        assert_eq!(b.size(), vec![2]);
+        assert_eq!(*b.size(), vec![2]);
         assert_eq!(b.numel(), 2);
         assert_eq!(b, GenTensor::<f32>::new_raw(&vec![1.6329932, 1.632993], &vec![2]));
         //println!("{}", b);
         let c = a.std(1, true);
-        assert_eq!(c.size(), vec![3, 1]);
+        assert_eq!(*c.size(), vec![3, 1]);
         assert_eq!(c.numel(), 3);
         assert_eq!(c, GenTensor::<f32>::new_raw(&vec![0.5, 0.5, 0.5], &vec![3, 1]));
         //println!("{}", c);
@@ -1468,10 +1468,10 @@ mod tests {
         let a = GenTensor::<f32>::fill(1., &vec![10, 2]);
         let b = GenTensor::<f32>::fill(1., &vec![10, 3]);
         let c = a.outer(&b);
-        assert_eq!(c.size(), vec![10, 2, 3]);
+        assert_eq!(*c.size(), vec![10, 2, 3]);
         //println!("{}", c);
         let d = b.outer(&a);
-        assert_eq!(d.size(), vec![10, 3, 2]);
+        assert_eq!(*d.size(), vec![10, 3, 2]);
     }
 
     #[test]

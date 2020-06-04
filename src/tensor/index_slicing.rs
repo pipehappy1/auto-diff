@@ -6,7 +6,7 @@ pub trait IndexSlicing {
 
     fn cat(&self, tensors: &[&Self::TensorType], dim: usize) -> Self::TensorType;
     fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self::TensorType>;
-    fn gather();
+    fn gather(&self, dim: usize, index: Self::TensorType) -> Self::TensorType;
     fn index_select(&self, );
     // fn masked_select();
     //pub fn narrow() {}
@@ -106,8 +106,21 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         unimplemented!();
     }
 
-    fn gather() {}
-    fn index_select(&self, ) {}
+    fn gather(&self, dim: usize, index: Self::TensorType) -> Self::TensorType {
+        if self.size().len() != index.size().len() {
+            panic!("gather need two input has the same number of dim: {}, {}", self.size().len(), index.size().len());
+        }
+        
+        let mut data: Vec<T> = Vec::with_capacity(self.numel());
+        let ret_dim = index.size();
+
+        for i in 0..self.numel() {
+            
+        }
+        
+        GenTensor::new_raw(&data, &ret_dim)
+    }
+    fn index_select(&self, ) {unimplemented!();}
 
     fn reshape(&self, new_shape: &[usize]) -> Self::TensorType {
         if self.size().iter().product::<usize>() != new_shape.iter().product::<usize>() {
@@ -177,7 +190,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     /// for i in raw {
     ///     println!("{}", i);
     /// }
-    /// assert_eq!(result.size(), vec![3,2,2]);
+    /// assert_eq!(*result.size(), vec![3,2,2]);
     /// ```
     fn stack(tensors: &[&Self], dim: usize) -> Self::TensorType {
         
@@ -337,7 +350,7 @@ mod tests {
     fn permute() {
         let m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
         let m11 = m1.permute(&vec![2, 0, 1]);
-        assert_eq!(m11.size(), vec![5, 2, 3]);
+        assert_eq!(*m11.size(), vec![5, 2, 3]);
 
         let m2 = GenTensor::<f64>::new_raw(&vec![1., 2., 3., 4.,], &vec![2, 2]);
         let m22 = m2.permute(&vec![1, 0]);
