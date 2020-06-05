@@ -106,8 +106,15 @@ impl OpTrait for CrossEntropyLoss {
         if input[0].size().len() != (input[1].size().len()+1) {
             panic!("{} expect dim+1 and dim, get {}, {}", self.get_name(), input[0].size().len(), input[1].size().len());
         }
-        
-        
+
+        let mut dim_index: Vec<usize> = (0..input[0].size().len()).collect();
+        dim_index[0] = 1;
+        dim_index[1] = 0;
+        let score = input[0].permute(&dim_index);
+        let class_index = input[1].unsqueeze(0);
+
+        let class_score = score.gather(0, &class_index);
+
     }
     
     /// Given the forward input value and backward output_grad,
