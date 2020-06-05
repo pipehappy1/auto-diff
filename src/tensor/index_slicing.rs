@@ -1,4 +1,5 @@
 use std::ops::Range;
+use std::cmp;
 use super::gen_tensor::GenTensor;
 
 pub trait IndexSlicing {
@@ -87,23 +88,24 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
 
     /// Splits a tensor into a specific number of chunks.
     fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self::TensorType> {
-        //let mut ret = Vec::new();
-        //let mut chunk_size = self.dim[dim] / chunks;
-        //if self.dim[dim] % chunks > 0 {
-        //    chunk_size += 1;
-        //}
-        //let mut start;
-        //let mut end;
-        //for i in 0..chunks {
-        //    start = i*chunk_size;
-        //    end = (i+1)*chunk_size;
-        //    if end > self.dim[dim] {
-        //        end = self.dim[dim];
-        //    }
-        //    
-        //}
-        //ret
-        unimplemented!();
+        let mut ret = Vec::new();
+        let mut chunk_size = self.size()[dim] / chunks;
+        if self.size()[dim] % chunks > 0 {
+            chunk_size += 1;
+        }
+        
+        for i in 0..chunks {
+            let start = i*chunk_size;
+            let end = cmp::min((i+1)*chunk_size, self.size()[dim]);
+
+            let mut start_index = vec![0; self.size().len()];
+            let mut end_index = self.size().to_vec();
+            start_index[dim] = start;
+            end_index[dim] = end;
+            let range: Vec<(usize, usize)> = start_index.iter().zip(end_index.iter()).map(|x| (*x.0, *x.1)).collect();
+            ret.push(self.get_patch(&range, None));
+        }
+        ret
     }
 
     fn gather(&self, dim: usize, index: &Self::TensorType) -> Self::TensorType {
