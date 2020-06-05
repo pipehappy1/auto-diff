@@ -110,6 +110,11 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         if self.size().len() != index.size().len() {
             panic!("gather need two input has the same number of dim: {}, {}", self.size().len(), index.size().len());
         }
+        for i in 0..self.size().len() {
+            if i != dim && self.size()[i] != index.size()[i] {
+                panic!("gather want the same shape (but see {:?}, {:?}) except dim {}", self.size(), index.size(), dim);
+            }
+        }
         
         let mut ret = index.clone();
 
@@ -118,13 +123,13 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         let mut inner_index = vec![0; index.size().len()-dim -1 ];
 
         loop {
-            println!("outer_index, {:?}, inner_index: {:?}", outer_index, inner_index);
+            //println!("outer_index, {:?}, inner_index: {:?}", outer_index, inner_index);
 
             let mut outer_seg: Vec<(usize, usize)> = outer_index.iter().map(|x| (*x, x+1)).collect();
             outer_seg.push((0, self.size()[dim]));
             let mut inner_seg: Vec<(usize, usize)> = inner_index.iter().map(|x| (*x, x+1)).collect();
             outer_seg.append(&mut inner_seg);
-            println!("outer_seg {:?}", outer_seg);
+            //println!("outer_seg {:?}", outer_seg);
             let current_scope = self.get_patch(&outer_seg, None);
 
             for i in 0..index.size()[dim] {
@@ -202,7 +207,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
                     t_size.push(*j);
                 }
             }
-            let mut t = GenTensor::empty(&t_size);
+            let t = GenTensor::empty(&t_size);
             ret.push(t);
         }
 
@@ -217,9 +222,18 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         
         ret
     }
-    
+
     fn squeeze(&self, dim: Option<usize>) -> Self::TensorType {
-        GenTensor::<T>::new()
+        let mut new_shape = Vec::new();
+        for i in 0..new_shape.len() {
+            if (new_shape[i] == 1 && dim.is_some() && i == dim.unwrap()) ||
+                (new_shape[i] == 1 && dim.is_none()) {
+                continue
+            } else {
+                new_shape.push(new_shape[i]);
+            }
+        }
+        GenTensor::new_raw(self.get_data(), &new_shape)
     }
 
     /// Concatenates sequence of tensors along a new dimension.

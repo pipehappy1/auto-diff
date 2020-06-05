@@ -238,6 +238,14 @@ impl TypedTensor {
 
     }
 
+    pub fn squeeze(&self, dim: Option<usize>) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.squeeze(dim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.squeeze(dim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+
     // Concatenates sequence of tensors along a new dimension.
     //pub fn stack(&self, tensors: &[&Self], dim: usize) -> TypedTensor {
     //}

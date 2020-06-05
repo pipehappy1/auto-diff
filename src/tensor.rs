@@ -274,7 +274,11 @@ impl Tensor {
         }
         ret
     }
-    pub fn squeeze() {}
+    pub fn squeeze(&self, dim: Option<usize>) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().squeeze(dim))),
+        }
+    }
     pub fn stack() {}
     pub fn t() {}
     pub fn take() {}

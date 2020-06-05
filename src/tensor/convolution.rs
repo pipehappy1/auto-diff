@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 use super::gen_tensor::*;
-use super::index_slicing::IndexSlicing;
 use crate::op::PaddingMode;
 
 
