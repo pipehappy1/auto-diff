@@ -1217,7 +1217,80 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     pub fn max_along(&self, dim: usize, keep_dim: bool) -> GenTensor<T> {
-        unimplemented!()
+        self._max_along(dim, keep_dim, true)
+    }
+    pub fn _max_along(&self, dim: usize, keep_dim: bool, max_flag: bool) -> GenTensor<T> {
+        
+        let mut outer_index = vec![0; dim];
+        let mut inner_index = vec![0; self.size().len()-dim -1 ];
+
+        let mut new_dim = self.size().to_vec();
+        if keep_dim {
+            new_dim[dim] = 1;
+        } else {
+            new_dim.remove(dim);
+        }
+        let mut ret = GenTensor::empty(&new_dim);
+
+        loop {
+            //println!("outer_index, {:?}, inner_index: {:?}", outer_index, inner_index);
+
+            let mut outer_seg: Vec<(usize, usize)> = outer_index.iter().map(|x| (*x, x+1)).collect();
+            outer_seg.push((0, self.size()[dim]));
+            let mut inner_seg: Vec<(usize, usize)> = inner_index.iter().map(|x| (*x, x+1)).collect();
+            outer_seg.append(&mut inner_seg);
+            //println!("outer_seg {:?}", outer_seg);
+            let current_scope = self.get_patch(&outer_seg, None);
+
+            let mut max = current_scope.get_data()[0];
+            for i in  current_scope.get_data() {
+                if max_flag {
+                    if max < *i {
+                        max = *i;
+                    }
+                } else {
+                    if max < *i {
+                        max = *i;
+                    }
+                }
+
+            }
+
+            let mut current_index = outer_index.clone();
+            if keep_dim {
+                current_index.push(0);
+            }
+            current_index.append(&mut inner_index.clone());
+            ret.set(&current_index, max);
+            
+            let mut can_continue = false;
+            for i in 0..self.size().len()-dim-1 {
+                inner_index[dim - i - 1] += 1;
+                if inner_index[dim - i - 1] >= self.size()[self.size().len() - i -1] {
+                    inner_index[dim - i - 1] = 0;
+                } else {
+                    can_continue = true;
+                    break;
+                }
+            }
+            if can_continue {
+                continue;
+            }
+
+            for i in 0..dim {
+                outer_index[dim-i-1] += 1;
+                if outer_index[dim-i-1] >= self.size()[dim - i - 1] {
+                    outer_index[dim-i-1] = 0;
+                } else {
+                    break
+                }
+            }
+            
+            if inner_index == vec![0; self.size().len()-dim -1 ] && outer_index == vec![0; dim] {
+                break;
+            }
+        };
+        ret
     }
     pub fn max_pair(&self, o: &GenTensor<T>) -> GenTensor<T> {
         if self.size() != o.size() {
@@ -1248,7 +1321,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     pub fn min_along(&self, dim: usize, keep_dim: bool) -> GenTensor<T> {
-        unimplemented!()
+        self._max_along(dim, keep_dim, false)
     }
     pub fn min_pair(&self, o: &GenTensor<T>) -> GenTensor<T> {
         if self.size() != o.size() {
