@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use super::gen_tensor::*;
 use crate::op::PaddingMode;
-
+use super::index_slicing::IndexSlicing;
 
 
 pub trait Convolution {
