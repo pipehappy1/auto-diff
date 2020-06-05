@@ -190,6 +190,18 @@ impl TypedTensor {
         }
     }
 
+    pub fn gather(&self, dim: usize, index: &TypedTensor) -> TypedTensor {
+        match (self, index) {
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
+                TypedTensor::Typef32(v1.gather(dim, v2))
+            },
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
+                TypedTensor::Typef64(v1.gather(dim, v2))
+            },
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
+
     pub fn reshape(&self, new_shape: &[usize]) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {

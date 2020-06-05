@@ -250,7 +250,11 @@ impl Tensor {
         }
     }
     pub fn chunk() {}
-    pub fn gather() {}
+    pub fn gather(&self, dim: usize, index: &Tensor) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().gather(dim, &index.v.borrow()))),
+        }
+    }
     pub fn index_select() {}
     pub fn masked_select() {}
     pub fn narrow() {}

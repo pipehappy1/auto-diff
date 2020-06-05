@@ -6,7 +6,7 @@ pub trait IndexSlicing {
 
     fn cat(&self, tensors: &[&Self::TensorType], dim: usize) -> Self::TensorType;
     fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self::TensorType>;
-    fn gather(&self, dim: usize, index: Self::TensorType) -> Self::TensorType;
+    fn gather(&self, dim: usize, index: &Self::TensorType) -> Self::TensorType;
     fn index_select(&self, );
     // fn masked_select();
     //pub fn narrow() {}
@@ -106,19 +106,64 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         unimplemented!();
     }
 
-    fn gather(&self, dim: usize, index: Self::TensorType) -> Self::TensorType {
+    fn gather(&self, dim: usize, index: &Self::TensorType) -> Self::TensorType {
         if self.size().len() != index.size().len() {
             panic!("gather need two input has the same number of dim: {}, {}", self.size().len(), index.size().len());
         }
         
-        let mut data: Vec<T> = Vec::with_capacity(self.numel());
-        let ret_dim = index.size();
+        let mut ret = index.clone();
 
-        for i in 0..self.numel() {
+        //let total_task: usize = index.size().iter().filter(|x| **x != dim).product();
+        let mut outer_index = vec![0; dim];
+        let mut inner_index = vec![0; index.size().len()-dim -1 ];
+
+        loop {
+            println!("outer_index, {:?}, inner_index: {:?}", outer_index, inner_index);
+
+            let mut outer_seg: Vec<(usize, usize)> = outer_index.iter().map(|x| (*x, x+1)).collect();
+            outer_seg.push((0, self.size()[dim]));
+            let mut inner_seg: Vec<(usize, usize)> = inner_index.iter().map(|x| (*x, x+1)).collect();
+            outer_seg.append(&mut inner_seg);
+            println!("outer_seg {:?}", outer_seg);
+            let current_scope = self.get_patch(&outer_seg, None);
+
+            for i in 0..index.size()[dim] {
+                let mut current_index = outer_index.to_vec();
+                current_index.push(i);
+                current_index.append(&mut inner_index.to_vec());
+
+                let gather_index = index.get(&current_index).to_usize().expect("");
+                ret.set(&current_index, current_scope.get_data()[gather_index]);
+            }
             
-        }
-        
-        GenTensor::new_raw(&data, &ret_dim)
+            let mut can_continue = false;
+            for i in 0..index.size().len()-dim-1 {
+                inner_index[dim - i - 1] += 1;
+                if inner_index[dim - i - 1] >= index.size()[index.size().len() - i -1] {
+                    inner_index[dim - i - 1] = 0;
+                } else {
+                    can_continue = true;
+                    break;
+                }
+            }
+            if can_continue {
+                continue;
+            }
+
+            for i in 0..dim {
+                outer_index[dim-i-1] += 1;
+                if outer_index[dim-i-1] >= index.size()[dim - i - 1] {
+                    outer_index[dim-i-1] = 0;
+                } else {
+                    break
+                }
+            }
+            
+            if inner_index == vec![0; index.size().len()-dim -1 ] && outer_index == vec![0; dim] {
+                break;
+            }
+        };
+        ret
     }
     fn index_select(&self, ) {unimplemented!();}
 
@@ -325,6 +370,15 @@ mod tests {
                                                1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 
                                                1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 
                                                1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0], &vec![5, 9, 3, 2]));
+    }
+
+    #[test]
+    fn gather() {
+        let a = GenTensor::new_raw(&[1., 2., 3., 4.,], &[2, 2]);
+        let g = GenTensor::new_raw(&[0., 0., 1., 0.,], &[2, 2]);
+        let r = a.gather(1, &g);
+        println!("{:?}", r);
+        assert_eq!(r, GenTensor::new_raw(&[1., 1., 4., 3.,], &[2, 2]));
     }
 
     #[test]
