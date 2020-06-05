@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 use super::gen_tensor::*;
 use crate::op::PaddingMode;
-use super::index_slicing::IndexSlicing;
 
 
 pub trait Convolution {
@@ -482,6 +481,7 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
 #[cfg(test)]
 mod tests {
     use crate::tensor::gen_tensor::GenTensor;
+    use crate::tensor::index_slicing::IndexSlicing;
     use super::*;
 
         #[test]
