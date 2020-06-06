@@ -220,3 +220,19 @@ impl OpTrait for BCEWithLogitsLoss {
 // CosineEmbeddingLoss
 // MultiMarginLoss
 // TripletMarginLoss
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_CrossEntropyLoss() {
+        let a = Tensor::from_vec_f32(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
+        let b = Tensor::from_vec_f32(&vec![0., 0., 1., ], &vec![3]);
+        let mut c = CrossEntropyLoss::new();
+        let d = Tensor::new();
+        c.apply(&[&a, &b], &[&d]);
+        assert_eq!(d.get_scale_f32(), 0.97992826);
+    }
+}

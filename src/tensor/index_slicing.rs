@@ -364,6 +364,9 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
             }
             new_dim.push(self.size()[i]);
         }
+        if dim == self.size().len() {
+            new_dim.push(1);
+        }
         GenTensor::new_raw(&self.get_data(), &new_dim)
     }
 }
