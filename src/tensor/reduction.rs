@@ -6,12 +6,12 @@ pub trait ReduceTensor {
     fn argmax();
     fn argmin();
     fn dist();
-    fn logsumexp(&self, dim: usize, keepdim: bool) -> Self::TensorType;
+    fn logsumexp(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType;
     fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
     fn median();
     fn mode();
     fn norm();
-    fn prod();
+    fn prod(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
     fn std(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
     fn std_mean();
     //fn sum(&self, dim: usize, keepdim: bool) -> Self::TensorType;
@@ -29,8 +29,23 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     fn argmax() {unimplemented!();}
     fn argmin() {unimplemented!();}
     fn dist() {unimplemented!();}
-    fn logsumexp(&self, dim: usize, keepdim: bool) -> Self::TensorType {
-        GenTensor::new()
+    fn logsumexp(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType {
+        self._iter_patch(dim, keep_dim,
+                         |x| {
+                             let mut max = x[0];
+                             for i in x {
+                                 if max < *i {
+                                     max = *i;
+                                 }
+                             }
+
+                             let mut sum = T::zero();
+                             for i in x {
+                                 sum = sum + (*i - max).exp();
+                             }
+                             max + sum.ln()
+                         }
+        )
     }
     /// Returns the mean value of the tensor along dim row.
     fn mean(&self, dim: Option<&[usize]>, keep_dim: bool) -> GenTensor<T> {
@@ -48,7 +63,17 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     fn median(){unimplemented!();}
     fn mode() {unimplemented!();}
     fn norm() {unimplemented!();}
-    fn prod() {unimplemented!();}
+    fn prod(&self, dim: Option<&[usize]>, keep_dim: bool) -> GenTensor<T> {
+        self._iter_patch(dim, keep_dim,
+                         |x| {
+                             let mut p = T::one();
+                             for i in x {
+                                 p = p * (*i);
+                             }
+                             p
+                         }
+        )
+    }
     fn std(&self, dim: Option<&[usize]>, keep_dim: bool) -> GenTensor<T> {
         self._iter_patch(dim, keep_dim,
                          |x| {
@@ -77,7 +102,6 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     fn sum(&self, dim: Option<&[usize]>, keep_dim: bool) -> GenTensor<T> {
         self._iter_patch(dim, keep_dim,
                          |x| {
-                             let n = x.len();
                              let mut sum = T::zero();
                              for i in x {
                                  sum = sum + *i;
@@ -114,6 +138,13 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
 mod tests {
     use crate::tensor::gen_tensor::GenTensor;
     use super::*;
+
+    #[test]
+    fn logsumexp() {
+        let a = GenTensor::<f32>::new_raw(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
+        let b = a.logsumexp(Some(&[1]), false);
+        assert_eq!(b, GenTensor::<f32>::new_raw(&vec![2.3132617, 4.3132615, 6.3132615], &vec![3]));
+    }
 
     #[test]
     fn mean() {
