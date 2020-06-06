@@ -6,19 +6,19 @@ pub trait ReduceTensor {
     fn argmax();
     fn argmin();
     fn dist();
-    fn logsumexp();
-    fn mean(&self, dim: usize, keepdim: bool) -> Self::TensorType;
+    fn logsumexp(&self, dim: usize, keepdim: bool) -> Self::TensorType;
+    fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
     fn median();
     fn mode();
     fn norm();
     fn prod();
-    fn std(&self, dim: usize, keepdim: bool) -> Self::TensorType;
+    fn std(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
     fn std_mean();
     //fn sum(&self, dim: usize, keepdim: bool) -> Self::TensorType;
-    fn sum(&self, dim: Option<usize>, keepdim: Option<bool>) -> Self::TensorType;
+    fn sum(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
     fn unique();
     fn unique_consecutive();
-    fn var(&self, dim: usize, keepdim: bool) -> Self::TensorType;
+    fn var(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
     fn var_mean();
 
 }
@@ -29,40 +29,41 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     fn argmax() {unimplemented!();}
     fn argmin() {unimplemented!();}
     fn dist() {unimplemented!();}
-    fn logsumexp(){unimplemented!();}
+    fn logsumexp(&self, dim: usize, keepdim: bool) -> Self::TensorType {
+        GenTensor::new()
+    }
     /// Returns the mean value of the tensor along dim row.
-    fn mean(&self, dim: usize, keepdim: bool) -> GenTensor<T> {
-        self._dim_statistic(dim, keepdim,
-                            |over, k, j, inner_size, step| {
-                                let mut sum = T::zero();
-                                for i in 0..over {
-                                    let index = k*inner_size*over + j +i*step;
-                                    //println!("mean: {}", index);
-                                    sum = sum + self.get_data()[index];
-                                }
-                                sum = sum / T::from(over).expect("N");
-                                sum
-                            })
+    fn mean(&self, dim: Option<&[usize]>, keep_dim: bool) -> GenTensor<T> {
+        self._iter_patch(dim, keep_dim,
+                         |x| {
+                             let n = x.len();
+                             let mut sum = T::zero();
+                             for i in x {
+                                 sum = sum + *i;
+                             }
+                             sum / T::from(n).expect("")
+                         }
+        )
     }
     fn median(){unimplemented!();}
     fn mode() {unimplemented!();}
     fn norm() {unimplemented!();}
     fn prod() {unimplemented!();}
-    fn std(&self, dim: usize, keepdim: bool) -> GenTensor<T> {
-        self._dim_statistic(dim, keepdim,
-                            |over, k, j, inner_size, step| {
-                                let mut sum = T::zero();
-                                let mut sum2 = T::zero();
-                                for i in 0..over {
-                                    let index = k*inner_size*over + j +i*step;
-                                    //println!("mean: {}", index);
-                                    sum = sum + self.get_data()[index];
-                                    sum2 = sum2 + self.get_data()[index]*self.get_data()[index];
-                                }
-                                sum = sum / T::from(over).expect("N");
-                                sum2 = sum2 / T::from(over).expect("N");
-                                (sum2 - sum*sum).sqrt()
-                            })
+    fn std(&self, dim: Option<&[usize]>, keep_dim: bool) -> GenTensor<T> {
+        self._iter_patch(dim, keep_dim,
+                         |x| {
+                             let n = x.len();
+                             let mut sum = T::zero();
+                             let mut sum2 = T::zero();
+                             for i in x {
+                                 sum = sum + *i;
+                                 sum2 = sum2 + *i*(*i);
+                             }
+                             let sum2 = sum2 / T::from(n).expect("");
+                             let sum = sum / T::from(n).expect("");
+                             (sum2 - sum*sum).sqrt()
+                         }
+        )
     }
     fn std_mean() {unimplemented!();}
     //fn sum(&self, dim: usize, keepdim: bool) -> Self::TensorType {}
@@ -71,46 +72,37 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     /// # use auto_diff::tensor::gen_tensor::*;
     /// # use crate::auto_diff::tensor::reduction::ReduceTensor;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
-    /// assert_eq!(m1.sum(None, None).get_scale(), 10.);
+    /// assert_eq!(m1.sum(None, false).get_scale(), 10.);
     /// ```
-    fn sum(&self, dim: Option<usize>, keepdim: Option<bool>) -> GenTensor<T> {
-        if dim.is_none() && keepdim.is_none() {
-            let mut sum = T::zero();
-            for i in self.get_data() {
-                sum = sum + *i;
-            }
-            GenTensor::new_raw(&vec![sum], &vec![1])            
-        } else {
-            self._dim_statistic(dim.expect("dim"), keepdim.expect("keepdim"),
-                            |over, k, offset, inner_size, step| {
-                                let mut sum = T::zero();
-                                for i in 0..over {
-                                    let index = k*inner_size*over + offset +i*step;
-                                    //println!("mean: {}", index);
-                                    sum = sum + self.get_data()[index];
-                                }
-                                sum
-                            })
-        }
-
+    fn sum(&self, dim: Option<&[usize]>, keep_dim: bool) -> GenTensor<T> {
+        self._iter_patch(dim, keep_dim,
+                         |x| {
+                             let n = x.len();
+                             let mut sum = T::zero();
+                             for i in x {
+                                 sum = sum + *i;
+                             }
+                             sum
+                         }
+        )
     }
     fn unique(){unimplemented!();}
     fn unique_consecutive() {unimplemented!();}
-    fn var(&self, dim: usize, keepdim: bool) -> GenTensor<T> {
-        self._dim_statistic(dim, keepdim,
-                            |over, k, j, inner_size, step| {
-                                let mut sum = T::zero();
-                                let mut sum2 = T::zero();
-                                for i in 0..over {
-                                    let index = k*inner_size*over + j +i*step;
-                                    //println!("mean: {}", index);
-                                    sum = sum + self.get_data()[index];
-                                    sum2 = sum2 + self.get_data()[index]*self.get_data()[index];
-                                }
-                                sum = sum / T::from(over).expect("N");
-                                sum2 = sum2 / T::from(over).expect("N");
-                                sum2 - sum*sum
-                            })
+    fn var(&self, dim: Option<&[usize]>, keep_dim: bool) -> GenTensor<T> {
+        self._iter_patch(dim, keep_dim,
+                         |x| {
+                             let n = x.len();
+                             let mut sum = T::zero();
+                             let mut sum2 = T::zero();
+                             for i in x {
+                                 sum = sum + *i;
+                                 sum2 = sum2 + *i*(*i);
+                             }
+                             let sum2 = sum2 / T::from(n).expect("");
+                             let sum = sum / T::from(n).expect("");
+                             sum2 - sum*sum
+                         }
+        )
     }
 
     fn var_mean() {unimplemented!();}
@@ -126,11 +118,11 @@ mod tests {
     #[test]
     fn mean() {
         let a = GenTensor::<f32>::fill(1., &vec![3, 4, 3]);
-        let b = a.mean(1, false);
+        let b = a.mean(Some(&[1]), false);
         assert_eq!(*b.size(), vec![3, 3]);
         assert_eq!(b.numel(), 9);
         //println!("{}", b);
-        let c = a.mean(1, true);
+        let c = a.mean(Some(&[1]), true);
         assert_eq!(*c.size(), vec![3, 1, 3]);
         assert_eq!(c.numel(), 9);
         //println!("{}", c);
@@ -139,12 +131,12 @@ mod tests {
     #[test]
     fn var() {
         let a = GenTensor::<f32>::new_raw(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
-        let b = a.var(0, false);
+        let b = a.var(Some(&[0]), false);
         assert_eq!(*b.size(), vec![2]);
         assert_eq!(b.numel(), 2);
         assert_eq!(b, GenTensor::<f32>::new_raw(&vec![2.666667, 2.666666], &vec![2]));
         //println!("{}", b);
-        let c = a.var(1, true);
+        let c = a.var(Some(&[1]), true);
         assert_eq!(*c.size(), vec![3, 1]);
         assert_eq!(c.numel(), 3);
         assert_eq!(c, GenTensor::<f32>::new_raw(&vec![0.25, 0.25, 0.25], &vec![3, 1]));
@@ -154,12 +146,12 @@ mod tests {
     #[test]
     fn std() {
         let a = GenTensor::<f32>::new_raw(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
-        let b = a.std(0, false);
+        let b = a.std(Some(&[0]), false);
         assert_eq!(*b.size(), vec![2]);
         assert_eq!(b.numel(), 2);
         assert_eq!(b, GenTensor::<f32>::new_raw(&vec![1.6329932, 1.632993], &vec![2]));
         //println!("{}", b);
-        let c = a.std(1, true);
+        let c = a.std(Some(&[1]), true);
         assert_eq!(*c.size(), vec![3, 1]);
         assert_eq!(c.numel(), 3);
         assert_eq!(c, GenTensor::<f32>::new_raw(&vec![0.5, 0.5, 0.5], &vec![3, 1]));

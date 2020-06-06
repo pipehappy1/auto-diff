@@ -326,28 +326,28 @@ impl TypedTensor {
     typed_tensor_method!(outer);
 
     // reduction ops
-    pub fn mean(&self, dim: usize, keepdim: bool) -> TypedTensor {
+    pub fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.mean(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.mean(dim, keepdim))},
             //_ => {panic!("should have same tensor type!");},
         }
     }
-    pub fn std(&self, dim: usize, keepdim: bool) -> TypedTensor {
+    pub fn std(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.std(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.std(dim, keepdim))},
             //_ => {panic!("should have same tensor type!");},
         }
     }
-    pub fn var(&self, dim: usize, keepdim: bool) -> TypedTensor {
+    pub fn var(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.var(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.var(dim, keepdim))},
             //_ => {panic!("should have same tensor type!");},
         }
     }
-    pub fn sum(&self, dim: Option<usize>, keepdim: Option<bool>) -> TypedTensor {
+    pub fn sum(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.sum(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.sum(dim, keepdim))},

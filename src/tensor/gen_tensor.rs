@@ -410,11 +410,73 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         ret
     }
 
+    pub fn _iter_patch<F>(&self, dim: Option<&[usize]>, keep_dim: bool, closure: F) -> GenTensor<T>
+    where F: Fn(&[T]) -> T {
+        if dim.is_none() {
+            let ret_dim;
+            if keep_dim {
+                ret_dim = vec![1; self.size().len()];
+            } else {
+                ret_dim = vec![1];
+            }
+            return GenTensor::new_raw(&vec![closure(self.get_data())], &ret_dim)
+        }
 
-    
+        let dim = dim.unwrap();
+        
+        let mut ret_dim = Vec::new();
+        for i in 0..self.size().len() {
+            if dim.contains(&i) {
+                if keep_dim {
+                    ret_dim.push(1);
+                }
+            } else {
+                ret_dim.push(self.size()[i]);
+            }
+        }
+        let mut ret = Self::empty(&ret_dim);
+
+        let kept_dim: Vec<usize> = (0..self.size().len()).filter(|x| !dim.contains(&x)).collect();
+        let mut index = vec![0; kept_dim.len()];
+        loop {
+            let mut patch_index = Vec::new();
+            let mut output_index = Vec::new();
+            let mut kept_dim_step = 0;
+            for i in 0..self.size().len() {
+                if dim.contains(&i) {
+                    patch_index.push((0, self.size()[i]));
+                    if keep_dim {
+                        output_index.push(0);
+                    }
+                } else {
+                    patch_index.push((index[kept_dim_step], index[kept_dim_step]+1));
+                    output_index.push(index[kept_dim_step]);
+                    kept_dim_step += 1;
+                }
+            }
+            //println!("index: {:?}, patch_index: {:?}, output_index: {:?}", index, patch_index, output_index);
+
+            let value = closure(self.get_patch(&patch_index, None).get_data());
+            ret.set(&output_index, value);
+            
+            for i in 0..index.len() {
+                index[kept_dim.len() -i -1] += 1;
+                if index[kept_dim.len() -i -1] >= self.size()[kept_dim[kept_dim.len() -i -1]] {
+                    index[kept_dim.len() -i -1] = 0;
+                } else {
+                    break
+                }
+            }
+
+            if index == vec![0; kept_dim.len()] {
+                break
+            }
+        }
+        
+        ret
+    }
 
     pub fn _dim_statistic<F>(&self, dim: usize, keepdim: bool, closure: F) -> GenTensor<T>
-
     where F: Fn(usize, usize, usize, usize, usize) -> T {
         if self.dim.len() <= dim {
             panic!("Tensor has dimension {:?}, mean() get dim of {}", self.dim, dim);

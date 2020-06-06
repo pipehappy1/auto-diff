@@ -141,7 +141,7 @@ impl OpTrait for Conv2d {
         input_grad[0].swap(d_grad);
 
         if self.bias_option {
-            self.bias_grad.swap(output_grad[0].mean(0, false));
+            self.bias_grad.swap(output_grad[0].mean(Some(&[0]), false));
         }
     }
 

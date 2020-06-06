@@ -111,7 +111,7 @@ fn main() {
 
         let predict = Tensor::empty(&test_label.size());
         linear.apply(&vec![test_data], &vec![&predict]);
-        let tsum = predict.sigmoid().sub(&test_label).sum(None, None);
+        let tsum = predict.sigmoid().sub(&test_label).sum(None, false);
         println!("{}, loss: {}, accuracy: {}", i, loss.get().get_scale_f32(), 1.-tsum.get_scale_f32()/(test_size as f32));
 
     }

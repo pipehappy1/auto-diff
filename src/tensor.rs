@@ -365,7 +365,7 @@ impl Tensor {
     //tensor_method_single_tensor_return!(argmin);
     //tensor_method_single_tensor_return!(dist);
     //tensor_method_single_tensor_return!(logsumexp);
-    pub fn mean(&self, dim: usize, keepdim: bool) -> Tensor {
+    pub fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().mean(dim, keepdim))),
         }
@@ -375,20 +375,20 @@ impl Tensor {
     //tensor_method_single_tensor_return!(mode);
     //tensor_method_single_tensor_return!(norm);
     //tensor_method_single_tensor_return!(prod);
-    pub fn std(&self, dim: usize, keepdim: bool) -> Tensor {
+    pub fn std(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().std(dim, keepdim))),
         }
     }
     //tensor_method_single_tensor_return!(std_mean);
-    pub fn sum(&self, dim: Option<usize>, keepdim: Option<bool>) -> Tensor {
+    pub fn sum(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().sum(dim, keepdim))),
         }
     }
     //tensor_method_single_tensor_return!(unique);
     //tensor_method_single_tensor_return!(unique_consecutive);
-    pub fn var(&self, dim: usize, keepdim: bool) -> Tensor {
+    pub fn var(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().var(dim, keepdim))),
         }
@@ -407,11 +407,11 @@ impl Tensor {
             panic!("input std has a different size. {}, {}", width, std.len());
         }
         
-        let data_mean = self.mean(0, false);
+        let data_mean = self.mean(Some(&[0]), false);
         let tmp1 = self.sub(&data_mean).add(&Tensor::from_vec_f32(mean, &vec![width]));
         //let tmp1 = Tensor::from_vec_f32(mean, &vec![width]).sub(&data_mean).add(self);
 
-        let data_std = tmp1.std(0, false);
+        let data_std = tmp1.std(Some(&[0]), false);
         //println!("data_std: {:?}, tmp1: {:?}", data_std, tmp1);
         let tmp2 = tmp1.div(&data_std);
         tmp2
