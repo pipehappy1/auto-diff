@@ -115,6 +115,7 @@ impl OpTrait for CrossEntropyLoss {
 
         let class_score = score.gather(0, &class_index);
 
+        
     }
     
     /// Given the forward input value and backward output_grad,

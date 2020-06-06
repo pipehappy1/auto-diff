@@ -411,24 +411,10 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
 
 
-    /// Returns the sum of all elements.
-    /// ```
-    /// # use auto_diff::tensor::gen_tensor::*;
-    /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
-    /// assert_eq!(m1.sum().get_scale(), 10.);
-    /// ```
-    pub fn sum(&self) -> GenTensor<T> {
-        let mut sum = T::zero();
-        for i in &self.d {
-            sum = sum + *i;
-        }
-        GenTensor {
-            d: vec![sum],
-            dim: vec![1],
-        }
-    }
+    
 
     pub fn _dim_statistic<F>(&self, dim: usize, keepdim: bool, closure: F) -> GenTensor<T>
+
     where F: Fn(usize, usize, usize, usize, usize) -> T {
         if self.dim.len() <= dim {
             panic!("Tensor has dimension {:?}, mean() get dim of {}", self.dim, dim);
@@ -481,54 +467,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
-    pub fn var(&self, dim: usize, keepdim: bool) -> GenTensor<T> {
-        self._dim_statistic(dim, keepdim,
-                            |over, k, j, inner_size, step| {
-                                let mut sum = T::zero();
-                                let mut sum2 = T::zero();
-                                for i in 0..over {
-                                    let index = k*inner_size*over + j +i*step;
-                                    //println!("mean: {}", index);
-                                    sum = sum + self.d[index];
-                                    sum2 = sum2 + self.d[index]*self.d[index];
-                                }
-                                sum = sum / T::from(over).expect("N");
-                                sum2 = sum2 / T::from(over).expect("N");
-                                sum2 - sum*sum
-                            })
-    }
-
-    pub fn std(&self, dim: usize, keepdim: bool) -> GenTensor<T> {
-        self._dim_statistic(dim, keepdim,
-                            |over, k, j, inner_size, step| {
-                                let mut sum = T::zero();
-                                let mut sum2 = T::zero();
-                                for i in 0..over {
-                                    let index = k*inner_size*over + j +i*step;
-                                    //println!("mean: {}", index);
-                                    sum = sum + self.d[index];
-                                    sum2 = sum2 + self.d[index]*self.d[index];
-                                }
-                                sum = sum / T::from(over).expect("N");
-                                sum2 = sum2 / T::from(over).expect("N");
-                                (sum2 - sum*sum).sqrt()
-                            })
-    }
-
-    /// Returns the mean value of the tensor along dim row.
-    pub fn mean(&self, dim: usize, keepdim: bool) -> GenTensor<T> {
-        self._dim_statistic(dim, keepdim,
-                            |over, k, j, inner_size, step| {
-                                let mut sum = T::zero();
-                                for i in 0..over {
-                                    let index = k*inner_size*over + j +i*step;
-                                    //println!("mean: {}", index);
-                                    sum = sum + self.d[index];
-                                }
-                                sum = sum / T::from(over).expect("N");
-                                sum
-                            })
-    }
+    // reduction ops
 
 
     // Pointwise Ops
@@ -1491,49 +1430,6 @@ mod tests {
             );
             assert!(result.is_err());
         }
-    }
-
-    #[test]
-    fn mean() {
-        let a = GenTensor::<f32>::fill(1., &vec![3, 4, 3]);
-        let b = a.mean(1, false);
-        assert_eq!(*b.size(), vec![3, 3]);
-        assert_eq!(b.numel(), 9);
-        //println!("{}", b);
-        let c = a.mean(1, true);
-        assert_eq!(*c.size(), vec![3, 1, 3]);
-        assert_eq!(c.numel(), 9);
-        //println!("{}", c);
-    }
-
-    #[test]
-    fn var() {
-        let a = GenTensor::<f32>::new_raw(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
-        let b = a.var(0, false);
-        assert_eq!(*b.size(), vec![2]);
-        assert_eq!(b.numel(), 2);
-        assert_eq!(b, GenTensor::<f32>::new_raw(&vec![2.666667, 2.666666], &vec![2]));
-        //println!("{}", b);
-        let c = a.var(1, true);
-        assert_eq!(*c.size(), vec![3, 1]);
-        assert_eq!(c.numel(), 3);
-        assert_eq!(c, GenTensor::<f32>::new_raw(&vec![0.25, 0.25, 0.25], &vec![3, 1]));
-        //println!("{}", c);
-    }
-
-    #[test]
-    fn std() {
-        let a = GenTensor::<f32>::new_raw(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
-        let b = a.std(0, false);
-        assert_eq!(*b.size(), vec![2]);
-        assert_eq!(b.numel(), 2);
-        assert_eq!(b, GenTensor::<f32>::new_raw(&vec![1.6329932, 1.632993], &vec![2]));
-        //println!("{}", b);
-        let c = a.std(1, true);
-        assert_eq!(*c.size(), vec![3, 1]);
-        assert_eq!(c.numel(), 3);
-        assert_eq!(c, GenTensor::<f32>::new_raw(&vec![0.5, 0.5, 0.5], &vec![3, 1]));
-        //println!("{}", c);
     }
 
     #[test]

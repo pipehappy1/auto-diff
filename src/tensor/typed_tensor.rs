@@ -7,6 +7,7 @@ use crate::op::PaddingMode;
 use super::compare_tensor::CompareTensor;
 use super::index_slicing::IndexSlicing;
 use super::convolution::Convolution;
+use super::reduction::ReduceTensor;
 
 pub enum TypedTensor {
     Typef32(GenTensor<f32>),

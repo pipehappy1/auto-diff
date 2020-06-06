@@ -16,6 +16,7 @@ pub mod typed_tensor;
 pub mod compare_tensor;
 pub mod index_slicing;
 pub mod convolution;
+pub mod reduction;
 
 use typed_tensor::TypedTensor;
 use gen_tensor::GenTensor;
