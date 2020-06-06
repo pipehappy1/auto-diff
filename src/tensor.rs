@@ -364,7 +364,11 @@ impl Tensor {
     //tensor_method_single_tensor_return!(argmax);
     //tensor_method_single_tensor_return!(argmin);
     //tensor_method_single_tensor_return!(dist);
-    //tensor_method_single_tensor_return!(logsumexp);
+    pub fn logsumexp(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().logsumexp(dim, keepdim))),
+        }
+    }
     pub fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().mean(dim, keepdim))),

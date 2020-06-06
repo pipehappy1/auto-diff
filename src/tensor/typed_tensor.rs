@@ -326,6 +326,13 @@ impl TypedTensor {
     typed_tensor_method!(outer);
 
     // reduction ops
+    pub fn logsumexp(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.logsumexp(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.logsumexp(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
     pub fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.mean(dim, keepdim))},
