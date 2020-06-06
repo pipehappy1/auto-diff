@@ -125,7 +125,7 @@ fn main() {
         input.set(test_data.clone());
         label.set(test_label.clone());
         m.forward();
-        let tsum = output.get().sigmoid().sub(&test_label).sum();
+        let tsum = output.get().sigmoid().sub(&test_label).sum(None, None);
         let loss_value = loss.get().get_scale_f32();
         let accuracy = 1.-tsum.get_scale_f32()/(test_size as f32);
         println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);

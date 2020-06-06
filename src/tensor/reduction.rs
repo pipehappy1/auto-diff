@@ -15,7 +15,7 @@ pub trait ReduceTensor {
     fn std(&self, dim: usize, keepdim: bool) -> Self::TensorType;
     fn std_mean();
     //fn sum(&self, dim: usize, keepdim: bool) -> Self::TensorType;
-    fn sum(&self) -> Self::TensorType;
+    fn sum(&self, dim: Option<usize>, keepdim: Option<bool>) -> Self::TensorType;
     fn unique();
     fn unique_consecutive();
     fn var(&self, dim: usize, keepdim: bool) -> Self::TensorType;
@@ -71,14 +71,28 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     /// # use auto_diff::tensor::gen_tensor::*;
     /// # use crate::auto_diff::tensor::reduction::ReduceTensor;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
-    /// assert_eq!(m1.sum().get_scale(), 10.);
+    /// assert_eq!(m1.sum(None, None).get_scale(), 10.);
     /// ```
-    fn sum(&self) -> GenTensor<T> {
-        let mut sum = T::zero();
-        for i in self.get_data() {
-            sum = sum + *i;
+    fn sum(&self, dim: Option<usize>, keepdim: Option<bool>) -> GenTensor<T> {
+        if dim.is_none() && keepdim.is_none() {
+            let mut sum = T::zero();
+            for i in self.get_data() {
+                sum = sum + *i;
+            }
+            GenTensor::new_raw(&vec![sum], &vec![1])            
+        } else {
+            self._dim_statistic(dim.expect("dim"), keepdim.expect("keepdim"),
+                            |over, k, offset, inner_size, step| {
+                                let mut sum = T::zero();
+                                for i in 0..over {
+                                    let index = k*inner_size*over + offset +i*step;
+                                    //println!("mean: {}", index);
+                                    sum = sum + self.get_data()[index];
+                                }
+                                sum
+                            })
         }
-        GenTensor::new_raw(&vec![sum], &vec![1])
+
     }
     fn unique(){unimplemented!();}
     fn unique_consecutive() {unimplemented!();}

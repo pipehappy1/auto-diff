@@ -381,7 +381,11 @@ impl Tensor {
         }
     }
     //tensor_method_single_tensor_return!(std_mean);
-    tensor_method_single_tensor_return!(sum);
+    pub fn sum(&self, dim: Option<usize>, keepdim: Option<bool>) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().sum(dim, keepdim))),
+        }
+    }
     //tensor_method_single_tensor_return!(unique);
     //tensor_method_single_tensor_return!(unique_consecutive);
     pub fn var(&self, dim: usize, keepdim: bool) -> Tensor {

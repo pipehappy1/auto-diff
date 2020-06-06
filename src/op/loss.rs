@@ -37,7 +37,7 @@ impl OpTrait for MSELoss {
         // TODO: wait for Tensor to have lazy evaluation for elemwise operation.
         let tmp = input[0].sub(input[1]);
         let tmp2 = tmp.mul(&tmp);
-        let tmp3 = tmp2.sum();
+        let tmp3 = tmp2.sum(None, None);
         let ret = tmp3.div(&input[0].get_n().mul(&input[0].get_c()));
         output[0].swap(ret);
     }
@@ -179,7 +179,7 @@ impl OpTrait for BCEWithLogitsLoss {
         }
         let ret_all = input[1].mul(&input[0].neg().log1pexp())
             .add(&(input[1].neg().add(&input[1].ones_like())).mul(&input[0].log1pexp()));
-        let tmp3 = ret_all.sum();
+        let tmp3 = ret_all.sum(None, None);
         let ret = tmp3.div(&input[0].get_n().mul(&input[0].get_c()));
         output[0].swap(ret);
     }

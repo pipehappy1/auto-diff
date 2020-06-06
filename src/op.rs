@@ -131,7 +131,7 @@ pub fn _gradient_checker(x: &[&Tensor], op: &mut dyn OpTrait, step: f32, toleran
         let numeric_grad = new_output[0].sub(&output[0])
             .div(&Tensor::fill(&new_output[0].size(), step));
 
-        if input_grad_ref[index].sub(&numeric_grad).sum().get_scale_f32() > tolerance {
+        if input_grad_ref[index].sub(&numeric_grad).sum(None, None).get_scale_f32() > tolerance {
             good_derivative = false;
         }
     }

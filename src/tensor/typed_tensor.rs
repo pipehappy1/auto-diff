@@ -347,7 +347,14 @@ impl TypedTensor {
             //_ => {panic!("should have same tensor type!");},
         }
     }
-    typed_tensor_method_single_tensor_return!(sum);
+    pub fn sum(&self, dim: Option<usize>, keepdim: Option<bool>) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.sum(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.sum(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    
 
     
     // Comparison Ops
