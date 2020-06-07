@@ -35,7 +35,7 @@ impl OpTrait for ELU {
     /// Update weight gradient.
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        let positive = input[0].gt(&input[0].zeros_like());
+        let positive = input[0].ge(&input[0].zeros_like());
         let negative = input[0].lt(&input[0].zeros_like()).mul(&Tensor::fill(&input[0].size(), self.alpha)).mul(&input[0].exp());
         let g = positive.add(&negative);
         input_grad[0].swap(g.mul(output_grad[0]));
@@ -89,7 +89,7 @@ impl OpTrait for ReLU {
     /// Update weight gradient.
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        let ret = input[0].gt(&input[0].zeros_like());
+        let ret = input[0].ge(&input[0].zeros_like()); // gradient at 0 is 1. thus use right gradient.
         input_grad[0].swap(ret.mul(output_grad[0]));
     }
 

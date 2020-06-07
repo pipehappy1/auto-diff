@@ -90,6 +90,7 @@ impl Clone for Op {
     }
 }
 
+// check right gradient
 pub fn _gradient_checker(x: &[&Tensor], op: &mut dyn OpTrait, step: f32, tolerance: f32) -> bool {
 
     let mut epsilon = Vec::new();
@@ -134,7 +135,7 @@ pub fn _gradient_checker(x: &[&Tensor], op: &mut dyn OpTrait, step: f32, toleran
             .div(&Tensor::fill(&new_output[0].size(), step));
         println!("grad: {:?}, input_grad_ref[index]: {:?}", numeric_grad, input_grad_ref[index]);
 
-        if input_grad_ref[index].sub(&numeric_grad).sum(None, false).get_scale_f32() > tolerance {
+        if input_grad_ref[index].sub(&numeric_grad).sum(None, false).abs().get_scale_f32() > tolerance {
             good_derivative = false;
         }
     }
