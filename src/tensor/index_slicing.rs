@@ -24,6 +24,8 @@ pub trait IndexSlicing {
     fn unsqueeze(&self, dim: usize) -> Self::TensorType;
     //pub fn condition() {} // this is pytorch where
     fn conditional_select(&self, x: &Self::TensorType, y: &Self::TensorType) -> Self::TensorType;
+
+    fn repeat(&self, sizes: &[usize]) -> Self::TensorType;
 }
 
 impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
@@ -385,6 +387,27 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         }
         GenTensor::new_raw(&data, self.size())
     }
+
+    fn repeat(&self, sizes: &[usize]) -> Self::TensorType {
+        if self.size().len() != sizes.len() {
+            panic!("repeat needs the same number of dimensions. {:?}, {:?}", self.size().len(), sizes.len());
+        }
+
+        let mut ret_dim: Vec<usize> = Vec::with_capacity(self.size().len());
+        for (i, j) in self.size().iter().zip(sizes.iter()) {
+            ret_dim.push(i*j);
+        }
+        let mut ret = GenTensor::empty(&ret_dim);
+
+        for i in 0..ret_dim.iter().product() {
+            let index = ret.index2dimpos(i);
+            let value_index: Vec<usize> = index.iter().zip(self.size().iter()).map(|(x, y)| x % y).collect();
+            //println!("index: {:?}, value_index: {:?}", index, value_index);
+            ret.set(&index, self.get(&value_index));
+        }
+
+        ret
+    }
 }
 
 #[cfg(test)]
@@ -444,5 +467,13 @@ mod tests {
         let m2 = GenTensor::<f64>::new_raw(&vec![1., 2., 3., 4.,], &vec![2, 2]);
         let m22 = m2.permute(&vec![1, 0]);
         assert_eq!(m22.get_raw(), vec![1., 3., 2., 4.]);
+    }
+
+    #[test]
+    fn repeat() {
+        let a = GenTensor::new_raw(&[1., 2., 3.], &[1, 3]);
+        let b = a.repeat(&[4, 2]);
+        println!("{:?}", b);
+        assert_eq!(b, GenTensor::<f32>::new_raw(&[1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3. ], &[4, 6]));
     }
 }
