@@ -23,7 +23,7 @@ pub trait IndexSlicing {
     fn permute(&self, dims: &[usize]) -> Self::TensorType;
     fn unsqueeze(&self, dim: usize) -> Self::TensorType;
     //pub fn condition() {} // this is pytorch where
-    fn condition_select(&self, x: &Self::TensorType, y: &Self::TensorType) -> Self::TensorType;
+    fn conditional_select(&self, x: &Self::TensorType, y: &Self::TensorType) -> Self::TensorType;
 }
 
 impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
@@ -371,7 +371,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         GenTensor::new_raw(&self.get_data(), &new_dim)
     }
 
-    fn condition_select(&self, x: &Self::TensorType, y: &Self::TensorType) -> Self::TensorType {
+    fn conditional_select(&self, x: &Self::TensorType, y: &Self::TensorType) -> Self::TensorType {
         if self.size() != x.size() || self.size() != y.size() {
             panic!("condition_select expect the same size: {:?}, {:?}, {:?}", self.size(), x.size(), y.size());
         }

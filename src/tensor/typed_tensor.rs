@@ -258,7 +258,6 @@ impl TypedTensor {
             //_ => {panic!("should have same tensor type!");},
         }
     }
-
     pub fn unsqueeze(&self, dim: usize) -> TypedTensor {
         match self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.unsqueeze(dim))},
@@ -266,6 +265,18 @@ impl TypedTensor {
             //_ => {panic!("should have same tensor type!");},
         }
     }
+    pub fn conditional_select(&self, x: &TypedTensor, y: &TypedTensor) -> TypedTensor {
+        match (self, x, y) {
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2), TypedTensor::Typef32(v3)) => {
+                TypedTensor::Typef32(v1.conditional_select(v2, v3))
+            },
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2), TypedTensor::Typef64(v3)) => {
+                TypedTensor::Typef64(v1.conditional_select(v2, v3))
+            },
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
+    
     
     // Pointwise Ops
     typed_tensor_method_single_tensor_return!(abs);

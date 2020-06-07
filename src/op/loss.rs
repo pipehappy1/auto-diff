@@ -118,7 +118,14 @@ impl OpTrait for CrossEntropyLoss {
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
         let max = input[0].max(None, None, Some(false));
-        //input[0].sub(max);
+        let mut dim_order: Vec<usize> = (0..input[0].size().len()).collect();
+        dim_order[0] = 1;
+        dim_order[1] = 0;
+        let smaller = input[0].sub(&max).permute(&dim_order);
+        let new_label = input[1].permute(&dim_order);
+        
+        let denominator = smaller.exp().sum(Some(&[0]), true);
+        
     }
 
     /// access weight values

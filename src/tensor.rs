@@ -303,7 +303,12 @@ impl Tensor {
         }
     }
     
-    pub fn condition() {} // this is pytorch where
+    //pub fn condition() {} // this is pytorch where
+    pub fn conditional_select(&self, x: &Tensor, y: &Tensor) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().conditional_select(&x.v.borrow(), &y.v.borrow()))),
+        }
+    }
 
     
     pub fn to_f64(&mut self) {}
