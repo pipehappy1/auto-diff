@@ -21,6 +21,8 @@ pub trait ReduceTensor {
     fn var(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
     fn var_mean();
 
+    fn max(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
+    fn min(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
 }
 
 impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
@@ -131,7 +133,32 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
 
     fn var_mean() {unimplemented!();}
 
-
+    fn max(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType {
+        self._iter_patch(dim, keep_dim,
+                         |x| {
+                             let mut max = x[0];
+                             for i in x {
+                                 if max < *i {
+                                     max = *i;
+                                 }
+                             }
+                             max
+                         }
+        )
+    }
+    fn min(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType {
+        self._iter_patch(dim, keep_dim,
+                         |x| {
+                             let mut min = x[0];
+                             for i in x {
+                                 if min < *i {
+                                     min = *i;
+                                 }
+                             }
+                             min
+                         }
+        )
+    }
 }
 
 #[cfg(test)]

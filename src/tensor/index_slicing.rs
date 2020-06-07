@@ -219,7 +219,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         for i in 0..outer_size {
             let mut start = 0;
             for (j, index) in ret.iter_mut().zip(0..sections.len()) {
-                j.get_mut_data()[i*inner_size*sections[index]..(i+1)*inner_size*sections[index]].clone_from_slice(
+                j.get_data_mut()[i*inner_size*sections[index]..(i+1)*inner_size*sections[index]].clone_from_slice(
                     &self.get_data()[i*inner_size*total_dim[dim] + start..i*inner_size*total_dim[dim] + start + sections[index]*inner_size]);
                 start += sections[index]*inner_size;
             }

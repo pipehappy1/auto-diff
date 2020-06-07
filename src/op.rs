@@ -117,6 +117,7 @@ pub fn _gradient_checker(x: &[&Tensor], op: &mut dyn OpTrait, step: f32, toleran
     let mut good_derivative = true;
     let output = op.call(x);
     for index in 0..x.len() {
+        println!("{:?}", index);
         let mut new_input = Vec::new();
         for j in 0..x.len() {
             if j == index {
@@ -127,9 +128,11 @@ pub fn _gradient_checker(x: &[&Tensor], op: &mut dyn OpTrait, step: f32, toleran
             }
         }
         let new_output = op.call(&new_input);
+        println!("new_output {:?}, output {:?}", new_output, output);
         
         let numeric_grad = new_output[0].sub(&output[0])
             .div(&Tensor::fill(&new_output[0].size(), step));
+        println!("grad: {:?}, input_grad_ref[index]: {:?}", numeric_grad, input_grad_ref[index]);
 
         if input_grad_ref[index].sub(&numeric_grad).sum(None, false).get_scale_f32() > tolerance {
             good_derivative = false;

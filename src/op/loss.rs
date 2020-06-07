@@ -117,15 +117,42 @@ impl OpTrait for CrossEntropyLoss {
     /// Update weight gradient.
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        let max = input[0].max(None, None, Some(false));
+
+        // exchange sample size and class
         let mut dim_order: Vec<usize> = (0..input[0].size().len()).collect();
         dim_order[0] = 1;
         dim_order[1] = 0;
-        let smaller = input[0].sub(&max).permute(&dim_order);
-        let new_label = input[1].permute(&dim_order);
-        
-        let denominator = smaller.exp().sum(Some(&[0]), true);
-        
+
+        // - max and use CNddd format
+        let smaller = input[0].permute(&dim_order);
+        let max = smaller.max(Some(&[0]), false);
+        let smaller = smaller.sub(&max);
+        let new_label = input[1].unsqueeze(0);
+
+        // get sum(exp(x_i))
+        let mut class_dim = vec![1; smaller.size().len()];
+        class_dim[0] = smaller.size()[0];
+        let denominator = smaller.exp().sum(Some(&[0]), true).repeat(&class_dim);
+
+        // repeated class label for each class
+        let mut tmp_dim = vec![1; smaller.size().len()]; // Nddd
+        tmp_dim[0] = smaller.size()[0]; // CNddd
+        let repeated_label = new_label.repeat(&tmp_dim); // CNddd
+
+        // repeated class label for each sample
+        let class_seq: Vec<f32> = (0..smaller.size()[0]).map(|x| x as f32).collect();
+        let class_label = Tensor::from_vec_f32(&class_seq, &class_dim);
+        let mut repeat_dim = smaller.size();
+        repeat_dim[0] = 1;
+        let repeated_class = class_label.repeat(&repeat_dim);
+
+        let pick = repeated_label.eq_t(&repeated_class);
+        let smaller_exp = smaller.exp();
+        let numerator = pick.conditional_select(&smaller_exp.sub(&denominator), &smaller_exp);
+
+        let grad = numerator.div(&denominator);
+        let grad = grad.permute(&dim_order);
+        input_grad[0].swap(grad.mul(output_grad[0]));
     }
 
     /// access weight values
@@ -232,6 +259,7 @@ impl OpTrait for BCEWithLogitsLoss {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::op::_gradient_checker;
 
     #[test]
     fn test_CrossEntropyLoss() {
@@ -241,5 +269,8 @@ mod tests {
         let d = Tensor::new();
         c.apply(&[&a, &b], &[&d]);
         assert_eq!(d.get_scale_f32(), 0.97992826);
+
+        let good_grad = _gradient_checker(&[&a, &b], &mut c, 0.01, 0.01);
+        assert_eq!(good_grad, true);
     }
 }

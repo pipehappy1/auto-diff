@@ -25,8 +25,8 @@ impl OpTrait for ELU {
 
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        let positive = input[0].max(Some(&input[0].zeros_like()), None, None);
-        let negative = input[0].expm1().mul(&Tensor::fill(&input[0].size(), self.alpha)).min(Some(&input[0].zeros_like()), None, None);
+        let positive = input[0].max_pair(&input[0].zeros_like());
+        let negative = input[0].expm1().mul(&Tensor::fill(&input[0].size(), self.alpha)).min_pair(&input[0].zeros_like());
         let ret = positive.add(&negative);
         output[0].swap(ret);
     }
@@ -81,7 +81,7 @@ impl OpTrait for ReLU {
     }
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        let ret = input[0].max(Some(&input[0].zeros_like()), None, None);
+        let ret = input[0].max_pair(&input[0].zeros_like());
         output[0].swap(ret);
     }
     
@@ -198,7 +198,7 @@ impl OpTrait for Sine {
     /// Update weight gradient.
     /// return backward input gradeint.
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        let ret = input[0].cos().neg();
+        let ret = input[0].cos();
         input_grad[0].swap(ret.mul(output_grad[0]));
     }
 

@@ -276,6 +276,13 @@ impl TypedTensor {
             _ => {panic!("should have same tensor type!");},
         }
     }
+    pub fn repeat(&self, dim: &[usize]) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.repeat(dim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.repeat(dim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
     
     
     // Pointwise Ops
@@ -358,13 +365,6 @@ impl TypedTensor {
             //_ => {panic!("should have same tensor type!");},
         }
     }
-    pub fn var(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
-        match &self {
-            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.var(dim, keepdim))},
-            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.var(dim, keepdim))},
-            //_ => {panic!("should have same tensor type!");},
-        }
-    }
     pub fn sum(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.sum(dim, keepdim))},
@@ -372,64 +372,41 @@ impl TypedTensor {
             //_ => {panic!("should have same tensor type!");},
         }
     }
+    pub fn var(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.var(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.var(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    pub fn max(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.max(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.max(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    pub fn min(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.max(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.min(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+
     
 
     
     // Comparison Ops
     typed_tensor_method!(all_close);
     // arg_sort
+    typed_tensor_method!(eq_t);
     typed_tensor_method!(ge);
     typed_tensor_method!(gt);
     typed_tensor_method!(le);
     typed_tensor_method!(lt);
-    pub fn min(&self, o: Option<&TypedTensor>, dim: Option<usize>, keep_dim: Option<bool>) -> TypedTensor {
-        match self {
-            TypedTensor::Typef32(v1) => {
-                if o.is_some() {
-                    let other_tensor;
-                    match o.unwrap() {
-                        TypedTensor::Typef32(v2) => {other_tensor = v2;},
-                        _ => {panic!("min expect the same type.");},
-                    }
-                    TypedTensor::Typef32(v1.min(Some(other_tensor), dim, keep_dim))
-                } else {
-                    TypedTensor::Typef32(v1.min(None, dim, keep_dim))
-                }
-            },
-            //(TypedTensor::Typef64(v1)) => {
-            //    if o.is_some() {
-            //        
-            //    } else {
-            //        TypedTensor::Typef64(v1.min(None, dim, keep_dim))
-            //    }
-            //},
-            _ => {panic!("should have same tensor type!");},
-        }
-    }
-    pub fn max(&self, o: Option<&TypedTensor>, dim: Option<usize>, keep_dim: Option<bool>) -> TypedTensor {
-        match self {
-            TypedTensor::Typef32(v1) => {
-                if o.is_some() {
-                    let other_tensor;
-                    match o.unwrap() {
-                        TypedTensor::Typef32(v2) => {other_tensor = v2;},
-                        _ => {panic!("max expect the same type.");},
-                    }
-                    TypedTensor::Typef32(v1.max(Some(other_tensor), dim, keep_dim))
-                } else {
-                    TypedTensor::Typef32(v1.max(None, dim, keep_dim))
-                }
-            },
-            //(TypedTensor::Typef64(v1)) => {
-            //    if o.is_some() {
-            //        
-            //    } else {
-            //        TypedTensor::Typef64(v1.min(None, dim, keep_dim))
-            //    }
-            //},
-            _ => {panic!("should have same tensor type!");},
-        }
-    }
+    typed_tensor_method!(max_pair);
+    typed_tensor_method!(min_pair);
     typed_tensor_method!(ne);
 
     // conv ops

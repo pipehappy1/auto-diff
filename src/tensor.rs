@@ -309,6 +309,11 @@ impl Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().conditional_select(&x.v.borrow(), &y.v.borrow()))),
         }
     }
+    pub fn repeat(&self, dim: &[usize]) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().repeat(dim))),
+        }
+    }
 
     
     pub fn to_f64(&mut self) {}
@@ -403,6 +408,16 @@ impl Tensor {
         }
     }
     //tensor_method_single_tensor_return!(var_mean);
+    pub fn max(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().max(dim, keepdim))),
+        }
+    }
+    pub fn min(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().min(dim, keepdim))),
+        }
+    }
 
     pub fn normalize(&self, mean: &[f32], std: &[f32]) -> Tensor {
         if self.size().len() != 2 {
@@ -436,32 +451,13 @@ impl Tensor {
 
     // Comparison Ops
     tensor_method!(all_close);
+    tensor_method!(eq_t);
     tensor_method!(ge);
     tensor_method!(gt);
     tensor_method!(le);
     tensor_method!(lt);
-    pub fn min(&self, o: Option<&Tensor>, dim: Option<usize>, keep_dim: Option<bool>) -> Tensor {
-        if o.is_some() {
-            Tensor {
-                v: Rc::new(RefCell::new(self.v.borrow().min(Some(&o.unwrap().v.borrow()), dim, keep_dim))),
-            }
-        } else {
-            Tensor {
-                v: Rc::new(RefCell::new(self.v.borrow().min(None, dim, keep_dim))),
-            }
-        }
-    }
-    pub fn max(&self, o: Option<&Tensor>, dim: Option<usize>, keep_dim: Option<bool>) -> Tensor {
-        if o.is_some() {
-            Tensor {
-                v: Rc::new(RefCell::new(self.v.borrow().max(Some(&o.unwrap().v.borrow()), dim, keep_dim))),
-            }
-        } else {
-            Tensor {
-                v: Rc::new(RefCell::new(self.v.borrow().max(None, dim, keep_dim))),
-            }
-        }
-    }
+    tensor_method!(max_pair);
+    tensor_method!(min_pair);
     tensor_method!(ne);
 
     // conv ops
