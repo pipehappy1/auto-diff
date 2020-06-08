@@ -172,27 +172,28 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
 
 
 pub mod local;
-pub use local::Add as Add;
-pub use local::Sub as Sub;
-pub use local::Mul as Mul;
-pub use local::Div as Div;
+pub use local::Add;
+pub use local::Sub;
+pub use local::Mul;
+pub use local::Div;
 
 
 pub mod convolution;
-pub use convolution::PaddingMode as PaddingMode;
-pub use convolution::Conv2d as Conv2d;
+pub use convolution::PaddingMode;
+pub use convolution::Conv2d;
 
 
 pub mod linear;
-pub use linear::Linear as Linear;
+pub use linear::Linear;
 
 
 pub mod nonlinear;
-pub use nonlinear::Sigmoid as ELU;
-pub use nonlinear::Sigmoid as ReLU;
-pub use nonlinear::Sigmoid as Sigmoid;
+pub use nonlinear::ELU;
+pub use nonlinear::ReLU;
+pub use nonlinear::Sigmoid;
 
 
 pub mod loss;
-pub use loss::MSELoss as MSELoss;
-pub use loss::BCEWithLogitsLoss as BCEWithLogitsLoss;
+pub use loss::MSELoss;
+pub use loss::BCEWithLogitsLoss;
+pub use loss::CrossEntropyLoss;

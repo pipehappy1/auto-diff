@@ -1,10 +1,9 @@
 use auto_diff::tensor::Tensor;
 use auto_diff::rand::RNG;
 use auto_diff::op::{Linear, Op, Sigmoid};
-use auto_diff::var::{Module, bcewithlogitsloss};
+use auto_diff::var::{Module, crossentropyloss};
 use auto_diff::optim::{SGD, Optimizer};
-use csv;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use tensorboard_rs::summary_writer::SummaryWriter;
 
@@ -15,20 +14,20 @@ fn main() {
     
     let train_img = load_images("examples/data/mnist/train-images-idx3-ubyte");
     let test_img = load_images("examples/data/mnist/t10k-images-idx3-ubyte");
-    let train_label = load_images("examples/data/mnist/train-labels-idx1-ubyte");
-    let test_label = load_images("examples/data/mnist/t10k-labels-idx3-ubyte");
+    let train_label = load_labels("examples/data/mnist/train-labels-idx1-ubyte");
+    let test_label = load_labels("examples/data/mnist/t10k-labels-idx1-ubyte");
 
     let train_size = train_img.size();
     let n = train_size[0];
     let h = train_size[1];
     let w = train_size[2];
-    let train_img = train_img.reshape(&vec![n, h*w]);
+    let train_data = train_img.reshape(&vec![n, h*w]);
 
     let test_size = test_img.size();
-    let n = train_size[0];
-    let h = train_size[1];
-    let w = train_size[2];
-    let test_img = test_img.reshape(&vec![n, h*w]);
+    let n = test_size[0];
+    let h = test_size[1];
+    let w = test_size[2];
+    let test_data = test_img.reshape(&vec![n, h*w]);
 
 
     // build the model
@@ -57,7 +56,7 @@ fn main() {
         .to(&linear2);
     let label = m.var();
     
-    let loss = bcewithlogitsloss(&output, &label);
+    let loss = crossentropyloss(&output, &label);
     
     //println!("{}, {}", &train_data, &train_label);
     
@@ -67,16 +66,33 @@ fn main() {
     let mut writer = SummaryWriter::new(&("./logdir".to_string()));
     
     
-    //for i in 0..500 {
-    //    m.forward();
-    //    m.backward(-1.);
-    //
-    //    opt.step(&m);
-    //
-    //    let predict = Tensor::empty(&test_label.size());
-    //    linear.apply(&vec![test_data], &vec![&predict]);
-    //    let tsum = predict.sigmoid().sub(&test_label).sum();
-    //    println!("{}, loss: {}, accuracy: {}", i, loss.get().get_scale_f32(), 1.-tsum.get_scale_f32()/(test_size as f32));
-    //
-    //}
+    for i in 0..500 {
+        println!("index: {}", i);
+        input.set(train_data.clone());
+        label.set(train_label.clone());
+        
+        m.forward();
+        println!("forward done");
+        m.backward(-1.);
+        println!("backward done");
+        opt.step(&m);
+        println!("update done");
+        
+        input.set(test_data.clone());
+        label.set(test_label.clone());
+        m.forward();
+
+        let loss_value = loss.get().get_scale_f32();
+        
+        let tsum = output.get().max(Some(&[1]), false).sub(&test_label).abs().mean(None, false);
+        let accuracy = 1.-tsum.get_scale_f32();
+        println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
+        //println!("{}, loss: {}", i, loss.get().get_scale_f32());
+
+        let mut map = HashMap::new();
+        map.insert("test_loss".to_string(), loss_value);
+        map.insert("test_accuracy".to_string(), accuracy);
+        writer.add_scalars("run1", &map, i);
+        writer.flush();
+    }
 }
