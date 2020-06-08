@@ -231,43 +231,45 @@ mod tests {
     fn elu() {
         let mut op = ELU::new(1.);
 
-        let zero = Tensor::from_vec_f32(&vec![0., -1., 2., -4.,], &vec![2,2]);
-        let x = vec![&zero];
-        
-        let good_grad = _gradient_checker(&x, &mut op, 0.01, 0.01);
-        assert_eq!(good_grad, true);
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f32(&vec![(i - 5) as f32], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[&zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
+
+
     }
 
     #[test]
     fn relu() {
         let mut op = ReLU::new();
 
-        let zero = Tensor::from_vec_f32(&vec![0., -1., 2., -4.,], &vec![2,2]);
-        let x = vec![&zero];
-        
-        let good_grad = _gradient_checker(&x, &mut op, 0.01, 0.01);
-        assert_eq!(good_grad, true);
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f32(&vec![(i - 5) as f32], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[&zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
     }
 
     #[test]
     fn sigmoid() {
         let mut op = Sigmoid::new();
 
-        let zero = Tensor::from_vec_f32(&vec![0., 1., 2., 4.,], &vec![2,2]);
-        let x = vec![&zero];
-        
-        let good_grad = _gradient_checker(&x, &mut op, 0.01, 0.01);
-        assert_eq!(good_grad, true);
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f32(&vec![(i - 5) as f32], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[&zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
     }
 
     #[test]
     fn sine() {
         let mut op = Sine::new();
 
-        let zero = Tensor::from_vec_f32(&vec![0., -1., 2., -4.,], &vec![2,2]);
-        let x = vec![&zero];
-        
-        let good_grad = _gradient_checker(&x, &mut op, 0.01, 0.01);
-        assert_eq!(good_grad, true);
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f32(&vec![(i - 5) as f32], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[&zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
     }
 }

@@ -17,7 +17,7 @@ pub trait OpTrait {
         if input.len() < self.get_input_size() {
             panic!("{} expect {} input, get {}", self.get_name(), self.get_input_size(), input.len());
         }
-        let ret = vec![Tensor::new(); self.get_input_size()];
+        let ret = vec![Tensor::new(); self.get_output_size()];
         let mut ret_ref = Vec::new();
         for i in &ret {
             ret_ref.push(i);
@@ -91,56 +91,83 @@ impl Clone for Op {
 }
 
 // check right gradient
-pub fn _gradient_checker(x: &[&Tensor], op: &mut dyn OpTrait, step: f32, tolerance: f32) -> bool {
+pub fn _gradient_checker(op: &mut dyn OpTrait,
+                         one_input: &[&Tensor], input_mask: Option<&[bool]>,
+                         step: Option<f32>, tolerance: Option<f32>) -> bool {
 
-    let mut epsilon = Vec::new();
-    for i in x {
-        let delta = Tensor::fill(&i.size(), step);
-        let xp = i.add(&delta);
-        epsilon.push(xp);
+    let x_mask;
+    if input_mask.is_none() {
+        x_mask = vec![true; one_input.len()];
+    } else {
+        x_mask = input_mask.unwrap().to_vec();
     }
 
+    let delta;
+    if step.is_none() {
+        delta = 0.01;
+    } else {
+        delta = step.unwrap();
+    }
+
+    let tol;
+    if tolerance.is_none() {
+        tol = 0.01;
+    } else {
+        tol = tolerance.unwrap();
+    }
+
+    // system output
+    let output = op.call(one_input);
+    if output.len() > 1 || output[0].numel() > 1 {
+        panic!("gradient checker only handle scale output case. {:?}, {:?}", output.len(), output[0].size());
+    }
+    let output = output[0].get_scale_f32();
+
+    // get the system gradient
     let input_grad = vec![Tensor::new(); op.get_input_size()];
     let mut input_grad_ref = Vec::new();
     for i in &input_grad {
         input_grad_ref.push(i);
     }
-    let mut output_grad = Vec::new();
-    for i in 0..op.get_output_size() {
-        output_grad.push(Tensor::ones_like(x[i]));
-    }
-    let mut output_grad_ref = Vec::new();
-    for i in 0..op.get_output_size() {
-        output_grad_ref.push(&output_grad[i]);
-    }
-    op.grad(x, &output_grad_ref, &input_grad_ref);
-    
-    let mut good_derivative = true;
-    let output = op.call(x);
-    for index in 0..x.len() {
-        println!("{:?}", index);
-        let mut new_input = Vec::new();
-        for j in 0..x.len() {
-            if j == index {
-                new_input.push(&epsilon[index]);
-            }
-            else {
-                new_input.push(&x[j]);
-            }
-        }
-        let new_output = op.call(&new_input);
-        println!("new_output {:?}, output {:?}", new_output, output);
-        
-        let numeric_grad = new_output[0].sub(&output[0])
-            .div(&Tensor::fill(&new_output[0].size(), step));
-        println!("grad: {:?}, input_grad_ref[index]: {:?}", numeric_grad, input_grad_ref[index]);
+    let output_grad = Tensor::from_vec_f32(&[1.], &[1]);
+    op.grad(one_input, &[&output_grad], &input_grad_ref);
 
-        if input_grad_ref[index].sub(&numeric_grad).sum(None, false).abs().get_scale_f32() > tolerance {
-            good_derivative = false;
+    // get the numeric gradient
+    let mut numeric_gradient = Vec::new();
+    for v in one_input {
+        numeric_gradient.push(v.zeros_like())
+    }
+
+    let mut good_gradient = true;
+    for (index, v) in one_input.iter().enumerate() {
+        if !x_mask[index] {
+            continue;
+        }
+        
+        for i in 0..v.numel() {
+            let dimpos = v.index2dimpos(i);
+                
+            let base_value = v.get_f32(&dimpos);
+            let right_value = base_value + delta;
+            let mut right_tensor = (*v).clone();
+            right_tensor.set_f32(&dimpos, right_value);
+
+            let mut right_input = one_input.to_vec();
+            right_input[index] = &right_tensor;
+            let right_output = op.call(&right_input)[0].get_scale_f32();
+
+            let scale_gradient = (right_output - output)/delta;
+            numeric_gradient[index].set_f32(&dimpos, scale_gradient);
+
+            let system_gradient = input_grad[index].get_f32(&dimpos);
+
+            //println!("left: {:?}, right: {:?}", scale_gradient, system_gradient);
+            if (scale_gradient - system_gradient)*(scale_gradient - system_gradient) > tol {
+                good_gradient = false;
+            }
         }
     }
-    
-    good_derivative
+    good_gradient
 }
 
 

@@ -61,8 +61,16 @@ impl Tensor {
             v: Rc::new(RefCell::new(TypedTensor::new())),
         }
     }
+
+    pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {
+        self.v.borrow().index2dimpos(index)
+    }
+    pub fn dimpos2index(&self, dimpos: &[usize]) -> usize {
+        self.v.borrow().dimpos2index(dimpos)
+    }
+    
     pub fn is_empty() -> bool {
-        true
+        unimplemented!();
     }
 
     pub fn size(&self) -> Vec<usize> {

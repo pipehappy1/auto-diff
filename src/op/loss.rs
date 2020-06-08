@@ -150,7 +150,7 @@ impl OpTrait for CrossEntropyLoss {
         let smaller_exp = smaller.exp();
         let numerator = pick.conditional_select(&smaller_exp.sub(&denominator), &smaller_exp);
 
-        let grad = numerator.div(&denominator);
+        let grad = numerator.div(&denominator).div(&Tensor::from_vec_f32(&[input[1].numel() as f32], &[1]));
         let grad = grad.permute(&dim_order);
         input_grad[0].swap(grad.mul(output_grad[0]));
     }
@@ -270,7 +270,7 @@ mod tests {
         c.apply(&[&a, &b], &[&d]);
         assert_eq!(d.get_scale_f32(), 0.97992826);
 
-        let good_grad = _gradient_checker(&[&a, &b], &mut c, 0.01, 0.01);
+        let good_grad = _gradient_checker(&mut c, &[&a, &b], Some(&[true, false]), None, None);
         assert_eq!(good_grad, true);
     }
 }

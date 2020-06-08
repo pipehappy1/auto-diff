@@ -60,6 +60,21 @@ impl TypedTensor {
         TypedTensor::Typef32(GenTensor::new())
     }
 
+    pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {
+        match self {
+            TypedTensor::Typef32(v1) => {v1.index2dimpos(index)},
+            TypedTensor::Typef64(v1) => {v1.index2dimpos(index)},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    pub fn dimpos2index(&self, dimpos: &[usize]) -> usize {
+        match self {
+            TypedTensor::Typef32(v1) => {v1.dimpos2index(dimpos)},
+            TypedTensor::Typef64(v1) => {v1.dimpos2index(dimpos)},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+
     pub fn zeros(shape: &[usize]) -> TypedTensor {
         TypedTensor::Typef32(GenTensor::<f32>::zeros(shape))
     }
