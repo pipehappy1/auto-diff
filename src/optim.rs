@@ -4,11 +4,39 @@
 
 use super::tensor::Tensor;
 use super::var::Module;
+use crate::rand;
+
+pub struct MiniBatch {
+    rng: rand::RNG,
+    size: usize,
+}
+impl MiniBatch {
+    pub fn new(rng: rand::RNG, size: usize) -> MiniBatch {
+        MiniBatch {
+            rng: rng,
+            size: size,
+        }
+    }
+
+    pub fn next(&mut self, data: &Tensor, label: &Tensor) -> (Tensor, Tensor) {
+        let sample_size = data.size()[0];
+        let sample_size2 = label.size()[0];
+
+        if sample_size != sample_size2 {
+            panic!("minibatch needs data and label has the same N {}, {}",
+                   sample_size, sample_size2);
+        }
+        
+        let index = self.rng.gen_range_usize(0, sample_size, Some(self.size));
+        (Tensor::new(), Tensor::new())
+    }
+}
 
 pub trait Optimizer {
     fn step(&mut self, m: &Module);
 }
 
+// actually it's GD
 pub struct SGD {
     lr: Tensor,
 }

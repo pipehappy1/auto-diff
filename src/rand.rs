@@ -18,6 +18,25 @@ impl RNG {
     pub fn set_seed(&mut self, seed: u64) {
         self.rng = StdRng::seed_from_u64(seed);
     }
+
+    pub fn gen_range_usize(&mut self, left: usize, right: usize,
+                           vec_size: Option<usize>) -> Vec::<usize> {
+        let mut size = 1;
+        if vec_size.is_some() {
+            size = vec_size.unwrap();
+        }
+        let mut ret = Vec::new();
+
+        let mut index = 0;
+        loop {
+            ret.push(self.rng.gen_range(left, right));
+            index += 1;
+            if index >= size {
+                break;
+            }
+        }
+        ret
+    }
     
     pub fn bernoulli() {}
     pub fn cauchy() {}
