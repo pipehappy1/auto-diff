@@ -192,15 +192,21 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         ret_dim[dim] = index.numel();
         let mut ret = GenTensor::empty(&ret_dim);
 
-        for i in index.get_data() {
+        for (row_index, i) in index.get_data().iter().enumerate() {
             let mut start = vec![0; self.size().len()];
             let mut end = self.size().to_vec();
             start[dim] = i.to_usize().expect("");
             end[dim] = start[dim] + 1;
 
+            let mut ret_start = start.to_vec();
+            let mut ret_end = end.to_vec();
+            ret_start[dim] = row_index;
+            ret_end[dim] = row_index + 1;
+
             let range: Vec::<(usize, usize)> = start.iter().zip(end.iter()).map(|x| (*x.0, *x.1)).collect();
+            let ret_range: Vec::<(usize, usize)> = ret_start.iter().zip(ret_end.iter()).map(|x| (*x.0, *x.1)).collect();
             let patch = self.get_patch(&range, None);
-            
+            ret.set_patch(&patch, &ret_range, None);
         }
         
         ret
@@ -466,6 +472,14 @@ mod tests {
         let r = a.gather(1, &g);
         println!("{:?}", r);
         assert_eq!(r, GenTensor::new_raw(&[1., 1., 4., 3.,], &[2, 2]));
+    }
+
+    #[test]
+    fn index_select() {
+        let a = GenTensor::new_raw(&GenTensor::<f32>::arange(30).get_data(), &[2, 3, 5]);
+        let b = a.index_select(0, &GenTensor::new_raw(&[0., 0., 1., 0., 0.], &[5]));
+        println!("{:?}", b);
+        assert_eq!(b, GenTensor::new_raw(&[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0], &[5, 3, 5]));
     }
 
     #[test]
