@@ -8,7 +8,7 @@ pub trait IndexSlicing {
     fn cat(&self, tensors: &[&Self::TensorType], dim: usize) -> Self::TensorType;
     fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self::TensorType>;
     fn gather(&self, dim: usize, index: &Self::TensorType) -> Self::TensorType;
-    fn index_select(&self, );
+    fn index_select(&self, dim: usize, index: &Self::TensorType) -> Self::TensorType;
     // fn masked_select();
     //pub fn narrow() {}
     //pub fn nonzero() {}
@@ -175,7 +175,36 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         };
         ret
     }
-    fn index_select(&self, ) {unimplemented!();}
+    fn index_select(&self, dim: usize, index: &Self::TensorType) -> Self::TensorType {
+        if dim >= self.size().len() {
+            panic!("index_select needs better dim: {:?}, {:?}", self.size(), dim);
+        }
+        if index.size().len() > 1 {
+            panic!("index_select needs 1-D index, get: {:?}", index.size());
+        }
+        for i in index.get_data() {
+            if *i >= T::from(self.size()[dim]).expect("") {
+                panic!("index_select gets out of range number at dim {:?}, given {:?}", self.size()[dim], i.to_usize());
+            }
+        }
+
+        let mut ret_dim = self.size().to_vec();
+        ret_dim[dim] = index.numel();
+        let mut ret = GenTensor::empty(&ret_dim);
+
+        for i in index.get_data() {
+            let mut start = vec![0; self.size().len()];
+            let mut end = self.size().to_vec();
+            start[dim] = i.to_usize().expect("");
+            end[dim] = start[dim] + 1;
+
+            let range: Vec::<(usize, usize)> = start.iter().zip(end.iter()).map(|x| (*x.0, *x.1)).collect();
+            let patch = self.get_patch(&range, None);
+            
+        }
+        
+        ret
+    }
 
     fn reshape(&self, new_shape: &[usize]) -> Self::TensorType {
         if self.size().iter().product::<usize>() != new_shape.iter().product::<usize>() {

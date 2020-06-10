@@ -964,7 +964,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
 
     /// outer product of right-most dimensions.
-    pub fn outer(&self, o: &GenTensor<T>) -> GenTensor<T> {
+    pub fn outer(&self, o: &GenTensor<T>, avg: Option<bool>) -> GenTensor<T> {
         let mut dim = Vec::new();
         let mut data;
         let mut cap = 1;
@@ -984,23 +984,52 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                 cap *= left_dim;
                 dim.push(right_dim);
                 cap *= right_dim;
-                data = Vec::with_capacity(cap);
+                if avg.is_some() && avg.unwrap() {
+                    data = vec![T::zero(); left_dim*right_dim];
+                    dim = vec![left_dim, right_dim];
+                } else {
+                    data = Vec::with_capacity(cap);
+                }
             } else {
-            panic!("bad size for outer: {:?}, {:?}", self.dim, o.dim);
+                panic!("bad size for outer: {:?}, {:?}", self.dim, o.dim);
             }
 
-        for k in 0..outer_size {
-            for i in 0..left_dim {
-                for j in 0..right_dim {
-                    data.push(self.d[i + k*left_dim] * o.d[j + k*right_dim]);
+        
+        if avg.is_some() && avg.unwrap() {
+            for k in 0..outer_size {
+                let mut new_data = Vec::with_capacity(left_dim*right_dim);
+                for i in 0..left_dim {
+                    for j in 0..right_dim {
+                        new_data.push(self.d[i + k*left_dim] * o.d[j + k*right_dim]);
+                    }
                 }
+                for i in 0..new_data.len() {
+                    data[i] = data[i] + new_data[i];
+                }
+            }
+            for i in 0..data.len() {
+                data[i] = data[i] / T::from(outer_size).expect("");
+            }
+            GenTensor {
+                d: data,
+                dim: dim,
+            }
+        } else {
+            for k in 0..outer_size {
+                for i in 0..left_dim {
+                    for j in 0..right_dim {
+                        data.push(self.d[i + k*left_dim] * o.d[j + k*right_dim]);
+                    }
+                }
+            }
+            GenTensor {
+                d: data,
+                dim: dim,
             }
         }
         
-        GenTensor {
-            d: data,
-            dim: dim,
-        }
+        
+        
     }
 
     pub fn squared_error(t1: &Self, t2: &Self) -> GenTensor<T> {
@@ -1365,11 +1394,14 @@ mod tests {
     fn outer() {
         let a = GenTensor::<f32>::fill(1., &vec![10, 2]);
         let b = GenTensor::<f32>::fill(1., &vec![10, 3]);
-        let c = a.outer(&b);
+        let c = a.outer(&b, None);
         assert_eq!(*c.size(), vec![10, 2, 3]);
         //println!("{}", c);
-        let d = b.outer(&a);
+        let d = b.outer(&a, None);
         assert_eq!(*d.size(), vec![10, 3, 2]);
+
+        let e = a.outer(&b, Some(true));
+        assert_eq!(e, GenTensor::ones(&[2, 3]));
     }
 
     #[test]

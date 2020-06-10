@@ -356,7 +356,15 @@ impl TypedTensor {
 
     typed_tensor_method!(mm);
     typed_tensor_method!(matmul);
-    typed_tensor_method!(outer);
+    pub fn outer(&self, o: &TypedTensor, avg: Option<bool>) -> TypedTensor {
+        match (&self, o) {
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
+                TypedTensor::Typef32(v1.outer(v2, avg))},
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
+                TypedTensor::Typef64(v1.outer(v2, avg))},
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
 
     // reduction ops
     pub fn logsumexp(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {

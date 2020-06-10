@@ -10,7 +10,7 @@ fn main() {
         input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1]))
     }
 
-    let N = 10;
+    let N = 10000;
     let mut m = Module::new();
     let mut rng = RNG::new();
     rng.set_seed(123);

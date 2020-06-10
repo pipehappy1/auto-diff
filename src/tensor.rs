@@ -376,7 +376,11 @@ impl Tensor {
 
     tensor_method!(mm);
     tensor_method!(matmul);
-    tensor_method!(outer);
+    pub fn outer(&self, o: &Tensor, avg: Option<bool>) -> Tensor {
+            Tensor {
+                v: Rc::new(RefCell::new(self.v.borrow().outer(&o.v.borrow(), avg))),
+            }
+        }
 
     // reduction ops
     //tensor_method_single_tensor_return!(argmax);
