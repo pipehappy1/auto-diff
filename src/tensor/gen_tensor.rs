@@ -359,7 +359,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if step.is_some() {
             step_dim = step.expect("").to_vec();
         }
-        
+
+        // index store the the index needs visit at each dim.
         let mut index = Vec::<Vec::<usize>>::new();
         let mut total_elem = 1;
         let mut ret_dim = Vec::new();
@@ -408,6 +409,56 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         
         ret
+    }
+
+    pub fn set_patch(&mut self, val: &GenTensor<T>, range: &[(usize, usize)], step: Option<&[usize]>) {
+        if range.len() != self.dim.len() {
+            panic!("Expect range covers all dimension range: {:?}, dim: {:?}", range, self.dim);
+        }
+
+        let mut step_dim = vec![1; self.dim.len()];
+        if step.is_some() {
+            step_dim = step.expect("").to_vec();
+        }
+
+        // index store the the index needs visit at each dim.
+        let mut index = Vec::<Vec::<usize>>::new();
+        for (i, dim_index) in range.iter().zip(0..self.dim.len()) {
+            let mut pos = i.0;
+            let mut all_index = Vec::new();
+            while pos < i.1 {
+                all_index.push(pos);
+                pos += step_dim[dim_index];
+            }
+            //println!("{:?}", &all_index);
+            index.push(all_index);
+        }
+
+        let d = self.dim.len();
+        let mut pos_index = vec![0; d];
+        let mut self_index = vec![0; d];
+        loop {
+            //println!("pos_index: {:?}", pos_index);
+            for i in 0..d {
+                self_index[i] = index[i][pos_index[i]];
+            }
+            //let value = self.get(&self_index);
+            //ret.set(&pos_index, value);
+            self.set(&self_index, val.get(&pos_index));
+
+            for dim_index in 0..d {
+                pos_index[d-1-dim_index] += 1;
+                if pos_index[d-1-dim_index] >= val.size()[d-1-dim_index] {
+                    pos_index[d-1-dim_index] = 0;
+                } else {
+                    break;
+                }
+            }
+            
+            if pos_index == vec![0; d] {
+                break;
+            }
+        }
     }
 
     pub fn _iter_patch<F>(&self, dim: Option<&[usize]>, keep_dim: bool, closure: F) -> GenTensor<T>
@@ -1409,6 +1460,15 @@ mod tests {
         let a = GenTensor::new_raw(&GenTensor::<f32>::arange(30).get_data(), &[2, 3, 5]);
         let b = a.get_patch(&vec![(0, 2), (0, 2), (2, 3)][..], Option::None);
         assert_eq!(b, GenTensor::<f32>::new_raw(&vec![2.0, 7.0, 17.0, 22.0][..], &vec![2, 2, 1][..]));
+    }
+
+    #[test]
+    fn set_patch() {
+        let mut a = GenTensor::new_raw(&GenTensor::<f32>::arange(30).get_data(), &[2, 3, 5]);
+        let b = GenTensor::<f32>::ones(&[1, 3, 5]);
+        a.set_patch(&b, &[(1,2), (0,3), (0,5)], None);
+        println!("{:?}", a);
+        assert_eq!(a, GenTensor::new_raw(&[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], &[2, 3, 5]));
     }
 
     // Pointwise Ops
