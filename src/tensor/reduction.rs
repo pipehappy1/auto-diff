@@ -3,8 +3,8 @@ use crate::tensor::gen_tensor::GenTensor;
 pub trait ReduceTensor {
     type TensorType;
 
-    fn argmax();
-    fn argmin();
+    fn argmax(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType;
+    fn argmin(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType;
     fn dist();
     fn logsumexp(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType;
     fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
@@ -28,8 +28,30 @@ pub trait ReduceTensor {
 impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     type TensorType = GenTensor<T>;
 
-    fn argmax() {unimplemented!();}
-    fn argmin() {unimplemented!();}
+    fn argmax(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType {
+        if !keep_dim {
+            panic!("bad keep_dim");
+        }
+        let mut all_dim = Vec::new();
+        if dim.is_some() {
+            for i in 0..self.size().len() {
+                if dim.contains(&i) {
+                    all_dim.push(self.size()[i]);
+                }
+            }
+        } else {
+            all_dim = self.size().to_vec();
+        }
+
+        self._iter_patch(dim, true,
+                         |x| {
+                             
+                         }
+        )
+    }
+    fn argmin(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType {
+        
+    }
     fn dist() {unimplemented!();}
     fn logsumexp(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType {
         self._iter_patch(dim, keep_dim,
