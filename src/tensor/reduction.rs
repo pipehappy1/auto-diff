@@ -25,32 +25,118 @@ pub trait ReduceTensor {
     fn min(&self, dim: Option<&[usize]>, keepdim: bool) -> Self::TensorType;
 }
 
+impl<T> GenTensor<T> where T: num_traits::Float {
+    fn _argmax_min(&self, dim: Option<&[usize]>, keep_dim: bool, max: bool) -> Self {
+        if keep_dim {
+            panic!("argmax cannot keep dim");
+        }
+        let dim2aggregate;
+        if dim.is_some() {
+            dim2aggregate = (0..self.size().len()).filter(|x| dim.unwrap().contains(&x)).collect();
+        } else {
+            dim2aggregate = self.size().to_vec();
+        }
+        let dim = dim2aggregate;
+        
+        // build return tensor dimension.
+        let mut aggregated = false;
+        let ret_dim: Vec<usize> = (0..self.size().len()).map(|x|
+                                                             if dim.contains(&x) {
+                                                                 if !aggregated {
+                                                                     aggregated = true;
+                                                                     dim.len()
+                                                                 } else {
+                                                                     1
+                                                                 }
+                                                             } else {
+                                                                 self.size()[x]
+                                                             }
+        ).collect();
+        let mut ret = Self::empty(&ret_dim);
+        //println!("{:?}, {:?}, {:?}", ret.size(), self.size(), dim);
+
+        let kept_dim: Vec<usize> = (0..self.size().len()).filter(|x| !dim.contains(&x)).collect();
+        let mut index = vec![0; kept_dim.len()]; // index for the loop.
+
+        loop {
+            let mut patch_index: Vec::<(usize, usize)> = Vec::new();
+            let mut output_index: Vec<usize> = Vec::new();
+            let mut kept_dim_step = 0;
+            let mut aggregated = false;
+            for i in 0..self.size().len() {
+                if dim.contains(&i) {
+                    patch_index.push((0, self.size()[i]));
+                    if !aggregated {
+                        output_index.push(0);
+                        aggregated = true;
+                    }
+                } else {
+                    patch_index.push((index[kept_dim_step], index[kept_dim_step]+1));
+                    output_index.push(index[kept_dim_step]);
+                    kept_dim_step += 1;
+                }
+            }
+            //println!("index: {:?}, patch_index: {:?}, output_index: {:?}", index, patch_index, output_index);
+
+            //let value = closure(self.get_patch(&patch_index, None).get_data());
+            let the_patch = self.get_patch(&patch_index, None);
+            let mut max_value = the_patch.get_data()[0];
+            let mut max_index = 0;
+            for (elem_index, i) in the_patch.get_data().iter().enumerate() {
+                if max {
+                    if max_value < *i {
+                        max_value = *i;
+                        max_index = elem_index;
+                    }
+                } else {
+                    if max_value > *i {
+                        max_value = *i;
+                        max_index = elem_index;
+                    }
+                }
+            }
+            let dimpos_elem = the_patch.index2dimpos(max_index);
+            let mut dimpos_elem2 = Vec::new();
+            for (dim_index, v) in dimpos_elem.iter().enumerate() {
+                if dim.contains(&dim_index) {
+                    dimpos_elem2.push(*v);
+                } 
+            }
+            let dimpos_elem = dimpos_elem2;
+            //println!("dispos_elem: {:?}", dimpos_elem);
+            for (set_index, i) in dimpos_elem.iter().enumerate() {
+                let mut dest_index = output_index.to_vec();
+                dest_index[dim[0]] = set_index;
+                //println!("dest_index: {:?}", dest_index);
+                ret.set(&dest_index, T::from(*i).unwrap());
+            }
+            
+            for i in 0..index.len() {
+                index[kept_dim.len() -i -1] += 1;
+                if index[kept_dim.len() -i -1] >= self.size()[kept_dim[kept_dim.len() -i -1]] {
+                    index[kept_dim.len() -i -1] = 0;
+                } else {
+                    break
+                }
+            }
+
+            if index == vec![0; kept_dim.len()] {
+                break
+            }
+        }
+        
+        ret
+    }
+}
+
 impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     type TensorType = GenTensor<T>;
 
     fn argmax(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType {
-        if !keep_dim {
-            panic!("bad keep_dim");
-        }
-        let mut all_dim = Vec::new();
-        if dim.is_some() {
-            for i in 0..self.size().len() {
-                if dim.contains(&i) {
-                    all_dim.push(self.size()[i]);
-                }
-            }
-        } else {
-            all_dim = self.size().to_vec();
-        }
-
-        self._iter_patch(dim, true,
-                         |x| {
-                             
-                         }
-        )
+        self._argmax_min(dim, keep_dim, true)
     }
     fn argmin(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType {
-        
+        self._argmax_min(dim, keep_dim, false)
     }
     fn dist() {unimplemented!();}
     fn logsumexp(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self::TensorType {
@@ -187,6 +273,30 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
 mod tests {
     use crate::tensor::gen_tensor::GenTensor;
     use super::*;
+
+    #[test]
+    fn argmax() {
+        let a = GenTensor::<f32>::new_raw(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
+        let b = a.argmax(Some(&[0]), false);
+        println!("{:?}", b);
+        assert_eq!(b, GenTensor::<f32>::new_raw(&[2., 2.,], &[1, 2]));
+
+        let b = a.argmax(Some(&[1]), false);
+        println!("{:?}", b);
+        assert_eq!(b, GenTensor::<f32>::new_raw(&[1., 1., 1.,], &[3, 1]));
+    }
+
+    #[test]
+    fn argmin() {
+        let a = GenTensor::<f32>::new_raw(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
+        let b = a.argmin(Some(&[0]), false);
+        println!("{:?}", b);
+        assert_eq!(b, GenTensor::<f32>::new_raw(&[0., 0.,], &[1, 2]));
+
+        let b = a.argmin(Some(&[1]), false);
+        println!("{:?}", b);
+        assert_eq!(b, GenTensor::<f32>::new_raw(&[0., 0., 0.,], &[3, 1]));
+    }
 
     #[test]
     fn logsumexp() {

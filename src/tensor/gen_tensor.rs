@@ -463,6 +463,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     pub fn _iter_patch<F>(&self, dim: Option<&[usize]>, keep_dim: bool, closure: F) -> GenTensor<T>
     where F: Fn(&[T]) -> T {
+        // take the whole tensor as the patch.
         if dim.is_none() {
             let ret_dim;
             if keep_dim {
@@ -472,9 +473,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             }
             return GenTensor::new_raw(&vec![closure(self.get_data())], &ret_dim)
         }
-
         let dim = dim.unwrap();
-        
+
+        // build return tensor dimension.
         let mut ret_dim = Vec::new();
         for i in 0..self.size().len() {
             if dim.contains(&i) {
@@ -487,11 +488,12 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         let mut ret = Self::empty(&ret_dim);
 
+         
         let kept_dim: Vec<usize> = (0..self.size().len()).filter(|x| !dim.contains(&x)).collect();
         let mut index = vec![0; kept_dim.len()];
         loop {
-            let mut patch_index = Vec::new();
-            let mut output_index = Vec::new();
+            let mut patch_index: Vec::<(usize, usize)> = Vec::new();
+            let mut output_index: Vec<usize> = Vec::new();
             let mut kept_dim_step = 0;
             for i in 0..self.size().len() {
                 if dim.contains(&i) {
