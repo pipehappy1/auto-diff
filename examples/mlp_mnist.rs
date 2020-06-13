@@ -2,7 +2,7 @@ use auto_diff::tensor::Tensor;
 use auto_diff::rand::RNG;
 use auto_diff::op::{Linear, Op, Sigmoid};
 use auto_diff::var::{Module, crossentropyloss};
-use auto_diff::optim::{SGD, Optimizer};
+use auto_diff::optim::{SGD, Optimizer, MiniBatch};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use tensorboard_rs::summary_writer::SummaryWriter;
@@ -59,17 +59,20 @@ fn main() {
     let loss = crossentropyloss(&output, &label);
     
     //println!("{}, {}", &train_data, &train_label);
-    
-    
-    let mut opt = SGD::new(0.2);
+    let rng = RNG::new();
+    let minibatch = MiniBatch::new(rng, 16);
+
+    let mut lr = 0.2;
+    let mut opt = SGD::new(lr);
     
     let mut writer = SummaryWriter::new(&("./logdir".to_string()));
     
     
-    for i in 0..500 {
+    for i in 0..900 {
         println!("index: {}", i);
-        input.set(train_data.clone());
-        label.set(train_label.clone());
+        let (mdata, mlabel) = minibatch.next(&train_data, &train_label);
+        input.set(mdata);
+        label.set(mlabel);
         println!("load data done");
         m.forward();
         println!("forward done");
@@ -77,22 +80,30 @@ fn main() {
         println!("backward done");
         opt.step(&m);
         println!("update done");
-        
-        input.set(test_data.clone());
-        label.set(test_label.clone());
-        m.forward();
 
-        let loss_value = loss.get().get_scale_f32();
+
+        if i % 10 == 0 {
+            input.set(test_data.clone());
+            label.set(test_label.clone());
+            m.forward();
+
+            let loss_value = loss.get().get_scale_f32();
         
-        let tsum = output.get().argmax(Some(&[1]), false).eq_t(&test_label).mean(None, false);
-        let accuracy = 1.-tsum.get_scale_f32();
-        println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
+            let tsum = output.get().argmax(Some(&[1]), false).eq_t(&test_label).mean(None, false);
+            let accuracy = tsum.get_scale_f32();
+            println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
+
+            writer.add_scalar(&"run3/accuracy".to_string(), accuracy, i);
+            writer.flush();
+        }
+        
         //println!("{}, loss: {}", i, loss.get().get_scale_f32());
-
-        let mut map = HashMap::new();
-        map.insert("test_loss".to_string(), loss_value);
-        map.insert("test_accuracy".to_string(), accuracy);
-        writer.add_scalars("run1", &map, i);
+        writer.add_scalar(&"run3/test_loss".to_string(), loss.get().get_scale_f32(), i);
         writer.flush();
+
+        if i != 0 && i % 300 == 0 {
+            lr = lr / 3.;
+            opt = SGD::new(lr);
+        }
     }
 }

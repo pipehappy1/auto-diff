@@ -28,7 +28,7 @@ impl MiniBatch {
         }
         
         let index = self.rng.borrow_mut().gen_range_usize(0, sample_size, Some(self.size));
-        //println!("index: {:?}", index);
+        //println!("minibatch index: {:?}", index);
         let index_t = Tensor::from_vec_usize(&index, &[index.len()]);
 
         let mdata = data.index_select(0, &index_t);

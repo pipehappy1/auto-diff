@@ -52,6 +52,15 @@ pub fn main() {
     let t = load_images("examples/data/mnist/train-images-idx3-ubyte");
 
     let mut writer = SummaryWriter::new(&("./logdir".to_string()));
+
+    for i in 0..10 {
+        let first_image = t.get_patch(&vec![(i,i+1),(0,28),(0,28)], None);
+    //println!("{:?}, {}, {}", first_image.size(), first_image.max(None, None, None), first_image.min(None, None, None));
+        let rgb_img = first_image.cat(&vec![&first_image, &first_image], 0);
+        let rgb_img = rgb_img.permute(&vec![1, 2, 0]);
+        let rgb_img = rgb_img.mul(&Tensor::fill(&vec![1], 255.));
+        writer.add_image(&"test_image".to_string(), &rgb_img.get_u8().expect("u8")[..], &vec![3, 28, 28][..], i+32);
+    }
     
     let first_image = t.get_patch(&vec![(0,1),(0,28),(0,28)], None);
     //println!("{:?}, {}, {}", first_image.size(), first_image.max(None, None, None), first_image.min(None, None, None));
