@@ -63,9 +63,10 @@ impl OpTrait for Linear {
             self._new();
         }
 
+        //println!("left sie: {:?}, right size: {:?}", input[0].size(), self.weight.size());
         let ret = input[0].matmul(&self.weight);
         output[0].swap(ret);
-
+        //println!("matmut done");
         if self.bias_option {
             let ret = output[0].add(&self.bias);
             output[0].swap(ret);

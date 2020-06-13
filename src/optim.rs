@@ -1,24 +1,24 @@
 //!
 //! Gradient based optimization.
 //!
-
+use std::cell::RefCell;
 use super::tensor::Tensor;
 use super::var::Module;
 use crate::rand;
 
 pub struct MiniBatch {
-    rng: rand::RNG,
+    rng: RefCell<rand::RNG>,
     size: usize,
 }
 impl MiniBatch {
     pub fn new(rng: rand::RNG, size: usize) -> MiniBatch {
         MiniBatch {
-            rng: rng,
+            rng: RefCell::new(rng),
             size: size,
         }
     }
 
-    pub fn next(&mut self, data: &Tensor, label: &Tensor) -> (Tensor, Tensor) {
+    pub fn next(&self, data: &Tensor, label: &Tensor) -> (Tensor, Tensor) {
         let sample_size = data.size()[0];
         let sample_size2 = label.size()[0];
 
@@ -27,8 +27,13 @@ impl MiniBatch {
                    sample_size, sample_size2);
         }
         
-        let index = self.rng.gen_range_usize(0, sample_size, Some(self.size));
-        (Tensor::new(), Tensor::new())
+        let index = self.rng.borrow_mut().gen_range_usize(0, sample_size, Some(self.size));
+        //println!("index: {:?}", index);
+        let index_t = Tensor::from_vec_usize(&index, &[index.len()]);
+
+        let mdata = data.index_select(0, &index_t);
+        let mlabel = label.index_select(0, &index_t);
+        (mdata, mlabel)
     }
 }
 
@@ -62,5 +67,27 @@ impl Optimizer for SGD {
             }
             x.set_values(&new_weight);
         });
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::tensor::Tensor;
+    use crate::rand::RNG;
+    use super::*;
+
+    #[test]
+    fn mini_batch() {
+        let data = Tensor::ones(&[10, 3]);
+        let label = Tensor::zeros(&[10]);
+        
+        let rng = RNG::new();
+        let minibatch = MiniBatch::new(rng, 4);
+        let (mdata, mlabel) = minibatch.next(&data, &label);
+
+        assert_eq!(mdata.size(), [4, 3]);
+        assert_eq!(mlabel.size(), [4]);
+        println!("{:?}, {:?}", mdata, mlabel);
     }
 }

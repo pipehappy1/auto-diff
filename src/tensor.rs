@@ -102,6 +102,11 @@ impl Tensor {
     }
 
 
+    pub fn from_vec_usize(input: &[usize], dim: &[usize]) -> Tensor {
+        let data: Vec<f32> = input.iter().map(|x| *x as f32).collect();
+        Self::from_vec_f32(&data, dim)
+    }
+    
     /// Create a tensor from a Vec,
     /// ```
     /// # use auto_diff::tensor::*;
@@ -258,16 +263,28 @@ impl Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().cat(&converted_tensor[..], dim))),
         }
     }
-    pub fn chunk() {}
+    pub fn chunk() {
+        unimplemented!();
+    }
     pub fn gather(&self, dim: usize, index: &Tensor) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().gather(dim, &index.v.borrow()))),
         }
     }
-    pub fn index_select() {}
-    pub fn masked_select() {}
-    pub fn narrow() {}
-    pub fn nonzero() {}
+    pub fn index_select(&self, dim: usize, index: &Tensor) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().index_select(dim, &index.v.borrow()))),
+        }
+    }
+    pub fn masked_select() {
+        unimplemented!();
+    }
+    pub fn narrow() {
+        unimplemented!();
+    }
+    pub fn nonzero() {
+        unimplemented!();
+    }
     pub fn reshape(&self, new_shape: &[usize]) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().reshape(new_shape))),
@@ -288,11 +305,21 @@ impl Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().squeeze(dim))),
         }
     }
-    pub fn stack() {}
-    pub fn t() {}
-    pub fn take() {}
-    pub fn transpose() {}
-    pub fn unbind() {}
+    pub fn stack() {
+        unimplemented!();
+    }
+    pub fn t() {
+        unimplemented!();
+    }
+    pub fn take() {
+        unimplemented!();
+    }
+    pub fn transpose() {
+        unimplemented!();
+    }
+    pub fn unbind() {
+        unimplemented!();
+    }
 
     pub fn permute(&self, dim: &[usize]) -> Tensor {
         Tensor {
@@ -383,8 +410,16 @@ impl Tensor {
         }
 
     // reduction ops
-    //tensor_method_single_tensor_return!(argmax);
-    //tensor_method_single_tensor_return!(argmin);
+    pub fn argmax(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().argmax(dim, keepdim))),
+        }
+    }
+    pub fn argmin(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().argmin(dim, keepdim))),
+        }
+    }
     //tensor_method_single_tensor_return!(dist);
     pub fn logsumexp(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
         Tensor {

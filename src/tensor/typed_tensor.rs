@@ -217,7 +217,17 @@ impl TypedTensor {
             _ => {panic!("should have same tensor type!");},
         }
     }
-
+    pub fn index_select(&self, dim: usize, index: &TypedTensor) -> TypedTensor {
+        match (self, index) {
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
+                TypedTensor::Typef32(v1.index_select(dim, v2))
+            },
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
+                TypedTensor::Typef64(v1.index_select(dim, v2))
+            },
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
     pub fn reshape(&self, new_shape: &[usize]) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {
@@ -367,6 +377,20 @@ impl TypedTensor {
     }
 
     // reduction ops
+    pub fn argmax(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.argmax(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.argmax(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    pub fn argmin(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.argmin(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.argmin(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
     pub fn logsumexp(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.logsumexp(dim, keepdim))},

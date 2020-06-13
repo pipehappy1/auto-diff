@@ -70,7 +70,7 @@ fn main() {
         println!("index: {}", i);
         input.set(train_data.clone());
         label.set(train_label.clone());
-        
+        println!("load data done");
         m.forward();
         println!("forward done");
         m.backward(-1.);
@@ -84,7 +84,7 @@ fn main() {
 
         let loss_value = loss.get().get_scale_f32();
         
-        let tsum = output.get().max(Some(&[1]), false).sub(&test_label).abs().mean(None, false);
+        let tsum = output.get().argmax(Some(&[1]), false).eq_t(&test_label).mean(None, false);
         let accuracy = 1.-tsum.get_scale_f32();
         println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
         //println!("{}, loss: {}", i, loss.get().get_scale_f32());
