@@ -1,6 +1,6 @@
 use auto_diff::tensor::Tensor;
 use auto_diff::rand::RNG;
-use auto_diff::op::{Linear, Op, Sigmoid, Conv2d};
+use auto_diff::op::{Linear, Op, Sigmoid, Conv2d, PaddingMode, OpTrait};
 use auto_diff::var::{Module, crossentropyloss};
 use auto_diff::optim::{SGD, Optimizer, MiniBatch};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -35,11 +35,11 @@ fn main() {
 
     // 28 - (3x3) - 28 - (3x3,2) - 14 - (3x3) - 14 - (3x3,2) - 7 - (3x3) - 7 - (3x3,2,nopadding) - 3 - (3x3,nopadding) - 1 - (1x1) - 1 - view
     
-    let op1 = Conv2d::new(3, 8, (3,3), (1,1), (1,1), 0, true, PaddingMode::Zeros);
+    let op1 = Conv2d::new(3, 8, (3,3), (1,1), (1,1), (0,0), true, PaddingMode::Zeros);
     rng.normal_(op1.get_values()[0], 0., 1.);
     rng.normal_(op1.get_values()[0], 0., 1.);
 
-    let op1 = Conv2d::new(3, 8, (3,3), (1,1), (1,1), 0, true, PaddingMode::Zeros);
-    rng.normal_(op1.get_values()[0], 0., 1.);
-    rng.normal_(op1.get_values()[0], 0., 1.);
+    let op2 = Conv2d::new(3, 8, (3,3), (1,1), (1,1), (0,0), true, PaddingMode::Zeros);
+    rng.normal_(op2.get_values()[0], 0., 1.);
+    rng.normal_(op2.get_values()[0], 0., 1.);
 }

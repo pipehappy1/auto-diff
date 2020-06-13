@@ -170,30 +170,67 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
     good_gradient
 }
 
+pub struct View {
+    shape: Vec<usize>,
+}
+impl View {
+    pub fn new(new_shape: &[usize]) -> View {
+        View {
+            shape: new_shape.to_vec(),
+        }
+    }
+}
+impl OpTrait for View {
+    fn get_name(&self) -> String {
+        "view".to_string()
+    }
+    fn get_input_size(&self) -> usize {
+        1
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
+
+    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+        if input.len() > 1 {
+            panic!("view only acceipt one input");
+        }
+
+        let total_numel: usize = self.shape.iter().product();
+        if input[0].numel() != total_numel {
+            panic!("view expect tensor has a total elem of {}, get {}", total_numel, input[0].numel());
+        }
+
+        output[0].swap(input[0].reshape(&self.shape));
+    }
+
+    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+        
+        input_grad[0].swap(output_grad[0].reshape(&input[0].size()));
+    }
+
+    fn get_values(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+    fn set_values(&self, _v: &[Tensor]) {
+    }
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+}
 
 pub mod local;
-pub use local::Add;
-pub use local::Sub;
-pub use local::Mul;
-pub use local::Div;
-
+pub use local::{Add, Sub, Mul, Div};
 
 pub mod convolution;
-pub use convolution::PaddingMode;
-pub use convolution::Conv2d;
-
+pub use convolution::{PaddingMode, Conv2d};
 
 pub mod linear;
 pub use linear::Linear;
 
-
 pub mod nonlinear;
-pub use nonlinear::ELU;
-pub use nonlinear::ReLU;
-pub use nonlinear::Sigmoid;
-
+pub use nonlinear::{ELU, ReLU, Sigmoid};
 
 pub mod loss;
-pub use loss::MSELoss;
-pub use loss::BCEWithLogitsLoss;
-pub use loss::CrossEntropyLoss;
+pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};
