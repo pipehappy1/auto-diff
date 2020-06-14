@@ -5,7 +5,7 @@
 
 ## Introduction
 
-This is a deep learning library trying to mimic the PyTorch API.
+This is a auto-difference based learning library.
 
 ## Install
 
