@@ -83,6 +83,9 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
         if stride.len() != padding.len() || stride.len() != dilation.len() {
             panic!("stride, padding, stride should have the same # of dims, {:?}, {:?}, {:?}", stride, padding, dilation);
         }
+        if stride.iter().any(|x| *x < 1) {
+            panic!("stride should be at least 1, get {:?}", stride);
+        }
 
         let filter_size = filter.size();
         let out_channels = filter_size[0];
@@ -484,7 +487,7 @@ mod tests {
     use crate::tensor::index_slicing::IndexSlicing;
     use super::*;
 
-        #[test]
+    #[test]
     fn conv_gen() {
 
         {
