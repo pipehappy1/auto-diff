@@ -86,6 +86,9 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
         if stride.iter().any(|x| *x < 1) {
             panic!("stride should be at least 1, get {:?}", stride);
         }
+        if dilation.iter().any(|x| *x < 1) {
+            panic!("dilation should be at least 1, get {:?}", dilation);
+        }
 
         let filter_size = filter.size();
         let out_channels = filter_size[0];
@@ -101,9 +104,12 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
         for i in 2..self_dim.len() {
             padded_dim.push(self_dim[i] + padding[i-2]*2);
         }
-        // println!("{:?}", padded_dim);
+        //println!("padded_dim: {:?}", padded_dim);
 
-        // find the start point in padded dimension
+        // find the coordinate of
+        // start center point in a filter in padded dimension
+        // in case filter_dim[i] is even, start_point will be the half.
+        // in case filter_dim[i] is odd, start_point will be the center.
         let mut start_point = Vec::new();
         for i in 0..stride.len() {
             let half = filter_dim[2+i]/2;
@@ -116,7 +122,7 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
         //println!("{:?}, {:?}", padded_dim, stride);
         for i in 0..stride.len() {
             let mut output_dim = (padded_dim[i] - start_point[i]*2)/stride[i];
-            if padded_dim[i] % 2 == 0 {
+            if padded_dim[i] % 2 == 0 && filter_dim[i+2] %2 == 0 {
                 output_dim += 1;
             }
             output_size.push(output_dim);
@@ -126,7 +132,7 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
         output_tensor_size.push(filter_dim[0]);
         output_tensor_size.append(&mut output_size.clone()); // output_size moved.
         let output_inner_size = output_size.iter().product::<usize>();
-        //println!("{:?}", output_size);
+        //println!("output_size: {:?}", output_size);
         //println!("{:?}", output_inner_size);
         //println!("{:?}", output_tensor_size);
         
@@ -563,6 +569,19 @@ mod tests {
             println!("output size: {:?}", result.get_data());
             assert_eq!(result, GenTensor::<f32>::new_raw(&vec![700704.0, 703944.0, 707184.0, 716904.0, 720144.0, 723384.0, 733104.0, 736344.0, 739584.0, 781704.0, 784944.0, 788184.0, 797904.0, 801144.0, 804384.0, 814104.0, 817344.0, 820584.0, 862704.0, 865944.0, 869184.0, 878904.0, 882144.0, 885384.0, 895104.0, 898344.0, 901584.0, 1724220.0, 1734021.0, 1743822.0, 1773225.0, 1783026.0, 1792827.0, 1822230.0, 1832031.0, 1841832.0, 1969245.0, 1979046.0, 1988847.0, 2018250.0, 2028051.0, 2037852.0, 2067255.0, 2077056.0, 2086857.0, 2214270.0, 2224071.0, 2233872.0, 2263275.0, 2273076.0, 2282877.0, 2312280.0, 2322081.0, 2331882.0], &vec![1, 2, 3, 3, 3]));
         }
+
+        {
+            let data = GenTensor::<f32>::arange(16).reshape(&vec![1, 1, 4, 4]);
+            let filter = GenTensor::<f32>::arange(18).reshape(&vec![2, 1, 3, 3]);
+            let stride = vec![1, 1];
+            let padding = vec![1, 1];
+            let dilation = vec![1, 1];
+            let padding_mode = PaddingMode::Zeros;
+            let result = data.conv_gen(&filter, &stride, &padding, &dilation, padding_mode);
+            println!("final output size: {:?}", result.size());
+            println!("final output: {:?}", result.get_data());
+            assert_eq!(result, GenTensor::<f32>::new_raw(&vec![73.0, 121.0, 154.0, 103.0, 171.0, 258.0, 294.0, 186.0, 279.0, 402.0, 438.0, 270.0, 139.0, 187.0, 202.0, 113.0, 163.0, 283.0, 370.0, 265.0, 414.0, 663.0, 780.0, 537.0, 738.0, 1131.0, 1248.0, 837.0, 517.0, 781.0, 850.0, 563.0], &vec![1, 2, 4, 4]));
+        }
     }
 
     #[test]
@@ -652,4 +671,5 @@ mod tests {
             assert_eq!(w_grad, GenTensor::new_raw(&vec![176.0, 200.0, 284.0, 172.0, 192.0, 296.0, 320.0, 449.0, 272.0, 292.0, 420.0, 447.0, 624.0, 375.0, 396.0, 164.0, 176.0, 233.0, 128.0, 136.0, 224.0, 236.0, 308.0, 168.0, 176.0, 776.0, 800.0, 1109.0, 672.0, 692.0, 896.0, 920.0, 1274.0, 772.0, 792.0, 1095.0, 1122.0, 1524.0, 900.0, 921.0, 464.0, 476.0, 608.0, 328.0, 336.0, 524.0, 536.0, 683.0, 368.0, 376.0, 1376.0, 1400.0, 1934.0, 1172.0, 1192.0, 1496.0, 1520.0, 2099.0, 1272.0, 1292.0, 1770.0, 1797.0, 2424.0, 1425.0, 1446.0, 764.0, 776.0, 983.0, 528.0, 536.0, 824.0, 836.0, 1058.0, 568.0, 576.0, 392.0, 452.0, 662.0, 424.0, 480.0, 692.0, 752.0, 1097.0, 704.0, 760.0, 1014.0, 1095.0, 1596.0, 1023.0, 1098.0, 560.0, 608.0, 881.0, 560.0, 604.0, 800.0, 848.0, 1226.0, 780.0, 824.0, 1892.0, 1952.0, 2837.0, 1824.0, 1880.0, 2192.0, 2252.0, 3272.0, 2104.0, 2160.0, 3039.0, 3120.0, 4521.0, 2898.0, 2973.0, 1760.0, 1808.0, 2606.0, 1660.0, 1704.0, 2000.0, 2048.0, 2951.0, 1880.0, 1924.0, 3392.0, 3452.0, 5012.0, 3224.0, 3280.0, 3692.0, 3752.0, 5447.0, 3504.0, 3560.0, 5064.0, 5145.0, 7446.0, 4773.0, 4848.0, 2960.0, 3008.0, 4331.0, 2760.0, 2804.0, 3200.0, 3248.0, 4676.0, 2980.0, 3024.0], &vec![2, 3, 5, 5]));
         }
     }
+
 }
