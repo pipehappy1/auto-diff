@@ -20,5 +20,21 @@ pub fn main() {
                              &bucket_limits, &bucket_counts,
                              1
     );
+
+    writer.add_histogram_raw("run1/histo1",
+                             min, max,
+                             num,
+                             sum, sum_squares,
+                             &bucket_limits, &bucket_counts,
+                             2
+    );
+
+    writer.add_histogram_raw("run1/histo1",
+                             min, max,
+                             num,
+                             sum, sum_squares,
+                             &bucket_limits, &bucket_counts,
+                             3
+    );
     writer.flush();
 }
