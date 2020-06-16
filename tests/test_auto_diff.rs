@@ -11,13 +11,13 @@ fn test_add_2vars() {
     let mut m = Module::new();
     let a = m.var();
     let b = m.var();
-    assert_eq!(*a._id(), NetIndex::new(0, 0));
-    assert_eq!(*b._id(), NetIndex::new(1, 0));
+    assert_eq!(*a.get_id(), NetIndex::new(0, 0));
+    assert_eq!(*b.get_id(), NetIndex::new(1, 0));
     let c = a.add(&b);
     a.set(Tensor::new());
     b.set(Tensor::new());
     m.eval();
-    assert_eq!(NetIndex::new(2, 0), *c._id());
+    assert_eq!(NetIndex::new(2, 0), *c.get_id());
 }
 
 #[test]
@@ -25,8 +25,8 @@ fn test_add_repeat_vars() {
     let mut m = Module::new();
     let a = m.var();
     let b = m.var();
-    assert_eq!(*a._id(), NetIndex::new(0, 0));
-    assert_eq!(*b._id(), NetIndex::new(1, 0));
+    assert_eq!(*a.get_id(), NetIndex::new(0, 0));
+    assert_eq!(*b.get_id(), NetIndex::new(1, 0));
     let c = a.add(&b);
     let d = c.add(&b); // repeat vars
     a.set(Tensor::new());
