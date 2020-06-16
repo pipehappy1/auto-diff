@@ -36,55 +36,35 @@ fn main() {
     let mut rng = RNG::new();
     rng.set_seed(123);
 
-    // 28 - (3x3) - 28 - (3x3,2) - 14 - (3x3) - 14 - (3x3,2) - 7 - (3x3) - 7 - (3x3,2,nopadding) - 3 - (3x3,nopadding) - 1 - (1x1) - 1 - view
+    // 28 - (3x3) - 28 - (3x3,2) - 14 - (view) - 196 - (linear, 98.0) - 98 - (linear, 10) - 10
     
-    let op1 = Conv2d::new(1, 16, (3,3), (1,1), (1,1), (1,1), true, PaddingMode::Zeros);
+    let op1 = Conv2d::new(1, 32, (3,3), (1,1), (1,1), (1,1), true, PaddingMode::Zeros);
     rng.normal_(op1.get_values()[0], 0., 1.);
     rng.normal_(op1.get_values()[1], 0., 1.);
     let conv1 = Op::new(Box::new(op1));
 
-    let op2 = Conv2d::new(16, 32, (3,3), (2,2), (1,1), (1,1), true, PaddingMode::Zeros);
+    let op2 = Conv2d::new(32, 64, (3,3), (2,2), (1,1), (1,1), true, PaddingMode::Zeros);
     rng.normal_(op2.get_values()[0], 0., 1.);
     rng.normal_(op2.get_values()[1], 0., 1.);
     let conv2 = Op::new(Box::new(op2));
 
-    let op3 = Conv2d::new(32,32, (3,3), (1,1), (1,1), (1,1), true, PaddingMode::Zeros);
-    rng.normal_(op3.get_values()[0], 0., 1.);
-    rng.normal_(op3.get_values()[1], 0., 1.);
-    let conv3 = Op::new(Box::new(op3));
+    let view = Op::new(Box::new(View::new(&[patch_size, 14*14*64])));
 
-    let op4 = Conv2d::new(32, 64, (3,3), (2,2), (1,1), (1,1), true, PaddingMode::Zeros);
-    rng.normal_(op4.get_values()[0], 0., 1.);
-    rng.normal_(op4.get_values()[1], 0., 1.);
-    let conv4 = Op::new(Box::new(op4));
+    let op3 = Linear::new(Some(14*14*64), Some(14*14), true);
+    rng.normal_(op3.weight(), 0., 1.);
+    rng.normal_(op3.bias(), 0., 1.);
+    let linear3 = Op::new(Box::new(op3));
 
-    let op5 = Conv2d::new(64, 64, (3,3), (1,1), (1,1), (1,1), true, PaddingMode::Zeros);
-    rng.normal_(op5.get_values()[0], 0., 1.);
-    rng.normal_(op5.get_values()[1], 0., 1.);
-    let conv5 = Op::new(Box::new(op5));
-
-    let op6 = Conv2d::new(64, 128, (3,3), (2,2), (0,0), (1,1), true, PaddingMode::Zeros);
-    rng.normal_(op6.get_values()[0], 0., 1.);
-    rng.normal_(op6.get_values()[1], 0., 1.);
-    let conv6 = Op::new(Box::new(op6));
-
-    let op7 = Conv2d::new(128, 128, (3,3), (1,1), (0,0), (1,1), true, PaddingMode::Zeros);
-    rng.normal_(op7.get_values()[0], 0., 1.);
-    rng.normal_(op7.get_values()[1], 0., 1.);
-    let conv7 = Op::new(Box::new(op7));
-
-    let op8 = Conv2d::new(128, 10, (1,1), (1,1), (0,0), (1,1), true, PaddingMode::Zeros);
-    rng.normal_(op8.get_values()[0], 0., 1.);
-    rng.normal_(op8.get_values()[1], 0., 1.);
-    let conv8 = Op::new(Box::new(op8));
+    let op4 = Linear::new(Some(14*14), Some(10), true);
+    rng.normal_(op4.weight(), 0., 1.);
+    rng.normal_(op4.bias(), 0., 1.);
+    let linear4 = Op::new(Box::new(op4));
 
     let mut acts = Vec::new();
-    for i in 0..8 {
+    for i in 0..3 {
         let act1 = Op::new(Box::new(ReLU::new()));
         acts.push(act1);
     }
-
-    let view = Op::new(Box::new(View::new(&[patch_size, class_size])));
 
     let input = m.var();
     let output = input
@@ -92,19 +72,10 @@ fn main() {
         .to(&acts[0])
         .to(&conv2)
         .to(&acts[1])
-        .to(&conv3)
-        .to(&acts[2])
-        .to(&conv4)
-        .to(&acts[3])
-        .to(&conv5)
-        .to(&acts[4])
-        .to(&conv6)
-        .to(&acts[5])
-        .to(&conv7)
-        .to(&acts[6])
-        .to(&conv8)
-        .to(&acts[7])
         .to(&view)
+        .to(&linear3)
+        .to(&acts[2])
+        .to(&linear4)
         ;
     let label = m.var();
 
@@ -113,7 +84,7 @@ fn main() {
     let rng = RNG::new();
     let minibatch = MiniBatch::new(rng, patch_size);
 
-    let mut lr = 0.1;
+    let mut lr = 0.01;
     let mut opt = SGD::new(lr);
     
     let mut writer = SummaryWriter::new(&("./logdir".to_string()));

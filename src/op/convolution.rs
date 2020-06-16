@@ -117,7 +117,7 @@ impl OpTrait for Conv2d {
         }
         let input_size = input[0].size();
         if input_size[1] != self.in_channels {
-            panic!("conv2d expect the same input channel {:?}, {:?}", input_size[1], self.in_channels);
+            panic!("conv2d expect the same input channel: input: {:?}, config: {:?}", input_size[1], self.in_channels);
         }
         let conv_output = input[0].conv2d(&self.weight, self.stride, self.padding, self.dilation, self.padding_mode);
         //println!("conv_output: {:?}, {:?}, {:?}, {:?}, {:?}, {:?}", self.weight.size(), self.stride, self.padding, self.dilation, conv_output.size(), input[0].size());
