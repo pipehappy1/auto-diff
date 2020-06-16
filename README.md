@@ -2,7 +2,7 @@
 
 Write TensorBoard events in Rust.
 
-* Can write `scalar`.
+* Can write `scalar`, `image`, `histogram`.
 
 ## Example
 
