@@ -120,12 +120,19 @@ impl OpTrait for Conv2d {
             panic!("conv2d expect the same input channel {:?}, {:?}", input_size[1], self.in_channels);
         }
         let conv_output = input[0].conv2d(&self.weight, self.stride, self.padding, self.dilation, self.padding_mode);
+        //println!("conv_output: {:?}, {:?}, {:?}, {:?}, {:?}, {:?}", self.weight.size(), self.stride, self.padding, self.dilation, conv_output.size(), input[0].size());
         if conv_output.size()[1] != self.out_channels {
             panic!("conv2d expect the same input channel {:?}, {:?}", input_size[1], self.in_channels);
         }
 
         if self.bias_option {
-            let ret = conv_output.add(&self.bias);
+            //println!("{:?}, {:?}", self.weight.size(), self.bias.size());
+            let expanded_bias = self.bias
+                .unsqueeze(1)
+                .unsqueeze(2)
+                .repeat(&[1, conv_output.size()[2], conv_output.size()[3]]);
+            //println!("conv_output: {:?}, expanded_bias.size() {:?}", conv_output.size(), expanded_bias.size());
+            let ret = conv_output.add(&expanded_bias);
             output[0].swap(ret);
         } else {
             output[0].swap(conv_output);            
@@ -141,7 +148,7 @@ impl OpTrait for Conv2d {
         input_grad[0].swap(d_grad);
 
         if self.bias_option {
-            self.bias_grad.swap(output_grad[0].mean(Some(&[0]), false));
+            self.bias_grad.swap(output_grad[0].mean(Some(&[0, 2, 3]), false));
         }
     }
 
