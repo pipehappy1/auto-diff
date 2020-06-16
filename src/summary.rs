@@ -1,4 +1,4 @@
-use crate::proto::summary::{Summary, Summary_Value, Summary_Image, SummaryMetadata, SummaryMetadata_PluginData};
+use crate::proto::summary::{Summary, Summary_Value, Summary_Image, SummaryMetadata, SummaryMetadata_PluginData, HistogramProto};
 use crate::proto::layout::{Layout, Category};
 use protobuf::RepeatedField;
 
@@ -10,6 +10,33 @@ pub fn scalar(name: &str, scalar_value: f32) -> Summary {
     let mut value = Summary_Value::new();
     value.set_tag(name.to_string());
     value.set_simple_value(scalar_value);
+
+    let values = RepeatedField::from(vec![value]);
+    let mut summary = Summary::new();
+    summary.set_value(values);
+
+    summary
+}
+
+pub fn histogram_raw(name: &str,
+                     min: f64, max: f64,
+                     num: f64,
+                     sum: f64, sum_squares: f64,
+                     bucket_limits: &[f64],
+                     bucket_counts: &[f64],
+) -> Summary {
+    let mut hist = HistogramProto::new();
+    hist.set_min(min);
+    hist.set_max(max);
+    hist.set_num(num);
+    hist.set_sum(sum);
+    hist.set_sum_squares(sum_squares);
+    hist.set_bucket_limit(bucket_limits.to_vec());
+    hist.set_bucket(bucket_counts.to_vec());
+    
+    let mut value = Summary_Value::new();
+    value.set_tag(name.to_string());
+    value.set_histo(hist);
 
     let values = RepeatedField::from(vec![value]);
     let mut summary = Summary::new();

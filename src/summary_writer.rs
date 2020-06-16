@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use crate::event_file_writer::EventFileWriter;
 use crate::proto::event::Event;
 use crate::proto::summary::{Summary};
-use crate::summary::{scalar, image};
+use crate::summary::{scalar, image, histogram_raw};
 
 
 pub struct FileWriter {
@@ -75,7 +75,20 @@ impl SummaryWriter {
 
     pub fn export_scalars_to_json(&self) {unimplemented!();}
     pub fn add_histogram(&mut self) {unimplemented!();}
-    pub fn add_histogram_raw(&mut self) {unimplemented!();}
+    pub fn add_histogram_raw(&mut self,
+                             tag: &str,
+                             min: f64, max: f64,
+                             num: f64,
+                             sum: f64, sum_squares: f64,
+                             bucket_limits: &[f64], bucket_counts: &[f64],
+                             step: usize
+    ) {
+        if bucket_limits.len() != bucket_counts.len() {
+            panic!("bucket_limits.len() != bucket_counts.len()");
+        }
+
+        self.writer.add_summary(histogram_raw(tag, min, max, num, sum, sum_squares, bucket_limits, bucket_counts), step);
+    }
     pub fn add_image(&mut self, tag: &str, data: &[u8], dim: &[usize], step: usize) {
         self.writer.add_summary(image(tag, data, dim), step);
     }
