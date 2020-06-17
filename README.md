@@ -5,9 +5,23 @@
 
 ## Introduction
 
-This is a auto-difference based learning library.
+This is an auto-difference based learning library.
 
-## Install
+## Features
+
+- A type less tensor.
+- Variable over tensor with support for back propagation.
+- Support for common operators, including convolution.
+
+## Usage
+
+### Use this crate
+
+Append this line to your `Cargo.toml`.
+
+```
+auto-diff = "0.3.3"
+```
 
 ## Example
 
