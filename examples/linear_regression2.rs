@@ -29,15 +29,13 @@ fn main() {
     
     let loss_func = m.mseloss();
     
-    let x = m.var();
-    let y = block.call(&[&x]);
-    let loss = loss_func.call(&[&y, &m.var_value(label)]);
     let mut opt = SGD::new(0.2);
 
-    x.set(data);
     for i in 0..100 {
-        m.forward();
-        m.backward(-1.);
+        let input = m.var_value(data.clone());
+        let y = block.call(&[&input]);
+        let loss = loss_func.call(&[&y, &m.var_value(label.clone())]);
+        loss.backward(-1.);
         opt.step2(&block);
     }
     

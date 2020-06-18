@@ -43,7 +43,12 @@ impl Module {
 
     pub fn func<F>(&self, ops: &[&Func], closure: F) -> Func
     where F: Fn(&[&Var]) -> Var{
-        Func::new()
+
+        
+        let sub_ops = Vec::new();
+        let id = self.net.borrow_mut().init_func(&sub_ops);
+        let ret = Func::new(id, self.net.clone());
+        ret
     }
     
     pub fn rm_var(&mut self, var: &Var) {
@@ -82,17 +87,22 @@ impl Module {
         self.net.borrow_mut().visit_op(closure, None, None);
     }
 
+    //
     // concrete Func
+    //
     pub fn linear(&self, in_features: Option<usize>,
                   out_features: Option<usize>,
                   bias: bool) -> Func {
         let op = Linear::new(in_features, out_features, bias);
         let id = self.net.borrow_mut().init_op(Op::new(Box::new(op)));
-        
-        Func::new()
+        let ret = Func::new(id, self.net.clone());
+        ret
     }
     pub fn mseloss(&self) -> Func {
-        Func::new()
+        let op = MSELoss::new();
+        let id = self.net.borrow_mut().init_op(Op::new(Box::new(op)));
+        let ret = Func::new(id, self.net.clone());
+        ret
     }
 }
 
@@ -118,6 +128,7 @@ macro_rules! var_op_method {
 
 impl Var {
     pub fn new() -> Var {
+        println!("Var::new() create a unattached variable, This is usually not what we want.");
         Var {
             id: NetIndex::new(0, 0),
             net: Rc::new(RefCell::new(Net::new())),
@@ -126,6 +137,7 @@ impl Var {
 
     // return a var with association with the network.
     pub fn new_attached(&self) -> Var {
+        println!("Deprecated! Var::new_attached");
         let mut new_var = Var::new();
 
         // The following two lines need to go together.
@@ -182,6 +194,10 @@ impl Var {
         result
     }
 
+    pub fn backward(&self, og: f64) {
+        
+    }
+
     // uplift method from Tensor to Var
     pub fn size(&self) -> Vec<usize> {
         self.net.borrow().get_data().get(&self.id).expect("").size()
@@ -208,6 +224,12 @@ impl fmt::Display for Var {
     }
 }
 
+impl Drop for Var {
+    fn drop(&mut self) {
+        self.net.borrow_mut().del_var(&self);
+    }
+}
+
 // uplift loss function from op to here.
 pub fn mseloss(a: &Var, b: &Var) -> Var {
     let result = a.new_attached();
@@ -225,20 +247,44 @@ pub fn crossentropyloss(predict: &Var, label: &Var) -> Var {
     result
 }
 
-
+///
+/// User facing struct representing concrete ops and composed functions.
+///
 pub struct Func {
     id: NetIndex,
     net: Rc<RefCell<Net>>,
 }
 impl Func {
-    pub fn new() -> Func {
+    pub fn default() -> Func {
         Func {
             id: NetIndex::new(0, 0),
             net: Rc::new(RefCell::new(Net::new())),
         }
     }
+
+    pub fn new(id: NetIndex, net: Rc<RefCell<Net>>) -> Func {
+        Func {
+            id: id,
+            net: net,
+        }
+    }
+
+    pub fn get_id(&self) -> &NetIndex {
+        &self.id
+    }
+
     pub fn call(&self, input: &[&Var]) -> Var {
-        Var::new()
+        //
+        // Ask graph to see is this Func is concrete or composed.
+        // If this is concrete,
+        //     1. connect the input and output variable in graph.
+        //     2. do real computation.
+        // If this is composed.
+        //     1. call the closure.
+        //
+        
+        let ret = Var::new();
+        ret
     }
 
     // This is for optimizer call over concrete ops
@@ -260,7 +306,22 @@ impl Func {
     }
 }
 
+impl fmt::Display for Func {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "(Func: {}, {})",
+            self.id,
+            1
+        )
+    }
+}
 
+impl Drop for Func {
+    fn drop(&mut self) {
+        self.net.borrow_mut().del_func_or_op(&self);
+    }
+}
 
 
 #[cfg(test)]

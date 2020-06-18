@@ -61,6 +61,9 @@ impl Net {
         id
     }
 
+    ///
+    /// For Module::func, insert a new composed func.
+    ///
     pub fn init_func(&mut self, funcs: &[NetIndex]) -> NetIndex {
         let id = self.ops.insert(Op::nop());
         self.graph.add_op(&id).expect("");
@@ -68,8 +71,40 @@ impl Net {
         id
     }
 
+    ///
+    /// Remove a concrete op or composed func from the graph.
+    ///
+    pub fn del_func_or_op(&mut self, func: &Func) {
+        self.ops.remove(func.get_id()).expect("");
+        self.graph.del_op(func.get_id()).expect("");
+
+        //
+        // The following dosen't work 
+        // because if the composed goes out of scope doesn't mean
+        //     its member ops go out of scope.
+        //
+        // Check to see the func type.
+        // If it is a op, delete it
+        // If it is a func, find all the underlying op
+        //     and var in between and remove them.
+        //
+
+    }
+
     pub fn get_sub_func(&self, func: NetIndex) -> Vec<NetIndex> {
         self.funcs.get(&func).expect("").to_vec()
+    }
+
+    pub fn is_composed(&self, func: &Func) -> Result<bool, ()> {
+        if self.ops.contains(func.get_id()) {
+            if self.funcs.get(func.get_id()).expect("").len() > 0 {
+                Ok(true)
+            } else {
+                Ok(false)
+            }
+        } else {
+            Err(())
+        }
     }
 
     /// Build input-operator-output relation, with given components.

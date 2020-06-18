@@ -46,6 +46,17 @@ impl<T> GenIndex<T> {
         self.available = Vec::new();
     }
 
+    ///
+    /// Check if a key is in the collection
+    ///
+    pub fn contains(&self, index: &NetIndex) -> bool {
+        if index.id < self.generation.len() && self.generation[index.id] == index.gen {
+            true
+        } else {
+            false
+        }
+    }
+
     /// Return the registered item
     pub fn get(&self, index: &NetIndex) -> Option<&T> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {

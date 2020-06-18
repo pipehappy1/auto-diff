@@ -173,8 +173,10 @@ impl Graph {
         }
     }
 
+    ///
     /// Walk through the graph with a starting set of data nodes.
     /// Go through backwards if forward is false.
+    ///
     pub fn walk<F>(&self, start_set: &[NetIndex],
                    forward: bool,
                    closure: F) -> Result<(), BTreeSet<NetIndex>>
