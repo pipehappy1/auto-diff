@@ -38,8 +38,43 @@ pub trait OpTrait {
     fn get_grads(&self) -> Vec<&Tensor>;
 }
 
+pub struct Nop {
+}
+impl OpTrait for Nop {
+    fn get_name(&self) -> String {
+        "Nop".to_string()
+    }
+    fn get_input_size(&self) -> usize {
+        0
+    }
+    fn get_output_size(&self) -> usize {
+        0
+    }
 
-/// Op is the Rc wrapper of OpTraint
+    /// Forward pass
+    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+        
+    }
+    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+        
+    }
+
+    /// access weight values
+    fn get_values(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+    fn set_values(&self, v: &[Tensor]) {
+        
+    }
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+}
+
+///
+/// Op is the Rc wrapper of typed op trait
+///
 pub struct Op {
     o: Rc<RefCell<Box<dyn OpTrait>>>,
 }
@@ -47,6 +82,12 @@ impl Op {
     pub fn new(o: Box<dyn OpTrait>) -> Self {
         Op {
             o: Rc::new(RefCell::new(o)),
+        }
+    }
+
+    pub fn nop() -> Self {
+        Op {
+            o: Rc::new(RefCell::new(Box::new(Nop{}))),
         }
     }
 
@@ -90,7 +131,9 @@ impl Clone for Op {
     }
 }
 
-// check right gradient
+///
+/// Verify the gradient implementation is right.
+///
 pub fn _gradient_checker(op: &mut dyn OpTrait,
                          one_input: &[&Tensor], input_mask: Option<&[bool]>,
                          step: Option<f32>, tolerance: Option<f32>) -> bool {
@@ -170,6 +213,9 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
     good_gradient
 }
 
+///
+/// View op
+///
 pub struct View {
     shape: Vec<usize>,
 }

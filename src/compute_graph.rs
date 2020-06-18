@@ -11,6 +11,7 @@ use crate::var::*;
 pub struct Net {
     data: GenIndex<Tensor>,
     ops: GenIndex<Op>,
+    funcs: BTreeMap<NetIndex, Vec<NetIndex>>, // for func composition
     set_mark: BTreeSet<NetIndex>,
     graph: Graph,
     data_grad: BTreeMap<NetIndex, Tensor>,
@@ -21,6 +22,7 @@ impl Net {
         Net {
             data: GenIndex::new(),
             ops: GenIndex::new(),
+            funcs: BTreeMap::new(),
             set_mark: BTreeSet::new(),
             graph: Graph::new(),
             data_grad: BTreeMap::new(),
@@ -55,7 +57,19 @@ impl Net {
     pub fn init_op(&mut self, op: Op) -> NetIndex {
         let id = self.ops.insert(op.clone());
         self.graph.add_op(&id).expect("");
+        self.funcs.insert(id.clone(), Vec::new());
         id
+    }
+
+    pub fn init_func(&mut self, funcs: &[NetIndex]) -> NetIndex {
+        let id = self.ops.insert(Op::nop());
+        self.graph.add_op(&id).expect("");
+        self.funcs.insert(id.clone(), funcs.to_vec());
+        id
+    }
+
+    pub fn get_sub_func(&self, func: NetIndex) -> Vec<NetIndex> {
+        self.funcs.get(&func).expect("").to_vec()
     }
 
     /// Build input-operator-output relation, with given components.
@@ -180,10 +194,25 @@ impl Net {
     }
 
     /// Iterate over all ops, no order guarantee
-    pub fn visit_op<F>(&mut self, closure: F)
+    pub fn visit_op<F>(&mut self, closure: F,
+                       allow: Option<Vec<NetIndex>>,
+                       skip: Option<Vec<NetIndex>>)
     where F: Fn(&Op) {
+        let mut allow_list = Vec::new();
+        let mut skip_list = Vec::new();
+        if allow.is_some() {
+            allow_list = allow.unwrap();
+        }
+        if skip.is_some() {
+            skip_list = skip.unwrap();
+        }
+        
         for i in self.graph.list_op() {
-            closure(self.ops.get(&i).expect(""));
+            if (allow_list.len() == 0 && skip_list.len() == 0) ||
+                (allow_list.len() != 0 && allow_list.contains(&i)) ||
+                (skip_list.len() != 0 && !skip_list.contains(&i) ) {
+                    closure(self.ops.get(&i).expect(""));
+            }
         }
     }
 

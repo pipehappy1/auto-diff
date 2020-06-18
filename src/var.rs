@@ -34,6 +34,18 @@ impl Module {
         }
         new_var
     }
+
+    pub fn var_value(&mut self, v: Tensor) -> Var {
+        let ret = self.var();
+        ret.set(v);
+        ret
+    }
+
+    pub fn func<F>(&self, ops: &[&Func], closure: F) -> Func
+    where F: Fn(&[&Var]) -> Var{
+        Func::new()
+    }
+    
     pub fn rm_var(&mut self, var: &Var) {
         self.net.borrow_mut().del_var(var);
         drop(var);
@@ -67,7 +79,20 @@ impl Module {
     /// iterator over all op node.
     pub fn _visit_op<F>(&self, closure: F)
     where F: Fn(&Op) {
-        self.net.borrow_mut().visit_op(closure);
+        self.net.borrow_mut().visit_op(closure, None, None);
+    }
+
+    // concrete Func
+    pub fn linear(&self, in_features: Option<usize>,
+                  out_features: Option<usize>,
+                  bias: bool) -> Func {
+        let op = Linear::new(in_features, out_features, bias);
+        let id = self.net.borrow_mut().init_op(Op::new(Box::new(op)));
+        
+        Func::new()
+    }
+    pub fn mseloss(&self) -> Func {
+        Func::new()
     }
 }
 
@@ -99,6 +124,7 @@ impl Var {
         }
     }
 
+    // return a var with association with the network.
     pub fn new_attached(&self) -> Var {
         let mut new_var = Var::new();
 
@@ -199,6 +225,40 @@ pub fn crossentropyloss(predict: &Var, label: &Var) -> Var {
     result
 }
 
+
+pub struct Func {
+    id: NetIndex,
+    net: Rc<RefCell<Net>>,
+}
+impl Func {
+    pub fn new() -> Func {
+        Func {
+            id: NetIndex::new(0, 0),
+            net: Rc::new(RefCell::new(Net::new())),
+        }
+    }
+    pub fn call(&self, input: &[&Var]) -> Var {
+        Var::new()
+    }
+
+    // This is for optimizer call over concrete ops
+    pub fn _visit_op<F>(&self, closure: F)
+    where F: Fn(&Op) {
+        let mut todo_funcs = vec![self.id];
+        let mut all_ops: Vec<NetIndex> = Vec::new();
+        while todo_funcs.len() > 0 {
+            let todo_func = todo_funcs.pop().expect("");
+            let sub_funcs = self.net.borrow().get_sub_func(todo_func);
+            if sub_funcs.len() == 0 { // this is a concrete Func
+                all_ops.push(todo_func);
+            } else { // this is a composed Func
+                todo_funcs.extend(&sub_funcs);
+            }
+        }
+
+        self.net.borrow_mut().visit_op(closure, Some(all_ops), None);
+    }
+}
 
 
 
