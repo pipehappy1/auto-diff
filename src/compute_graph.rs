@@ -41,6 +41,18 @@ impl Net {
         &self.data_grad
     }
 
+    ///
+    /// Return one output variable id if there is one.
+    ///
+    pub fn get_func_output(&self, func: &Func) -> Option<NetIndex> {
+        let outputs = self.graph.list_output(func.get_id()).ok()?;
+        if outputs.len() > 0 {
+            Some(outputs[0])            
+        } else {
+            None
+        }
+    }
+
     /// Insert an empty var into the network.
     pub fn init_var(&mut self, var: &mut Var) {
         let id = self.data.insert(Tensor::new());
@@ -91,10 +103,17 @@ impl Net {
 
     }
 
+    ///
+    /// Return a vec of sub ops for the given op.
+    /// Empty should be returned if the input is a concrete op.
+    ///
     pub fn get_sub_func(&self, func: NetIndex) -> Vec<NetIndex> {
         self.funcs.get(&func).expect("").to_vec()
     }
 
+    ///
+    /// Check the func is concrete or not.
+    ///
     pub fn is_composed(&self, func: &Func) -> Result<bool, ()> {
         if self.ops.contains(func.get_id()) {
             if self.funcs.get(func.get_id()).expect("").len() > 0 {
@@ -107,10 +126,28 @@ impl Net {
         }
     }
 
+    ///
     /// Build input-operator-output relation, with given components.
+    ///
     pub fn connect(&mut self, input: &[NetIndex], op: Op, output: &[NetIndex]) {
+        println!("Deprecated! Graph::connect");
         let opid = self.init_op(op);
         self.graph.connect(input, output, &opid).expect("");
+    }
+
+    pub fn connect2(&mut self, input: &[&Var], func: &Func, output: &[&Var]) {
+        // connect if there is not connection.
+        // do nothing if there is already a connection.
+        let mut input_ids = Vec::with_capacity(input.len());
+        for i in input {
+            input_ids.push(i.get_id().clone());
+        }
+        let mut output_ids = Vec::with_capacity(output.len());
+        for i in output {
+            output_ids.push(i.get_id().clone());
+        }
+        
+        self.graph.connect(&input_ids, &output_ids, func.get_id()).expect("");
     }
 
     /// set the set_mark, set_mark is used to label var with input value with it.
@@ -128,6 +165,7 @@ impl Net {
 
     /// Forward evaluate the computaiton graph.
     pub fn eval(&mut self) -> Result<(), BTreeSet<NetIndex>> {
+        println!("Deprecated! no more whole network forward pass.");
         let mut all_input = Vec::new();
         for i in &self.set_mark {
             all_input.push(i.clone());
@@ -163,6 +201,25 @@ impl Net {
             )?;
 
         Ok(())
+    }
+
+    pub fn eval_op(&self, input: &[&Var], func: &Func, output: &[&Var]) {
+        let mut inputs: Vec<&Tensor> = Vec::new();
+        for input_var in input {
+            let a = self.data.get(input_var.get_id()).expect("");
+            inputs.push(a);
+        }
+
+        let mut outputs: Vec<&Tensor> = Vec::new();
+        for output_var in output {
+            let a = self.data.get(output_var.get_id()).expect("");
+            outputs.push(a);
+        }
+
+        self.ops
+            .get(func.get_id())
+            .expect("")
+            .apply(&inputs, &outputs);
     }
 
     pub fn bptt_scale(&mut self, r: f32) {

@@ -25,7 +25,7 @@ impl Module {
 
     /// Create a new variable.
     pub fn var(&mut self) -> Var {
-        let mut new_var = Var::new();
+        let mut new_var = Var::_default();
 
         // The following two lines need to go together.
         {
@@ -41,13 +41,15 @@ impl Module {
         ret
     }
 
+    ///
+    /// Create a composed function with the given closure.
+    ///
     pub fn func<F>(&self, ops: &[&Func], closure: F) -> Func
-    where F: Fn(&[&Var]) -> Var{
-
+    where F: Fn(&[&Var]) -> Var {
         
         let sub_ops = Vec::new();
         let id = self.net.borrow_mut().init_func(&sub_ops);
-        let ret = Func::new(id, self.net.clone());
+        let ret = Func::_new(id, self.net.clone(), None);
         ret
     }
     
@@ -95,13 +97,13 @@ impl Module {
                   bias: bool) -> Func {
         let op = Linear::new(in_features, out_features, bias);
         let id = self.net.borrow_mut().init_op(Op::new(Box::new(op)));
-        let ret = Func::new(id, self.net.clone());
+        let ret = Func::_new(id, self.net.clone(), None);
         ret
     }
     pub fn mseloss(&self) -> Func {
         let op = MSELoss::new();
         let id = self.net.borrow_mut().init_op(Op::new(Box::new(op)));
-        let ret = Func::new(id, self.net.clone());
+        let ret = Func::_new(id, self.net.clone(), None);
         ret
     }
 }
@@ -127,7 +129,7 @@ macro_rules! var_op_method {
 }
 
 impl Var {
-    pub fn new() -> Var {
+    pub fn _default() -> Var {
         println!("Var::new() create a unattached variable, This is usually not what we want.");
         Var {
             id: NetIndex::new(0, 0),
@@ -136,9 +138,12 @@ impl Var {
     }
 
     // return a var with association with the network.
+    ///
+    /// Create a variable using an existing variable.
+    ///
     pub fn new_attached(&self) -> Var {
         println!("Deprecated! Var::new_attached");
-        let mut new_var = Var::new();
+        let mut new_var = Var::_default();
 
         // The following two lines need to go together.
         {
@@ -148,10 +153,27 @@ impl Var {
         new_var
     }
 
+    ///
+    /// Create a variable given the network.
+    /// This is for whoever has a network handler.
+    ///
+    pub fn new_variable(net: Rc<RefCell<Net>>) -> Var {
+        let mut ret = Var::_default();
+        ret.net = net.clone();
+        net.borrow_mut().init_var(&mut ret);
+        ret
+    }
+
+    ///
+    /// Getter for the id member.
+    ///
     pub fn get_id(&self) -> &NetIndex {
         &self.id
     }
 
+    ///
+    /// Setter for the id member.
+    ///
     pub fn set_id(&mut self, new_id: NetIndex) {
         self.id = new_id;
     }
@@ -253,19 +275,24 @@ pub fn crossentropyloss(predict: &Var, label: &Var) -> Var {
 pub struct Func {
     id: NetIndex,
     net: Rc<RefCell<Net>>,
+    closure: Option<Box<dyn Fn(&[&Var]) -> Var>>,
 }
 impl Func {
-    pub fn default() -> Func {
+    pub fn _default() -> Func {
         Func {
             id: NetIndex::new(0, 0),
             net: Rc::new(RefCell::new(Net::new())),
+            closure: None,
         }
     }
 
-    pub fn new(id: NetIndex, net: Rc<RefCell<Net>>) -> Func {
+    pub fn _new(id: NetIndex,
+                net: Rc<RefCell<Net>>,
+                closure: Option<Box<dyn Fn(&[&Var]) -> Var>>) -> Func {
         Func {
             id: id,
             net: net,
+            closure: closure,
         }
     }
 
@@ -282,9 +309,32 @@ impl Func {
         // If this is composed.
         //     1. call the closure.
         //
+        // If there is already a output variable, it SHOULD be reused.
+
+        //
+        // If there is already an output variable associated with this
+        // Func, just use it.
+        //
         
-        let ret = Var::new();
-        ret
+
+        if self.closure.is_some() {
+            return (self.closure.as_ref().unwrap())(input);
+        } else {
+            let mut ret;
+            let existing_output = self.net.borrow().get_func_output(&self);
+            if existing_output.is_some() {
+                ret = Var::_default();
+                ret.set_id(existing_output.unwrap());
+            } else {
+                ret = Var::new_variable(self.net.clone());
+            }
+
+            self.net.borrow_mut().connect2(input, &self, &[&ret]);
+
+            self.net.borrow().eval_op(input, &self, &[&ret]);
+
+            return ret;
+        }
     }
 
     // This is for optimizer call over concrete ops

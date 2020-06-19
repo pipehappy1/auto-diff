@@ -42,6 +42,19 @@ impl Graph {
         ret
     }
 
+    ///
+    /// Return a list of data as the output of the op.
+    ///
+    pub fn list_output(&self, func: &NetIndex) -> Result<Vec<NetIndex>, &str> {
+        if !self.op.contains(func) {
+            Err("Bad func id.")
+        } else {
+            let ret: Vec<NetIndex> = self.forward_op_dt.get(func).expect("").
+                iter().map(|x| x.clone()).collect();
+            Ok(ret)
+        }
+    }
+
     /// Add a data node.
     /// ```
     /// # use auto_diff::collection::graph::*;
