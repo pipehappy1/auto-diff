@@ -20,6 +20,10 @@ fn main() {
     let mut m = Module::new();
     
     let op1 = m.linear(Some(2), Some(1), true);
+    let weights = op1.get_values().unwrap();
+    rng.normal_(&weights[0], 0., 1.);
+    rng.normal_(&weights[1], 0., 1.);
+    op1.set_values(&weights);
     let block = m.func(
         move |x| {
             op1.call(x)
@@ -38,51 +42,10 @@ fn main() {
         let y = block.call(&[&input]);
         
         let loss = loss_func.call(&[&y, &m.var_value(label.clone())]);
-
+        println!("{}", loss.get().get_scale_f32());
+        
         loss.backward(-1.);
         opt.step2(&block);
 
     }
-    
-    
-    
-    //
-    //let y = func(&data);
-    //// println!("LR: {}", y);
-    //let op = Linear::new(Some(2), Some(1), true);
-    //rng.normal_(op.weight(), 0., 1.);
-    //rng.normal_(op.bias(), 0., 1.);
-    //
-    //// Good is good.
-    ////let good_weight = Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1]);
-    ////let good_bias = Tensor::from_vec_f32(&vec![0.], &vec![1]);
-    ////op.weight().swap(good_weight);
-    ////op.bias().swap(good_bias);
-    //
-    //let linear = Op::new(Box::new(op));
-    //
-    //
-    //let input = m.var();
-    //let output = input.to(&linear);
-    //let label = m.var();
-    //
-    //let loss = mseloss(&output, &label);
-    //
-    //input.set(x);
-    //label.set(y);
-    //
-    //let mut opt = SGD::new(0.2);
-    //
-    //for i in 0..100 {
-    //    m.forward();
-    //    m.backward(-1.);
-    //
-    //    println!("{}", loss.get().get_scale_f32());
-    //
-    //    opt.step(&m);
-    //
-    //    let weights = linear.get_values();
-    //    println!("{:?}, {:?}", weights[0], weights[1]);
-    //}
-
 }

@@ -103,11 +103,18 @@ impl Module {
     }
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub enum VarCmd{
+    Nop,
+    Save,
+    Load,
+}
 
 /// Introduce variable to the system by creating Var
 pub struct Var {
     id: NetIndex,
     net: Rc<RefCell<Net>>,
+    cmd: VarCmd,
 }
 
 macro_rules! var_op_method {
@@ -129,6 +136,7 @@ impl Var {
         Var {
             id: NetIndex::new(0, 0),
             net: Rc::new(RefCell::new(Net::new())),
+            cmd: VarCmd::Nop,
         }
     }
 
@@ -136,6 +144,7 @@ impl Var {
         Var {
             id: id,
             net: net,
+            cmd: VarCmd::Nop,
         }
     }
 
@@ -341,30 +350,38 @@ impl Func {
         }
     }
 
-    //pub fn get_values(&self) -> Option<Vec<&Tensor>> {
-    //    if self.closure.is_some() {
-    //        None
-    //    } else {
-    //        Some(self.net.borrow().get_op(&self).unwrap().get_values())
-    //    }
-    //}
+    pub fn get_values(&self) -> Option<Vec<Tensor>> {
+        if self.closure.is_some() {
+            None
+        } else {
+            Some(self.net.borrow().get_op(&self).unwrap().get_values())
+        }
+    }
+    pub fn set_values(&self, data: &[Tensor]) {
+        if self.closure.is_some() {
+            panic!("set value for composed func is not yet there");
+        } else {
+            self.net.borrow().get_op(&self).unwrap().set_values(data);
+        }
+    }
 
     // This is for optimizer call over concrete ops
     pub fn _visit_op<F>(&self, closure: F)
     where F: Fn(&Op) {
-        let mut todo_funcs = vec![self.id];
-        let mut all_ops: Vec<NetIndex> = Vec::new();
-        while todo_funcs.len() > 0 {
-            let todo_func = todo_funcs.pop().expect("");
-            let sub_funcs = self.net.borrow().get_sub_func(todo_func);
-            if sub_funcs.len() == 0 { // this is a concrete Func
-                all_ops.push(todo_func);
-            } else { // this is a composed Func
-                todo_funcs.extend(&sub_funcs);
-            }
-        }
+        //let mut todo_funcs = vec![self.id];
+        //let mut all_ops: Vec<NetIndex> = Vec::new();
+        //while todo_funcs.len() > 0 {
+        //    let todo_func = todo_funcs.pop().expect("");
+        //    let sub_funcs = self.net.borrow().get_sub_func(todo_func);
+        //    if sub_funcs.len() == 0 { // this is a concrete Func
+        //        all_ops.push(todo_func);
+        //    } else { // this is a composed Func
+        //        todo_funcs.extend(&sub_funcs);
+        //    }
+        //}
 
-        self.net.borrow_mut().visit_op(closure, Some(all_ops), None);
+        //self.net.borrow_mut().visit_op(closure, Some(all_ops), None);
+        self.net.borrow_mut().visit_op(closure, None, None);
     }
 }
 
