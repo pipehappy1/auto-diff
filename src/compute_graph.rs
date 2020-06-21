@@ -71,10 +71,10 @@ impl Net {
     }
 
     /// Insert an empty var into the network.
-    pub fn init_var(&mut self, var: &mut Var) {
+    pub fn init_var(&mut self) -> NetIndex {
         let id = self.data.insert(Tensor::new());
         self.graph.add_data(&id).expect("");
-        var.set_id(id);
+        id
     }
 
     pub fn del_var(&mut self, var: &Var) {

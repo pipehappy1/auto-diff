@@ -25,14 +25,7 @@ impl Module {
 
     /// Create a new variable.
     pub fn var(&mut self) -> Var {
-        let mut new_var = Var::_default();
-
-        // The following two lines need to go together.
-        {
-            self.net.borrow_mut().init_var(&mut new_var);
-            new_var.net = Rc::clone(&self.net);
-        }
-        new_var
+        Var::_new(self.net.borrow_mut().init_var(), self.net.clone())
     }
 
     pub fn var_value(&mut self, v: Tensor) -> Var {
@@ -152,14 +145,7 @@ impl Var {
     ///
     pub fn new_attached(&self) -> Var {
         println!("Deprecated! Var::new_attached");
-        let mut new_var = Var::_default();
-
-        // The following two lines need to go together.
-        {
-            self.net.borrow_mut().init_var(&mut new_var);
-            new_var.net = Rc::clone(&self.net);
-        }
-        new_var
+        Var::_new(self.net.borrow_mut().init_var(), self.net.clone())
     }
 
     ///
@@ -167,10 +153,7 @@ impl Var {
     /// This is for whoever has a network handler.
     ///
     pub fn new_variable(net: Rc<RefCell<Net>>) -> Var {
-        let mut ret = Var::_default();
-        ret.net = net.clone();
-        net.borrow_mut().init_var(&mut ret);
-        ret
+        Var::_new(net.borrow_mut().init_var(), net.clone())
     }
 
     ///
@@ -258,10 +241,9 @@ impl fmt::Display for Var {
 
 impl Drop for Var {
     fn drop(&mut self) {
-        let net = self.net.borrow();
-        let result = net.is_dangling_var(&self);
+        let result = self.net.borrow().is_dangling_var(&self);
         if result.ok().is_some() && result.ok().unwrap() {
-            self.net.borrow_mut().del_var(&self);            
+            self.net.borrow_mut().del_var(&self);
         }
     }
 }

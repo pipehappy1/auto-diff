@@ -41,6 +41,7 @@ fn main() {
 
         loss.backward(-1.);
         opt.step2(&block);
+
     }
     
     
