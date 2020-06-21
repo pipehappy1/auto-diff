@@ -44,12 +44,12 @@ impl Module {
     ///
     /// Create a composed function with the given closure.
     ///
-    pub fn func<F>(&self, ops: &[&Func], closure: F) -> Func
+    pub fn func<F: 'static>(&self, closure: F) -> Func
     where F: Fn(&[&Var]) -> Var {
         
         let sub_ops = Vec::new();
         let id = self.net.borrow_mut().init_func(&sub_ops);
-        let ret = Func::_new(id, self.net.clone(), None);
+        let ret = Func::_new(id, self.net.clone(), Some(Box::new(closure)));
         ret
     }
     
@@ -60,11 +60,13 @@ impl Module {
 
     /// Try best evaluation of the computation graph.
     pub fn eval(&self) {
+        println!("Deprecated");
         self.net.borrow_mut().eval().expect("");
     }
     
     /// Same as eval
-    pub fn forward(&self) { 
+    pub fn forward(&self) {
+        println!("Deprecated");
         self.net.borrow_mut().eval().expect("");
     }
 
@@ -80,7 +82,7 @@ impl Module {
 
     /// iterator over all data node.
     pub fn _visit_data<F>(&self, closure: F)
-    where F: Fn(&Op) {
+    where F: Fn(NetIndex, &Tensor) {
         self.net.borrow_mut().visit_data(closure);
     }
     /// iterator over all op node.
@@ -134,6 +136,13 @@ impl Var {
         Var {
             id: NetIndex::new(0, 0),
             net: Rc::new(RefCell::new(Net::new())),
+        }
+    }
+
+    pub fn _new(id: NetIndex, net: Rc<RefCell<Net>>) -> Var {
+        Var {
+            id: id,
+            net: net,
         }
     }
 
@@ -216,8 +225,9 @@ impl Var {
         result
     }
 
-    pub fn backward(&self, og: f64) {
-        
+    pub fn backward(&self, og: f32) {
+        // TODO: make more reasonable
+        self.net.borrow_mut().bptt_scale(og);
     }
 
     // uplift method from Tensor to Var
@@ -248,7 +258,11 @@ impl fmt::Display for Var {
 
 impl Drop for Var {
     fn drop(&mut self) {
-        self.net.borrow_mut().del_var(&self);
+        let net = self.net.borrow();
+        let result = net.is_dangling_var(&self);
+        if result.ok().is_some() && result.ok().unwrap() {
+            self.net.borrow_mut().del_var(&self);            
+        }
     }
 }
 
@@ -304,7 +318,7 @@ impl Func {
         //
         // Ask graph to see is this Func is concrete or composed.
         // If this is concrete,
-        //     1. connect the input and output variable in graph.
+        //     1. connect the input and output variable in graph, replaceing old input.
         //     2. do real computation.
         // If this is composed.
         //     1. call the closure.
@@ -315,18 +329,26 @@ impl Func {
         // If there is already an output variable associated with this
         // Func, just use it.
         //
-        
 
         if self.closure.is_some() {
             return (self.closure.as_ref().unwrap())(input);
+            
         } else {
-            let mut ret;
+            let ret;
             let existing_output = self.net.borrow().get_func_output(&self);
             if existing_output.is_some() {
-                ret = Var::_default();
-                ret.set_id(existing_output.unwrap());
+                ret = Var::_new(existing_output.unwrap(), self.net.clone());
             } else {
                 ret = Var::new_variable(self.net.clone());
+            }
+
+            let decoupled_input_ids = self.net.borrow_mut().decouple_input(&self);
+            for input_id in decoupled_input_ids {
+                let the_input = Var::_new(input_id, self.net.clone());
+                let result = self.net.borrow().is_dangling_var(&the_input);
+                if result.ok().is_some() && result.ok().unwrap() {
+                    self.net.borrow_mut().del_var(&the_input);
+                }
             }
 
             self.net.borrow_mut().connect2(input, &self, &[&ret]);
@@ -336,6 +358,14 @@ impl Func {
             return ret;
         }
     }
+
+    //pub fn get_values(&self) -> Option<Vec<&Tensor>> {
+    //    if self.closure.is_some() {
+    //        None
+    //    } else {
+    //        Some(self.net.borrow().get_op(&self).unwrap().get_values())
+    //    }
+    //}
 
     // This is for optimizer call over concrete ops
     pub fn _visit_op<F>(&self, closure: F)

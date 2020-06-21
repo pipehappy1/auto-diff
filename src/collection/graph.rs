@@ -43,6 +43,45 @@ impl Graph {
     }
 
     ///
+    /// Return the list of ops that the given variable is the input.
+    ///
+    pub fn list_as_input(&self, var: &NetIndex) -> Result<Vec<NetIndex>, &str> {
+        if !self.data.contains(var) {
+            Err("Not a valid variable/data")
+        } else {
+            let ret: Vec<NetIndex> = self.forward_dt_op.get(var).expect("")
+                .iter().map(|x| x.clone()).collect();
+            Ok(ret)
+        }
+    }
+
+    ///
+    /// Return the list of ops that the given variable is the output.
+    ///
+    pub fn list_as_output(&self, var: &NetIndex) -> Result<Vec<NetIndex>, &str> {
+        if !self.data.contains(var) {
+            Err("Not a valid variable/data")
+        } else {
+            let ret: Vec<NetIndex> = self.backward_dt_op.get(var).expect("")
+                .iter().map(|x| x.clone()).collect();
+            Ok(ret)
+        }
+    }
+
+    ///
+    /// Return the list of input given the func.
+    ///
+    pub fn list_input(&self, func: &NetIndex) -> Result<Vec<NetIndex>, &str> {
+        if !self.op.contains(func) {
+            Err("Bad func id.")
+        } else {
+            let ret: Vec<NetIndex> = self.backward_op_dt.get(func).expect("").
+                iter().map(|x| x.clone()).collect();
+            Ok(ret)
+        }
+    }
+
+    ///
     /// Return a list of data as the output of the op.
     ///
     pub fn list_output(&self, func: &NetIndex) -> Result<Vec<NetIndex>, &str> {
@@ -124,6 +163,32 @@ impl Graph {
             Err("op id is not found!")
         }
 
+    }
+
+    ///
+    /// Decouple input variable and op
+    ///
+    pub fn decouple_data_func(&mut self, var: &NetIndex, func: &NetIndex) -> Result<(), ()> {
+        if self.data.contains(var) && self.op.contains(func) {
+            self.forward_dt_op.get_mut(var).expect("").remove(func);
+            self.backward_op_dt.get_mut(func).expect("").remove(var);
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+
+    ///
+    /// Decouple op and output variable
+    ///
+    pub fn decouple_func_data(&mut self, func: &NetIndex, var: &NetIndex) -> Result<(), ()> {
+        if self.data.contains(var) && self.op.contains(func) {
+            self.forward_op_dt.get_mut(func).expect("").remove(var);
+            self.backward_dt_op.get_mut(var).expect("").remove(func);
+            Ok(())
+        } else {
+            Err(())
+        }
     }
 
     /// list data node without upstream op node in a set.

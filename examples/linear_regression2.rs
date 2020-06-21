@@ -10,7 +10,7 @@ fn main() {
         input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1]))
     }
 
-    let N = 10000;
+    let N = 10;
     let mut rng = RNG::new();
     rng.set_seed(123);
     let data = rng.normal(&vec![N, 2], 0., 2.);
@@ -21,8 +21,7 @@ fn main() {
     
     let op1 = m.linear(Some(2), Some(1), true);
     let block = m.func(
-        &[&op1],
-        |x| {
+        move |x| {
             op1.call(x)
         }
     );
@@ -31,10 +30,15 @@ fn main() {
     
     let mut opt = SGD::new(0.2);
 
-    for i in 0..100 {
+    for i in 0..10 {
+        println!("index: {:?}", i);
+        
         let input = m.var_value(data.clone());
+        
         let y = block.call(&[&input]);
+        
         let loss = loss_func.call(&[&y, &m.var_value(label.clone())]);
+
         loss.backward(-1.);
         opt.step2(&block);
     }

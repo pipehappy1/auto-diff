@@ -37,6 +37,23 @@ impl Net {
         &mut self.data
     }
 
+    pub fn get_op(&self, func: &Func) -> Option<&Op> {
+        self.ops.get(func.get_id())
+    }
+
+    pub fn is_dangling_var(&self, var: &Var) -> Result<bool, ()> {
+        if !self.data.contains(var.get_id()) {
+            Err(())
+        } else {
+            if self.graph.list_as_input(var.get_id()).expect("").len() == 0 &&
+                self.graph.list_as_output(var.get_id()).expect("").len() == 0 {
+                    Ok(true)
+                } else {
+                    Ok(false)
+                }
+        }
+    }
+
     pub fn get_grad(&self)  -> &BTreeMap<NetIndex, Tensor> {
         &self.data_grad
     }
@@ -101,6 +118,19 @@ impl Net {
         //     and var in between and remove them.
         //
 
+    }
+
+    ///
+    /// Disconnect the variable and the function the variable is the input.
+    /// Delete the variable if it becomes the dangling variable.
+    ///
+    pub fn decouple_input(&mut self, func: &Func) -> Vec<NetIndex> {
+        let mut decoupled_inputs = Vec::new();
+        for i in &self.graph.list_input(func.get_id()).expect("") {
+            self.graph.decouple_data_func(i, func.get_id()).expect("");
+            decoupled_inputs.push(i.clone());
+        }
+        decoupled_inputs
     }
 
     ///
@@ -252,27 +282,34 @@ impl Net {
                 &output[..],
                 false,
                 |output_grads, input_grads, op| {
-                    // println!("op, bptt: {}", self.ops.get(op).expect("").get_name());
+                    //println!("op, bptt: {}", self.ops.get(op).expect("").get_name());
 
                     // collect input tensor.
                     let mut inputs: Vec<&Tensor> = Vec::new();
                     for input_id in input_grads {
+                        //println!("bptt {:?}", input_id);
                         let a = self.data.get(input_id).expect("");
                         inputs.push(a);
                     }
+                    //println!("input: size {:?}", inputs.len());
 
-                    // collect the output tensor ready (forward view).
+                    // collect the output tensor gradient (forward view).
                     let mut output_grad: Vec<&Tensor> = Vec::new();
                     for output_id in output_grads {
+                        //println!("bptt 2 {:?}", output_id);
                         let a = self.data_grad.get(output_id).expect("");
                         output_grad.push(a);
                     }
-                    // collect the input tensor ready (forward view).
+                    //println!("output grad: size {:?}", output_grad.len());
+                    
+                    // collect the input tensor gradient (forward view).
                     let mut input_grad: Vec<&Tensor> = Vec::new();
                     for input_id in input_grads {
+                        //println!("bptt 3 {:?}", input_id);
                         let a = self.data_grad.get(input_id).expect("");
                         input_grad.push(a);
                     }
+                    //println!("input grad: size {:?}", input_grad.len());
 
                     self.ops
                         .get(op)
@@ -309,9 +346,9 @@ impl Net {
     }
 
     pub fn visit_data<F>(&mut self, closure: F)
-    where F: Fn(&Op) {
+    where F: Fn(NetIndex, &Tensor) {
         for i in self.graph.list_data() {
-            closure(self.ops.get(&i).expect(""));
+            closure(i, self.data.get(&i).expect(""));
         }
     }
 }
