@@ -104,8 +104,10 @@ impl Net {
     /// Remove a concrete op or composed func from the graph.
     ///
     pub fn del_func_or_op(&mut self, func: &Func) {
-        self.ops.remove(func.get_id()).expect("");
-        self.graph.del_op(func.get_id()).expect("");
+        let _ = self.ops.remove(func.get_id());
+        let _ = self.graph.del_op(func.get_id());
+
+        // ignore the result as to allow duplicate delete
 
         //
         // The following dosen't work 

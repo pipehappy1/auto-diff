@@ -42,7 +42,7 @@ impl Module {
         
         let sub_ops = Vec::new();
         let id = self.net.borrow_mut().init_func(&sub_ops);
-        let ret = Func::_new(id, self.net.clone(), Some(Box::new(closure)));
+        let ret = Func::_new(id, self.net.clone(), Some(Rc::new(Box::new(closure))));
         ret
     }
     
@@ -280,7 +280,7 @@ pub fn crossentropyloss(predict: &Var, label: &Var) -> Var {
 pub struct Func {
     id: NetIndex,
     net: Rc<RefCell<Net>>,
-    closure: Option<Box<dyn Fn(&[&Var]) -> Var>>,
+    closure: Option<Rc<Box<dyn Fn(&[&Var]) -> Var>>>,
 }
 impl Func {
     pub fn _default() -> Func {
@@ -293,7 +293,7 @@ impl Func {
 
     pub fn _new(id: NetIndex,
                 net: Rc<RefCell<Net>>,
-                closure: Option<Box<dyn Fn(&[&Var]) -> Var>>) -> Func {
+                closure: Option<Rc<Box<dyn Fn(&[&Var]) -> Var>>>) -> Func {
         Func {
             id: id,
             net: net,
@@ -382,6 +382,17 @@ impl Func {
 
         //self.net.borrow_mut().visit_op(closure, Some(all_ops), None);
         self.net.borrow_mut().visit_op(closure, None, None);
+    }
+}
+
+impl Clone for Func {
+    fn clone(&self) -> Self {
+        if self.closure.is_some() {
+            let closure_copy = self.closure.as_ref().unwrap().clone();
+            Func::_new(self.id.clone(), self.net.clone(), Some(closure_copy))
+        } else {
+            Func::_new(self.id.clone(), self.net.clone(), None)
+        }
     }
 }
 

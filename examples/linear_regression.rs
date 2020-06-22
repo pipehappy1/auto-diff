@@ -49,12 +49,12 @@ fn main() {
         m.forward();
         m.backward(-1.);
 
-        println!("{}", loss.get().get_scale_f32());
+        println!("index: {}, loss: {}", i, loss.get().get_scale_f32());
 
         opt.step(&m);
 
-        let weights = linear.get_values();
-        println!("{:?}, {:?}", weights[0], weights[1]);
+        //let weights = linear.get_values();
+        //println!("{:?}, {:?}", weights[0], weights[1]);
     }
 
 }

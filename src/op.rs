@@ -52,10 +52,10 @@ impl OpTrait for Nop {
     }
 
     /// Forward pass
-    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+    fn apply(&mut self, _input: &[&Tensor], _output: &[&Tensor]) {
         
     }
-    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+    fn grad(&self, _input: &[&Tensor], _output_grad: &[&Tensor], _input_grad: &[&Tensor]) {
         
     }
 
@@ -63,7 +63,7 @@ impl OpTrait for Nop {
     fn get_values(&self) -> Vec<&Tensor> {
         Vec::new()
     }
-    fn set_values(&self, v: &[Tensor]) {
+    fn set_values(&self, _v: &[Tensor]) {
         
     }
     /// access gradient values
