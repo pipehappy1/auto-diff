@@ -7,10 +7,10 @@ use auto_diff::optim::{SGD, Optimizer};
 fn main() {
 
     fn func(input: &Tensor) -> Tensor {
-        input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1]))
+        input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1])).add(&Tensor::from_vec_f32(&vec![1.], &vec![1]))
     }
 
-    let N = 10000;
+    let N = 100;
     let mut rng = RNG::new();
     rng.set_seed(123);
     let data = rng.normal(&vec![N, 2], 0., 2.);
@@ -34,9 +34,9 @@ fn main() {
     
     let loss_func = m.mseloss();
     
-    let mut opt = SGD::new(0.2);
+    let mut opt = SGD::new(3.);
 
-    for i in 0..10 {
+    for i in 0..200 {
         let input = m.var_value(data.clone());
         
         let y = block.call(&[&input]);
