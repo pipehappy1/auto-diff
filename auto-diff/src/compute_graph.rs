@@ -2,7 +2,7 @@ use std::collections::{BTreeSet, BTreeMap};
 
 use crate::collection::generational_index::*;
 use crate::collection::graph::Graph;
-use crate::tensor::Tensor;
+use tensor_rs::tensor::Tensor;
 use crate::op::*;
 use crate::var::*;
 

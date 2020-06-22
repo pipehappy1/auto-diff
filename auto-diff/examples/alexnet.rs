@@ -1,4 +1,4 @@
-use auto_diff::tensor::Tensor;
+use tensor_rs::tensor::Tensor;
 use auto_diff::var::{Module, Var, bcewithlogitsloss};
 
 fn alexnet(x: Var) {

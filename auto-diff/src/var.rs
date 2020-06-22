@@ -4,7 +4,7 @@ use std::fmt;
 use std::rc::Rc;
 use std::mem::drop;
 
-use crate::tensor::Tensor;
+use tensor_rs::tensor::Tensor;
 use crate::op::*;
 use crate::compute_graph::*;
 use crate::collection::generational_index::*;
@@ -183,7 +183,7 @@ impl Var {
     ///
     /// ```
     /// # use auto_diff::var::*;
-    /// # use auto_diff::tensor::*;
+    /// # use tensor_rs::tensor::*;
     /// let mut m = Module::new();
     /// let a = m.var();
     /// a.set(Tensor::new());

@@ -2,7 +2,7 @@
 use std::cell::{RefCell, Ref};
 use std::rc::Rc;
 
-use super::tensor::Tensor;
+use tensor_rs::tensor::Tensor;
 
 /// All op is OpTrait
 pub trait OpTrait {
@@ -270,7 +270,7 @@ pub mod local;
 pub use local::{Add, Sub, Mul, Div};
 
 pub mod convolution;
-pub use convolution::{PaddingMode, Conv2d};
+pub use convolution::{ Conv2d};
 
 pub mod linear;
 pub use linear::Linear;

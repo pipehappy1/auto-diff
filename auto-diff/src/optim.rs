@@ -2,7 +2,7 @@
 //! Gradient based optimization.
 //!
 use std::cell::RefCell;
-use super::tensor::Tensor;
+use tensor_rs::tensor::Tensor;
 use super::var::{Func, Module};
 use crate::rand;
 
@@ -90,7 +90,7 @@ impl Optimizer for SGD {
 
 #[cfg(test)]
 mod tests {
-    use crate::tensor::Tensor;
+    use tensor_rs::tensor::Tensor;
     use crate::rand::RNG;
     use super::*;
 

@@ -3,7 +3,7 @@ use std::path::Path;
 use std::io;
 use std::io::Read;
 
-use auto_diff::tensor::Tensor;
+use tensor_rs::tensor::Tensor;
 
 use tensorboard_rs::summary_writer::SummaryWriter;
 

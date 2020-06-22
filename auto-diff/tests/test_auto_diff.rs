@@ -1,5 +1,5 @@
 use auto_diff::var::*;
-use auto_diff::tensor::*;
+use tensor_rs::tensor::*;
 use auto_diff::collection::generational_index::*;
 use auto_diff::op::{Op, Linear};
 use auto_diff::rand::*;

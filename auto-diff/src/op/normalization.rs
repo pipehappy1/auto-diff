@@ -1,4 +1,4 @@
-use crate::tensor::Tensor;
+use tensor_rs::tensor::Tensor;
 use super::OpTrait;
 
 // BatchNorm1d

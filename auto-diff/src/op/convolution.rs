@@ -1,4 +1,4 @@
-use crate::tensor::Tensor;
+use tensor_rs::tensor::{Tensor, PaddingMode};
 use super::OpTrait;
 
 //pub struct Conv1d {
@@ -46,13 +46,7 @@ use super::OpTrait;
 //}
 
 // Conv2d
-#[derive(Clone, Copy, PartialEq)]
-pub enum PaddingMode{
-    Zeros,
-    Reflect,
-    Replicate,
-    Circular,
-}
+
 
 pub struct Conv2d {
     in_channels: usize,

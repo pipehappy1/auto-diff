@@ -1,7 +1,7 @@
 use rand::prelude::*;
 use rand_distr::{Normal, Uniform, Distribution};
 
-use super::tensor::*;
+use tensor_rs::tensor::*;
 
 
 pub struct RNG {

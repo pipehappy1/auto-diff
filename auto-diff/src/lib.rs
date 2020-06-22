@@ -20,7 +20,6 @@ extern crate ndarray_linalg;
 
 pub mod var;
 pub mod compute_graph;
-pub mod tensor;
 pub mod op;
 pub mod collection;
 pub mod rand;
