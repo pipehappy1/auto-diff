@@ -1,0 +1,53 @@
+[package]
+name = "auto-diff"
+version = "0.3.4"
+authors = ["yguan <yguan@example.com>"]
+edition = "2018"
+description = """
+A neural network library in Rust.
+
+
+"""
+documentation = "https://docs.rs/auto-diff"
+homepage = "https://github.com/pipehappy1/auto-diff"
+repository = "https://github.com/pipehappy1/auto-diff"
+readme = "README.md"
+license = "MIT"
+keywords = ["machine-learning", "neural-network", "deep-learning"]
+exclude = ["/dev/**"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+num-traits = "0.2"
+# matrix library
+ndarray = "0.12"
+ndarray-linalg = "0.11"
+
+rand = "0.7"
+rand_distr = "0.2"
+
+[dev-dependencies]
+criterion = "0.3"
+
+# one backend
+openblas-src = "0.9" # or another backend of your choice
+
+# for examples
+csv = "1.1"
+
+tensorboard-rs = "0.2.2"
+
+[features]
+
+[[bench]]
+name = "my_benchmark"
+harness = false
+
+[[bench]]
+name = "tensor_benchmark"
+harness = false
+
+[[bench]]
+name = "elemwise_benchmark"
+harness = false
