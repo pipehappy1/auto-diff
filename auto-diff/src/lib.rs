@@ -25,3 +25,4 @@ pub mod collection;
 pub mod rand;
 pub mod optim;
 
+pub use var::{Module, Var};
