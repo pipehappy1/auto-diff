@@ -1,9 +1,12 @@
 use std::path::{PathBuf, Path};
 use std::time::SystemTime;
 use std::collections::HashMap;
+use protobuf::Message;
 use crate::event_file_writer::EventFileWriter;
-use crate::proto::event::Event;
+use crate::proto::event::{Event, TaggedRunMetadata};
 use crate::proto::summary::{Summary};
+use crate::proto::graph::{GraphDef, };
+use crate::proto::step_stats::{RunMetadata, };
 use crate::summary::{scalar, image, histogram_raw};
 
 
@@ -37,8 +40,21 @@ impl FileWriter {
         evn.set_summary(summary);
         self.add_event(&evn, step)
     }
-    pub fn add_graph(&mut self) {
-        unimplemented!();
+    pub fn add_graph(&mut self, graph: GraphDef, meta: RunMetadata) {
+        let mut graph_vec: Vec<u8> = Vec::new();
+        graph.write_to_vec(&mut graph_vec).expect("");
+        let mut graph_evn = Event::new();
+        graph_evn.set_graph_def(graph_vec);
+        self.writer.add_event(&graph_evn);
+
+        let mut meta_vec: Vec<u8> = Vec::new();
+        meta.write_to_vec(&mut meta_vec).expect("");
+        let mut tagged_meta = TaggedRunMetadata::new();
+        tagged_meta.set_tag("profiler".to_string());
+        tagged_meta.set_run_metadata(meta_vec);
+        let mut meta_evn = Event::new();
+        meta_evn.set_tagged_run_metadata(tagged_meta);
+        self.writer.add_event(&meta_evn);
     }
     pub fn flush(&mut self) {
         self.writer.flush()
