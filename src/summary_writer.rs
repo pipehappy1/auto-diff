@@ -2,10 +2,15 @@ use std::path::{PathBuf, Path};
 use std::time::SystemTime;
 use std::collections::HashMap;
 use protobuf::Message;
+use protobuf::RepeatedField;
 use crate::event_file_writer::EventFileWriter;
 use crate::proto::event::{Event, TaggedRunMetadata};
 use crate::proto::summary::{Summary};
 use crate::proto::graph::{GraphDef, };
+use crate::proto::node_def::{NodeDef, };
+use crate::proto::versions::{VersionDef, };
+use crate::proto::attr_value::{AttrValue, };
+use crate::proto::tensor_shape::{TensorShapeProto, };
 use crate::proto::step_stats::{RunMetadata, };
 use crate::summary::{scalar, image, histogram_raw};
 
@@ -116,7 +121,20 @@ impl SummaryWriter {
     pub fn add_text(&mut self) {unimplemented!();}
     pub fn add_onnx_graph(&mut self) {unimplemented!();}
     pub fn add_openvino_graph(&mut self) {unimplemented!();}
-    pub fn add_graph(&mut self) {unimplemented!();}
+    pub fn add_graph(&mut self, node_list: &[NodeDef]) {
+        let mut graph = GraphDef::new();
+        
+        let nodes = RepeatedField::from(node_list.to_vec());
+        graph.set_node(nodes);
+        
+        let mut version = VersionDef::new();
+        version.set_producer(22);
+        graph.set_versions(version);
+
+        let stats = RunMetadata::new();
+        
+        self.writer.add_graph(graph, stats);
+    }
     pub fn add_embedding(&mut self) {unimplemented!();}
     pub fn add_pr_curve(&mut self) {unimplemented!();}
     pub fn add_pr_curve_raw(&mut self) {unimplemented!();}
