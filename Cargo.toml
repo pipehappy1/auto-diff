@@ -2,4 +2,5 @@
 
 members = [
     "auto-diff",
+    "tensor-rs",
 ]
