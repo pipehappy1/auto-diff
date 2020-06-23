@@ -77,7 +77,7 @@ impl OpTrait for Nop {
 ///
 pub struct Op {
     o: Rc<RefCell<Box<dyn OpTrait>>>,
-    update_counter: RefCell<usize>,
+    update_counter: RefCell<usize>, // guard for the case there optim.step is called when .backward is not called yet.
 }
 impl Op {
     pub fn new(o: Box<dyn OpTrait>) -> Self {

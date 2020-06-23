@@ -32,7 +32,7 @@ fn main() {
         }
     );
     
-    let loss_func = m.mseloss();
+    let loss_func = m.mse_loss();
     
     let mut opt = SGD::new(3.);
 

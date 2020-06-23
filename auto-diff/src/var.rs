@@ -9,6 +9,19 @@ use crate::op::*;
 use crate::compute_graph::*;
 use crate::collection::generational_index::*;
 
+
+macro_rules! loss_for_module {
+    ($a:ident, $b:ident) => {
+        pub fn $a(&self,) -> Func {
+            let op = $b::new();
+            let id = self.net.borrow_mut().init_op(Op::new(Box::new(op)));
+            let ret = Func::_new(id, self.net.clone(), None);
+            ret
+        }
+    }
+    
+}
+
 pub struct Module {
     net: Rc<RefCell<Net>>,
 }
@@ -95,13 +108,13 @@ impl Module {
         let ret = Func::_new(id, self.net.clone(), None);
         ret
     }
-    pub fn mseloss(&self) -> Func {
-        let op = MSELoss::new();
-        let id = self.net.borrow_mut().init_op(Op::new(Box::new(op)));
-        let ret = Func::_new(id, self.net.clone(), None);
-        ret
-    }
+    
+    loss_for_module!(mse_loss, MSELoss);
+    loss_for_module!(bce_with_logits_loss, BCEWithLogitsLoss);
+    loss_for_module!(cross_entropy_loss, CrossEntropyLoss);
 }
+
+
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum VarCmd{
