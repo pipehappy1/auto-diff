@@ -1,7 +1,6 @@
 use tensor_rs::tensor::Tensor;
 use auto_diff::rand::RNG;
-use auto_diff::op::{Linear, Op};
-use auto_diff::var::{Module, mseloss};
+use auto_diff::var::{Module};
 use auto_diff::optim::{SGD, Optimizer};
 
 fn main() {

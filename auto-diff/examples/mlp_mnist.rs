@@ -1,9 +1,7 @@
-use tensor_rs::tensor::Tensor;
 use auto_diff::rand::RNG;
 use auto_diff::op::{Linear, Op, Sigmoid};
 use auto_diff::var::{Module, crossentropyloss};
 use auto_diff::optim::{SGD, Optimizer, MiniBatch};
-use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use tensorboard_rs::summary_writer::SummaryWriter;
 
