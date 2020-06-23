@@ -42,14 +42,3 @@ tensorboard-rs = "0.2.2"
 
 [features]
 
-[[bench]]
-name = "my_benchmark"
-harness = false
-
-[[bench]]
-name = "tensor_benchmark"
-harness = false
-
-[[bench]]
-name = "elemwise_benchmark"
-harness = false
