@@ -10,7 +10,7 @@ use crate::compute_graph::*;
 use crate::collection::generational_index::*;
 
 
-macro_rules! loss_for_module {
+macro_rules! default_op_for_module {
     ($a:ident, $b:ident) => {
         pub fn $a(&self,) -> Func {
             let op = $b::new();
@@ -108,10 +108,14 @@ impl Module {
         let ret = Func::_new(id, self.net.clone(), None);
         ret
     }
-    
-    loss_for_module!(mse_loss, MSELoss);
-    loss_for_module!(bce_with_logits_loss, BCEWithLogitsLoss);
-    loss_for_module!(cross_entropy_loss, CrossEntropyLoss);
+
+    // Non-linear Activation
+    default_op_for_module!(sigmoid, Sigmoid);
+
+    // Loss function
+    default_op_for_module!(mse_loss, MSELoss);
+    default_op_for_module!(bce_with_logits_loss, BCEWithLogitsLoss);
+    default_op_for_module!(cross_entropy_loss, CrossEntropyLoss);
 }
 
 

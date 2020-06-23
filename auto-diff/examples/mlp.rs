@@ -79,60 +79,58 @@ fn main() {
     let test_data = &data_split[1];
     let test_label = &label_split[1];
 
+    
     // build the model
     let mut m = Module::new();
     let mut rng = RNG::new();
     rng.set_seed(123);
 
-    let op1 = Linear::new(Some(30), Some(10), true);
-    rng.normal_(op1.weight(), 0., 1.);
-    rng.normal_(op1.bias(), 0., 1.);
+    let op1 = m.linear(Some(30), Some(10), true);
+    let weights = op1.get_values().unwrap();
+    rng.normal_(&weights[0], 0., 1.);
+    rng.normal_(&weights[1], 0., 1.);
+    op1.set_values(&weights);
 
-    let linear1 = Op::new(Box::new(op1));
+    let op2 = m.linear(Some(10), Some(1), true);
+    let weights = op2.get_values().unwrap();
+    rng.normal_(&weights[0], 0., 1.);
+    rng.normal_(&weights[1], 0., 1.);
+    op2.set_values(&weights);
 
-    let op2 = Linear::new(Some(10), Some(1), true);
-    rng.normal_(op2.weight(), 0., 1.);
-    rng.normal_(op2.bias(), 0., 1.);
 
-    let linear2 = Op::new(Box::new(op2));
+    let act = m.sigmoid();
 
-    let activator = Op::new(Box::new(Sigmoid::new()));
+    let linear1 = op1.clone();
+    let linear2 = op2.clone();
+    let block = m.func(
+        move |x| {
+            let x1 = act.call(&[&linear1.call(x)]);
+            linear2.call(&[&x1])
+        }
+    );
 
-    let input = m.var();
-    let output = input
-        .to(&linear1)
-        .to(&activator)
-        .to(&linear2);
-    let label = m.var();
-
-    let loss = bcewithlogitsloss(&output, &label);
+    let loss = m.bce_with_logits_loss();
     
-    //println!("{}, {}", &train_data, &train_label);
-    
-
     let mut opt = SGD::new(0.2);
 
     let mut writer = SummaryWriter::new(&("./logdir".to_string()));
 
     for i in 0..500 {
-        input.set(train_data.clone());
-        label.set(train_label.clone());
-        m.forward();
-        m.backward(-1.);
+        let input = m.var_value(train_data.clone());
+        
+        let y = block.call(&[&input]);
+        
+        let loss = loss.call(&[&y, &m.var_value(train_label.clone())]);
+        println!("index: {}, loss: {}", i, loss.get().get_scale_f32());
+        
+        loss.backward(-1.);
+        opt.step2(&block);
 
-        opt.step(&m);
-
-        input.set(test_data.clone());
-        label.set(test_label.clone());
-        m.forward();
-        let tsum = output.get().sigmoid().sub(&test_label).sum(None, false);
-        let loss_value = loss.get().get_scale_f32();
-        let accuracy = 1.-tsum.get_scale_f32()/(test_size as f32);
-        println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
-        //println!("{}, loss: {}", i, loss.get().get_scale_f32());
-
-        writer.add_scalar("run1/loss", loss_value, i);
-        writer.add_scalar("run1/accuracy", accuracy, i);
+        let test_input = m.var_value(test_data.clone());
+        let y = block.call(&[&test_input]);
+        let tsum = y.get().sigmoid().sub(&test_label).sum(None, false);
+        writer.add_scalar("run1/loss", loss.get().get_scale_f32(), i);
+        writer.add_scalar("run1/accuracy", 1.-tsum.get_scale_f32()/(test_size as f32), i);
         writer.flush();
     }
 }
