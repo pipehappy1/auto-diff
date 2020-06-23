@@ -77,17 +77,20 @@ impl OpTrait for Nop {
 ///
 pub struct Op {
     o: Rc<RefCell<Box<dyn OpTrait>>>,
+    update_counter: RefCell<usize>,
 }
 impl Op {
     pub fn new(o: Box<dyn OpTrait>) -> Self {
         Op {
             o: Rc::new(RefCell::new(o)),
+            update_counter: RefCell::new(0),
         }
     }
 
     pub fn nop() -> Self {
         Op {
             o: Rc::new(RefCell::new(Box::new(Nop{}))),
+            update_counter: RefCell::new(0),
         }
     }
 
@@ -98,11 +101,16 @@ impl Op {
     pub fn get_name(&self) -> String {
         self.o.borrow_mut().get_name()
     }
+    pub fn get_update_counter(&self) -> usize {
+        self.update_counter.borrow().clone()
+    }
     pub fn apply(&self, input: &[&Tensor], output: &[&Tensor]) {
         self.o.borrow_mut().apply(input, output)
     }
     pub fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
         self.o.borrow_mut().grad(input, output_grad, input_grad);
+        let new_counter = self.update_counter.borrow().overflowing_add(1).0;
+        self.update_counter.replace(new_counter);
     }
 
     pub fn get_values(&self) -> Vec<Tensor> {
@@ -127,6 +135,7 @@ impl Clone for Op {
     fn clone(&self) -> Self {
         Op {
             o: Rc::clone(&self.o),
+            update_counter: self.update_counter.clone(),
         }
     }
 }

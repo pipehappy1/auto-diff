@@ -72,13 +72,18 @@ impl Optimizer for SGD {
 
     fn step2(&mut self, m: &Func) {
         m._visit_op(|x| {
+            if x.get_update_counter() <= 0 {
+                println!("Warning: haven't seen a backward pass, missing .backward call before update?");
+                return;
+            }
+            
             let weights = x.get_values();
             let grads = x.get_grads();
-            // println!("name: {}, {}, {}", x.get_name(), weights.len(), grads.len());
+            //println!("name: {}, {}, {}", x.get_name(), weights.len(), grads.len());
 
             let mut new_weight = Vec::new();
             for (i, j) in weights.iter().zip(grads.iter()) {
-                // println!("{:?}, {:?}, {:?}", i.size(), j.size(), self.lr.size());
+                //println!("{:?}, {:?}, {:?}", i.size(), j.size(), self.lr.size());
                 
                 new_weight.push(i.add(&j.mul(&self.lr)));
             }
