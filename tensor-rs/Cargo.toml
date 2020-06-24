@@ -27,7 +27,8 @@ ndarray-linalg = "0.11"
 rand = "0.7"
 rand_distr = "0.2"
 
-blas = "0.20"
+blas = { version = "0.20", optional = true }
+
 
 [dev-dependencies]
 criterion = "0.3"
@@ -42,3 +43,8 @@ tensorboard-rs = "0.2.2"
 
 [features]
 
+default = []
+
+use-blas = ["blas"]
+
+use-cuda = []
