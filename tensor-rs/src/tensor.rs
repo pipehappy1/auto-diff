@@ -12,6 +12,7 @@ use std::cell::RefCell;
 use std::fmt;
 
 pub mod gen_tensor;
+pub mod blas_tensor;
 pub mod typed_tensor;
 pub mod compare_tensor;
 pub mod index_slicing;
@@ -602,5 +603,39 @@ mod tests {
         let a = Tensor::from_vec_f32(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
         let b = a.normalize_unit();
         assert_eq!(b, Tensor::from_vec_f32(&vec![-1.2247448, -1.2247448, 0.,0., 1.2247448, 1.2247448], &vec![3, 2]));
+    }
+
+    // test for basic ops
+    #[test]
+    fn test_add() {
+        let m1 = Tensor::from_vec_f32(&vec![1.,2.,3.,4.,], &vec![2,2]);
+        let m2 = Tensor::from_vec_f32(&vec![1.,2.,3.,4.,], &vec![2,2]);
+        let m3 = m1.add(&m2);
+        assert_eq!(m3.get_f32(&vec![0,0]), 2.);
+        assert_eq!(m3.get_f32(&vec![1,1]), 8.);
+    }
+
+    #[test]
+    fn test_mm() {
+        let m1 = Tensor::from_vec_f32(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
+        let m2 = Tensor::from_vec_f32(&vec![2.,3.,4.,5.,6.,7.], &vec![2,3]);
+        let result = m1.mm(&m2);
+        assert!(result == Tensor::from_vec_f32(&vec![12.,15.,18.,26.,33.,40.,40.,51.,62.,], &vec![3,3]), "");
+    }
+
+    #[test]
+    fn test_matmul() {
+        let m1 = Tensor::from_vec_f32(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
+        let m2 = Tensor::from_vec_f32(&vec![2.,3.,4.,5.,6.,7.], &vec![2,3]);
+        let result = m1.matmul(&m2);
+        assert!(result == Tensor::from_vec_f32(&vec![12.,15.,18.,26.,33.,40.,40.,51.,62.,], &vec![3,3]), "");
+    }
+
+    #[test]
+    fn test_outer() {
+        let m1 = Tensor::from_vec_f32(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
+        let m2 = Tensor::from_vec_f32(&vec![2.,3.,4.,5.,6.,7.], &vec![3,2]);
+        let result = m1.outer(&m2, None);
+        assert_eq!(result, Tensor::from_vec_f32(&vec![2.0, 3.0, 4.0, 6.0, 12.0, 15.0, 16.0, 20.0, 30.0, 35.0, 36.0, 42.0], &vec![3,2, 2]));
     }
 }
