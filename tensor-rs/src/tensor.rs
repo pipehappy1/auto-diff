@@ -12,7 +12,7 @@ use std::cell::RefCell;
 use std::fmt;
 
 pub mod gen_tensor;
-pub mod blas_tensor;
+pub mod blas;
 pub mod typed_tensor;
 pub mod compare_tensor;
 pub mod index_slicing;

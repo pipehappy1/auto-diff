@@ -1,5 +1,8 @@
 use std::fmt;
 
+#[cfg(feature = "use-blas")]
+use crate::tensor::blas::BlasAPI;
+
 /// Naive tensor implementation, single thread
 pub struct GenTensor<T> {
     d: Vec<T>,
@@ -1085,6 +1088,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         
     }
 
+    #[cfg(not(feature = "use-blas"))]
     pub fn squared_error(t1: &Self, t2: &Self) -> GenTensor<T> {
         let mut ret = GenTensor {
             d: Vec::with_capacity(t1.d.len()),
@@ -1400,6 +1404,40 @@ impl<T> Clone for GenTensor<T> where T: num_traits::Float {
             d: self.d.to_vec(),
             dim: self.dim.to_vec(),
         }
+    }
+}
+
+
+#[cfg(feature = "use-blas")]
+impl GenTensor<f32> {
+    pub fn squared_error(t1: &Self, t2: &Self) -> GenTensor<f32> {
+        let mut v2 = t2.d.to_vec();
+        BlasAPI::<f32>::axpy(t1.d.len(), -1., &t1.d, 1, &mut v2, 1);
+        
+        let mut ret = GenTensor {
+            d: v2,
+            dim: t1.dim.to_vec(),
+        };
+        for i in &mut ret.d {
+            *i = (*i)*(*i);
+        }
+        ret
+    }
+}
+#[cfg(feature = "use-blas")]
+impl GenTensor<f64> {
+    pub fn squared_error(t1: &Self, t2: &Self) -> GenTensor<f64> {
+        let mut v2 = t2.d.to_vec();
+        BlasAPI::<f64>::axpy(t1.d.len(), -1., &t1.d, 1, &mut v2, 1);
+        
+        let mut ret = GenTensor {
+            d: v2,
+            dim: t1.dim.to_vec(),
+        };
+        for i in &mut ret.d {
+            *i = (*i)*(*i);
+        }
+        ret
     }
 }
 

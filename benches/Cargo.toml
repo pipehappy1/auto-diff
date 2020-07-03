@@ -49,3 +49,8 @@ harness = false
 [[bench]]
 name = "elemwise_benchmark"
 harness = false
+
+[[bench]]
+name = "convolution_benchmark"
+harness = false
+

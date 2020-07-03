@@ -2,6 +2,8 @@ use std::collections::BTreeMap;
 use super::gen_tensor::*;
 use crate::tensor::PaddingMode;
 
+#[cfg(feature = "use-blas")]
+use crate::tensor::blas::BlasAPI;
 
 pub trait Convolution {
     type TensorType;
@@ -80,7 +82,7 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
         if self_dim.len() != filter_dim.len() {
             panic!("covn2d expects input and filter has the same dims, get {:?}, {:?}", self_dim, filter_dim);
         }
-        if stride.len() != padding.len() || stride.len() != dilation.len() {
+        if stride.len() != padding.len() || stride.len() != dilation.len() || stride.len() != (self_dim.len() - 2) {
             panic!("stride, padding, stride should have the same # of dims, {:?}, {:?}, {:?}", stride, padding, dilation);
         }
         if stride.iter().any(|x| *x < 1) {
@@ -90,9 +92,8 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
             panic!("dilation should be at least 1, get {:?}", dilation);
         }
 
-        let filter_size = filter.size();
-        let out_channels = filter_size[0];
-        let in_channels = filter_size[1];
+        let out_channels = filter_dim[0];
+        let in_channels = filter_dim[1];
         let sample_size = self_dim[0];
         let data_channels = self_dim[1];
         if in_channels != data_channels {
@@ -126,7 +127,7 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
         }
         let mut output_tensor_size = Vec::new();
         output_tensor_size.push(sample_size);
-        output_tensor_size.push(filter_dim[0]);
+        output_tensor_size.push(out_channels);
         output_tensor_size.append(&mut output_size.clone()); // output_size moved.
         let output_inner_size = output_size.iter().product::<usize>();
         //println!("output_size: {:?}", output_size);
@@ -484,11 +485,173 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
 }
 
 
+#[cfg(feature = "use-blas")]
+pub fn gemm_conv(
+    data: &GenTensor<f32>,
+    filter: &GenTensor<f32>,
+    stride: &[usize],
+    padding: &[usize],
+    dilation: &[usize],
+    padding_mode: PaddingMode
+) {
+    let self_dim = data.size();
+    let filter_dim = filter.size();
+
+    let out_channels = filter_dim[0];
+    let in_channels = filter_dim[1];
+    let sample_size = self_dim[0];
+
+    // prepare the padded input
+    let mut padded_dim = Vec::new();
+    for i in 2..self_dim.len() {
+        padded_dim.push(self_dim[i] + padding[i-2]*2);
+    }
+    //println!("padded_dim: {:?}", padded_dim);
+
+    // find the coordinate of
+    // start center point in a filter in padded dimension
+    // in case filter_dim[i] is even, start_point will be the half.
+    // in case filter_dim[i] is odd, start_point will be the center.
+    let mut start_point = Vec::new();
+    for i in 0..stride.len() {
+        let half = filter_dim[2+i]/2;
+        let dilated = half*dilation[i];
+        start_point.push(dilated);
+    }
+    //println!("start_point: {:?}", start_point);
+
+    let mut output_size = Vec::new();
+    //println!("{:?}, {:?}", padded_dim, stride);
+    for i in 0..stride.len() {
+        let output_dim = (padded_dim[i] - dilation[i]*(filter_dim[2+i]-1)-1)/stride[i] + 1;
+        output_size.push(output_dim);
+    }
+    let mut output_tensor_size = Vec::new();
+    output_tensor_size.push(sample_size);
+    output_tensor_size.push(out_channels);
+    output_tensor_size.append(&mut output_size.clone()); // output_size moved.
+    let output_inner_size = output_size.iter().product::<usize>();
+    //println!("output_size: {:?}", output_size);
+    //println!("{:?}", output_inner_size);
+    //println!("{:?}", output_tensor_size);
+        
+    let mut ret = GenTensor::<f32>::empty(&output_tensor_size);
+    
+    let conv_size = filter_dim.iter().product::<usize>()/out_channels; // this is Cin xd1xd2xd3...
+    let mut data_block = Vec::<f32>::with_capacity(conv_size);
+    unsafe{ data_block.set_len(conv_size); }
+    let mut filter_block = Vec::<f32>::with_capacity(conv_size);
+    unsafe{ filter_block.set_len(conv_size); }
+
+    let columned_data = Vec::<f32>::with_capacity(sample_size*output_inner_size*conv_size);
+    //let columned_filter = Vec::<f32>::with_capacity(out_channels*conv_size);
+
+    let inner_steps = output_inner_size*out_channels;
+    let filter_step = conv_size;
+
+    for i in 0..sample_size {
+        let mut left_upper = vec![0; stride.len()];
+        
+        // get_data_block
+        let mut current_data_elem = left_upper.to_vec();
+        for in_channel_index in 0..in_channels {
+            for inner_index in 0..conv_size/in_channels {
+
+                // assign single scale to the tmp tensor.
+                let mut push_value = 0.;
+                let mut in_margin = false;
+                for i in 0..current_data_elem.len() {
+                    if current_data_elem[i] < padding[i] || current_data_elem[i] >= (padding[i] + self_dim[i+2]){
+                        match padding_mode {
+                            PaddingMode::Zeros => {
+                                push_value = 0.;
+                                in_margin = true;
+                                break;
+                            },
+                            _ => {unimplemented!();}
+                        }
+                    }
+                }
+                if ! in_margin {
+                    let real_data_elem = current_data_elem.iter().zip(padding.iter()).map(|(x, y)| x - y).collect::<Vec::<usize>>();
+                    let mut real_data_elem2 = vec![i, in_channel_index];
+                    real_data_elem2.append(&mut real_data_elem.clone());
+                    push_value = data.get(&real_data_elem2);
+                }
+
+                data_block[in_channel_index*(conv_size/in_channels) + inner_index] = push_value;
+
+
+                // update to the next position.
+                let mut current_pos = current_data_elem.len()-1;
+                loop {
+                    current_data_elem[current_pos] += dilation[current_pos];
+                    if current_data_elem[current_pos] >= dilation[current_pos]*filter_dim[current_pos+2] + left_upper[current_pos] {
+                        current_data_elem[current_pos] = left_upper[current_pos];
+                        if current_pos > 0 {
+                            current_pos -= 1;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                };
+            }
+        };
+        
+        ////let value = data_block.iter().zip(&filter_block).map(|(x, y)|
+        ////                                                     (*x)*(*y)
+        ////).sum::<T>();
+        //let mut value = T::zero();
+        //for (x, y) in data_block.iter().zip(&filter_block) {
+        //    value = value + (*x)*(*y);
+        //}
+        ////println!("index: {}, {}, {}", i, j, k);
+        ////println!("raw index: {}", i*inner_steps + j*output_inner_size + k);
+        ////ret.d[i*inner_steps + j*output_inner_size + k] = value;
+        //ret.set_1d(i*inner_steps + j*output_inner_size + k, value);
+
+
+        // update for next prodsum position
+        let mut current_pos = left_upper.len()-1;
+        loop {
+            left_upper[current_pos] += stride[current_pos];
+            let mut compare_pos = padded_dim[current_pos] - start_point[current_pos]*2;
+            if filter_dim[current_pos+2] % 2 == 0 {
+                compare_pos += 1;
+            }
+            if left_upper[current_pos] >= compare_pos {
+                left_upper[current_pos] = 0;
+                if current_pos > 0 {
+                    current_pos -= 1;
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        };
+    }
+
+
+    let mut columned_result = vec![0.; sample_size*out_channels*output_inner_size];
+    BlasAPI::<f32>::gemm(true, false, sample_size*output_inner_size, out_channels, conv_size,
+                         1., &columned_data, sample_size*output_inner_size,
+                         filter.get_data(), conv_size,
+                         1., &mut columned_result, sample_size*output_inner_size
+    );
+
+
+}
+
+
 #[cfg(test)]
 mod tests {
     use crate::tensor::gen_tensor::GenTensor;
     use crate::tensor::index_slicing::IndexSlicing;
     use super::*;
+
 
     #[test]
     fn conv_gen() {
@@ -685,5 +848,24 @@ mod tests {
             assert_eq!(w_grad, GenTensor::new_raw(&vec![176.0, 200.0, 284.0, 172.0, 192.0, 296.0, 320.0, 449.0, 272.0, 292.0, 420.0, 447.0, 624.0, 375.0, 396.0, 164.0, 176.0, 233.0, 128.0, 136.0, 224.0, 236.0, 308.0, 168.0, 176.0, 776.0, 800.0, 1109.0, 672.0, 692.0, 896.0, 920.0, 1274.0, 772.0, 792.0, 1095.0, 1122.0, 1524.0, 900.0, 921.0, 464.0, 476.0, 608.0, 328.0, 336.0, 524.0, 536.0, 683.0, 368.0, 376.0, 1376.0, 1400.0, 1934.0, 1172.0, 1192.0, 1496.0, 1520.0, 2099.0, 1272.0, 1292.0, 1770.0, 1797.0, 2424.0, 1425.0, 1446.0, 764.0, 776.0, 983.0, 528.0, 536.0, 824.0, 836.0, 1058.0, 568.0, 576.0, 392.0, 452.0, 662.0, 424.0, 480.0, 692.0, 752.0, 1097.0, 704.0, 760.0, 1014.0, 1095.0, 1596.0, 1023.0, 1098.0, 560.0, 608.0, 881.0, 560.0, 604.0, 800.0, 848.0, 1226.0, 780.0, 824.0, 1892.0, 1952.0, 2837.0, 1824.0, 1880.0, 2192.0, 2252.0, 3272.0, 2104.0, 2160.0, 3039.0, 3120.0, 4521.0, 2898.0, 2973.0, 1760.0, 1808.0, 2606.0, 1660.0, 1704.0, 2000.0, 2048.0, 2951.0, 1880.0, 1924.0, 3392.0, 3452.0, 5012.0, 3224.0, 3280.0, 3692.0, 3752.0, 5447.0, 3504.0, 3560.0, 5064.0, 5145.0, 7446.0, 4773.0, 4848.0, 2960.0, 3008.0, 4331.0, 2760.0, 2804.0, 3200.0, 3248.0, 4676.0, 2980.0, 3024.0], &vec![2, 3, 5, 5]));
         }
     }
-    
+
+    // gemm_conv
+    #[test]
+    #[cfg(feature = "use-blas")]
+    fn test_gemm_conv() {
+        {
+            extern crate openblas_src;
+            
+            let data = GenTensor::<f32>::arange(49).reshape(&vec![1, 1, 7, 7]);
+            let filter = GenTensor::<f32>::arange(18).reshape(&vec![2, 1, 3, 3]);
+            let stride = vec![2, 2];
+            let padding = vec![0, 0];
+            let dilation = vec![1, 1];
+            let padding_mode = PaddingMode::Zeros;
+            let result = gemm_conv(&data, &filter, &stride, &padding, &dilation, padding_mode);
+            //println!("final output size: {:?}", result.size());
+            //println!("final output: {:?}", result.get_data());
+            //assert_eq!(result, GenTensor::<f32>::new_raw(&vec![420.0, 492.0, 564.0, 924.0, 996.0, 1068.0, 1428.0, 1500.0, 1572.0, 1068.0, 1302.0, 1536.0, 2706.0, 2940.0, 3174.0, 4344.0, 4578.0, 4812.0], &vec![1, 2, 3, 3]));
+        }
+    }
 }
