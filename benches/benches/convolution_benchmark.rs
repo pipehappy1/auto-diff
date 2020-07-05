@@ -15,7 +15,7 @@ extern crate openblas_src; // or another backend of your choice
 fn varing_input_size_benchmark(c: &mut Criterion) {
     let ss = [10, 15, 20, 25, 30, 35, 50, 70, 100];
 
-    let mut group = c.benchmark_group("varing input size");
+    let mut group = c.benchmark_group("varing_input_size");
     for size in &ss {
         let data = GenTensor::<f32>::fill(1., &vec![*size, *size]).reshape(&[1, 1, *size, *size]);
         let filter = GenTensor::<f32>::arange(9).reshape(&vec![1, 1, 3, 3]);

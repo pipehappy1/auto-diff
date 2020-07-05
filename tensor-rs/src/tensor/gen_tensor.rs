@@ -26,6 +26,13 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
+    pub fn new_move(data: Vec::<T>, shape: Vec::<usize>) -> GenTensor<T>{
+        GenTensor {
+            d: data,
+            dim: shape,
+        }
+    }
+
     /// Convert 1 dim index to multi-dim index.
     pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {
         if index >= self.d.len() {
