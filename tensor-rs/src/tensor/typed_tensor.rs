@@ -6,7 +6,9 @@ use super::gen_tensor::*;
 use crate::tensor::PaddingMode;
 use super::compare_tensor::CompareTensor;
 use super::index_slicing::IndexSlicing;
-use super::convolution::Convolution;
+use super::convolution::{Convolution};
+#[cfg(feature = "use-blas")]
+use super::convolution::{gemm_conv_f32, gemm_conv_f64};
 use super::reduction::ReduceTensor;
 
 pub enum TypedTensor {
@@ -463,8 +465,26 @@ impl TypedTensor {
                   dilation: (usize, usize),
                   padding_mode: PaddingMode) -> TypedTensor {
         match (self, filter) {
-            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.conv2d(v2, stride, padding, dilation, padding_mode))},
-            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.conv2d(v2, stride, padding, dilation, padding_mode))},
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
+                #[cfg(not(feature = "use-blas"))]
+                return TypedTensor::Typef32(v1.conv2d(v2, stride, padding, dilation, padding_mode));
+                #[cfg(feature = "use-blas")]
+                return TypedTensor::Typef32(gemm_conv_f32(v1, v2,
+                                                          &[stride.0, stride.1],
+                                                          &[padding.0, padding.1],
+                                                          &[dilation.0, dilation.1],
+                                                          padding_mode));
+            },
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
+                #[cfg(not(feature = "use-blas"))]
+                return TypedTensor::Typef64(v1.conv2d(v2, stride, padding, dilation, padding_mode));
+                #[cfg(feature = "use-blas")]
+                return TypedTensor::Typef64(gemm_conv_f64(v1, v2,
+                                                          &[stride.0, stride.1],
+                                                          &[padding.0, padding.1],
+                                                          &[dilation.0, dilation.1],
+                                                          padding_mode));
+            },
             _ => {panic!("should have same tensor type!");},
         }
     }

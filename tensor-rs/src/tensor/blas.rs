@@ -149,8 +149,40 @@ impl BlasAPI<f64> {
         }
     }
     
-    pub fn gemm() {
-        
+    pub fn gemm(transa: bool, transb: bool, m: usize, n: usize, k: usize,
+            alpha: f64, a: &[f64], lda: usize,
+            b: &[f64], ldb: usize,
+            beta: f64, c: &mut [f64], ldc: usize,) {
+        let mut transa_flag = [0; 1];
+        if !transa {
+            'N'.encode_utf8(&mut transa_flag);
+        } else {
+            'T'.encode_utf8(&mut transa_flag);
+        }
+
+        let mut transb_flag = [0; 1];
+        if !transb {
+            'N'.encode_utf8(&mut transb_flag);
+        } else {
+            'T'.encode_utf8(&mut transb_flag);
+        }
+        unsafe {
+            dgemm(
+                transa_flag[0],
+                transb_flag[0],
+                m as i32,
+                n as i32,
+                k as i32,
+                alpha,
+                a,
+                lda as i32,
+                b,
+                ldb as i32,
+                beta,
+                c,
+                ldc as i32,
+            );
+        }
     }
 }
 
