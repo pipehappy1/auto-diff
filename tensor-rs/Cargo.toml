@@ -1,6 +1,6 @@
 [package]
 name = "tensor-rs"
-version = "0.3.5"
+version = "0.3.6"
 authors = ["yguan <yguan@example.com>"]
 edition = "2018"
 description = """
