@@ -74,6 +74,7 @@ fn main() {
 ## TODO
 
 - Use cudnn and cutensor
+- Stride based tensor
 - Block components inspection by func call
 - Save and load
 
