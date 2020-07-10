@@ -1,4 +1,4 @@
-use std::fmt;
+
 #[cfg(feature = "use-blas")]
 use blas::*;
 use std::marker::PhantomData;
