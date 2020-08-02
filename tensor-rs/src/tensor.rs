@@ -18,6 +18,8 @@ pub mod compare_tensor;
 pub mod index_slicing;
 pub mod convolution;
 pub mod reduction;
+#[cfg(feature = "use-cuda")]
+pub mod cuda_tensor;
 
 use typed_tensor::TypedTensor;
 use gen_tensor::GenTensor;

@@ -81,7 +81,7 @@ fn main() {
 ## Dependence
 
 - install gfortran is openblas-src = "0.9" is used.
-- To use Rust's bindgen feature on Ubuntu, i.e. cuda, do apt install llvm-dev libclang-dev clang.
+- To use Rust's bindgen feature on Ubuntu, for example, for cuda, do apt install llvm-dev libclang-dev clang.
 
 ## Contributing
 
