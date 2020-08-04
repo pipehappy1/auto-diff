@@ -1,4 +1,6 @@
 use crate::tensor::gen_tensor::GenTensor;
+#[cfg(feature = "use-cuda")]
+use crate::tensor::cuda_tensor::CudaTensor;
 
 pub trait ElemwiseTensorOp {
     type TensorType;
@@ -310,5 +312,180 @@ impl<T> ElemwiseTensorOp for GenTensor<T> where T: num_traits::Float {
         self._pointwise(|x| {
             x.trunc()
         })
+    }
+}
+
+/****************/
+// Cuda element wise ops
+/****************/
+#[cfg(feature = "use-cuda")]
+impl ElemwiseTensorOp for CudaTensor {
+    type TensorType = CudaTensor;
+    type ElementType = f32;
+
+    // Pointwise Ops
+    // abs
+    fn abs(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // acos
+    fn acos(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // add, there is one.
+    // addcdiv
+    // addcmul
+    // angle
+    // asin
+    fn asin(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // atan
+    fn atan(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // atan2
+    // bitwise_not
+    // bitwise_and
+    // bitwise_or
+    // bitwise_xor
+    // ceil
+    fn ceil(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // clamp
+    fn clamp(&self, min: Self::ElementType, max: Self::ElementType) -> CudaTensor {
+        unimplemented!();
+    }
+    // conj
+    // cos
+    fn cos(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // cosh
+    fn cosh(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // div, there is one.
+    // digamma
+    //fn digamma(&self) -> CudaTensor {
+    //    self._pointwise(|x| {
+    //        x.digamma()
+    //    })
+    //}
+    // erf
+    // erfc
+    // erfinv
+    // exp
+    fn exp(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // expm1
+    fn expm1(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // floor
+    fn floor(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // floor_divide
+    // fmod
+    // frac
+    fn frac(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // imag
+    // lerp, this is on Tensor.
+    // lgamma
+    // log
+    fn log(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // log10
+    fn log10(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // log1p
+    fn log1p(&self) -> CudaTensor {
+        unimplemented!();
+    }
+
+    /// Better log(1 + exp(x))
+    /// see https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
+    fn log1pexp(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    
+    // log2
+    fn log2(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // logical_and
+    // logical_not
+    // logical_or
+    // logical_xor
+    // mul, there is one
+    // mvlgamma
+    // neg
+    fn neg(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    
+    // polygamma
+    // pow
+    fn pow(&self, n: Self::ElementType) -> CudaTensor {
+        unimplemented!();
+    }
+    // real
+    // reciprocal
+    fn reciprocal(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // remainder
+    // round
+    fn round(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // rsqrt
+    fn rsqrt(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    
+    fn sigmoid(&self) -> CudaTensor {
+        unimplemented!();
+    }
+
+    // sign
+    fn sign(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // sin
+    fn sin(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // sinh
+    fn sinh(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // sqrt
+    fn sqrt(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // square
+    fn square(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // tan
+    fn tan(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // tanh
+    fn tanh(&self) -> CudaTensor {
+        unimplemented!();
+    }
+    // true_divide
+    // trunc
+    fn trunc(&self) -> CudaTensor {
+        unimplemented!();
     }
 }

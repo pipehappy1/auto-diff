@@ -260,6 +260,64 @@ impl CudaTensor {
     pub fn numel_tensor(&self) -> CudaTensor {
         unimplemented!();
     }
+
+
+
+    /// element-wise add with right-hand broadcast.
+    ///
+    ///
+    pub fn add(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn sub(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn mul(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn div(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn mm(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn matmul(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn outer(&self, o: &CudaTensor, avg: Option<bool>) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn squared_error(t1: &Self, t2: &Self) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn all_close(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn arg_sort(&self, dim: usize, descending: bool) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn eq_t(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn equal(&self, o: &CudaTensor) -> bool {
+        unimplemented!();
+    }
+    pub fn ge(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn gt(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn le(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn lt(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    pub fn ne(&self, o: &CudaTensor) -> CudaTensor {
+        unimplemented!();
+    }
+    
 }
 
 impl Drop for CudaTensor {
