@@ -245,20 +245,20 @@ impl CudaTensor {
         &self.dim
     }
     pub fn get_data(&self) -> &Vec<f32> {
-        &self.d
+        unimplemented!();
     }
     pub fn get_data_mut(&mut self) -> &mut Vec<f32> {
-        &mut self.d
+        unimplemented!();
     }
 
     /// Returns the total number of elements in the input tensor
     pub fn numel(&self) -> usize {
-        self.d.len()
+        unimplemented!();
     }
 
     /// Returns the total number of elements in the input tensor
     pub fn numel_tensor(&self) -> CudaTensor {
-        CudaTensor::new_raw(&vec![self.d.len() as f32], &vec![1])
+        unimplemented!();
     }
 }
 
