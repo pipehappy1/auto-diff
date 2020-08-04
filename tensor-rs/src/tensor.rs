@@ -12,14 +12,16 @@ use std::cell::RefCell;
 use std::fmt;
 
 pub mod gen_tensor;
+#[cfg(feature = "use-cuda")]
+pub mod cuda_tensor;
 pub mod blas;
 pub mod typed_tensor;
 pub mod compare_tensor;
+pub mod elemwise;
 pub mod index_slicing;
 pub mod convolution;
 pub mod reduction;
-#[cfg(feature = "use-cuda")]
-pub mod cuda_tensor;
+
 
 use typed_tensor::TypedTensor;
 use gen_tensor::GenTensor;

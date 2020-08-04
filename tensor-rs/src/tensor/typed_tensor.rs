@@ -7,6 +7,7 @@ use super::gen_tensor::*;
 use super::cuda_tensor::*;
 use crate::tensor::PaddingMode;
 use super::compare_tensor::CompareTensor;
+use super::elemwise::ElemwiseTensorOp;
 use super::index_slicing::IndexSlicing;
 use super::convolution::{Convolution};
 #[cfg(feature = "use-blas")]

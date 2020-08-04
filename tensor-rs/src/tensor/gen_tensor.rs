@@ -339,6 +339,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     pub fn size(&self) -> &Vec<usize> {
         &self.dim
     }
+    pub fn get_size(&self) -> &Vec<usize> {
+        &self.dim
+    }
     pub fn get_data(&self) -> &Vec<T> {
         &self.d
     }
@@ -594,10 +597,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     // reduction ops
 
-
     // Pointwise Ops
-    
-    fn _pointwise<F>(&self, closure: F) -> GenTensor<T>
+    pub fn _pointwise<F>(&self, closure: F) -> GenTensor<T>
     where F: Fn(&T) -> T {
         let mut ret = GenTensor {
             d: Vec::with_capacity(self.d.len()),
@@ -608,282 +609,6 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             ret.d.push(closure(i));
         }
         ret
-    }
-    // abs
-    pub fn abs(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.abs()
-        })
-    }
-    // acos
-    pub fn acos(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.acos()
-        })
-    }
-    // add, there is one.
-    // addcdiv
-    // addcmul
-    // angle
-    // asin
-    pub fn asin(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.asin()
-        })
-    }
-    // atan
-    pub fn atan(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.atan()
-        })
-    }
-    // atan2
-    // bitwise_not
-    // bitwise_and
-    // bitwise_or
-    // bitwise_xor
-    // ceil
-    pub fn ceil(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.ceil()
-        })
-    }
-    // clamp
-    pub fn clamp(&self, min: T, max: T) -> GenTensor<T> {
-        let mut ret = GenTensor {
-            d: Vec::with_capacity(self.d.len()),
-            dim: self.dim.clone(),
-        };
-
-        for i in &self.d {
-            let value;
-            if *i < min {
-                value = min;
-            } else if *i <= max {
-                value = *i;
-            } else {
-                value = max;
-            }
-            ret.d.push(value);
-        }
-        ret
-    }
-    // conj
-    // cos
-    pub fn cos(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.cos()
-        })
-    }
-    // cosh
-    pub fn cosh(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.cosh()
-        })
-    }
-    // div, there is one.
-    // digamma
-    //pub fn digamma(&self) -> GenTensor<T> {
-    //    self._pointwise(|x| {
-    //        x.digamma()
-    //    })
-    //}
-    // erf
-    // erfc
-    // erfinv
-    // exp
-    pub fn exp(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.exp()
-        })
-    }
-    // expm1
-    pub fn expm1(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.exp_m1()
-        })
-    }
-    // floor
-    pub fn floor(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.floor()
-        })
-    }
-    // floor_divide
-    // fmod
-    // frac
-    pub fn frac(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.fract()
-        })
-    }
-    // imag
-    // lerp, this is on Tensor.
-    // lgamma
-    // log
-    pub fn log(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.ln()
-        })
-    }
-    // log10
-    pub fn log10(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.log10()
-        })
-    }
-    // log1p
-    pub fn log1p(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.ln_1p()
-        })
-    }
-
-    /// Better log(1 + exp(x))
-    /// see https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
-    pub fn log1pexp(&self) -> GenTensor<T> {
-        let mut ret = GenTensor {
-            d: Vec::with_capacity(self.d.len()),
-            dim: self.dim.to_vec(),
-        };
-        for i in &self.d {
-            if i <= &T::from(-37).expect("") {
-                ret.d.push(i.exp());
-            } else if i > &T::from(-37).expect("") && i <= &T::from(18).expect("") {
-                ret.d.push(i.exp().ln_1p());
-            } else if i > &T::from(-18).expect("") && i <= &T::from(33.3).expect("") {
-                ret.d.push(*i + i.mul(T::from(-1).expect("")).exp());
-            } else {
-                ret.d.push(*i);
-            }
-        }
-        ret
-    }
-    
-    // log2
-    pub fn log2(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.log2()
-        })
-    }
-    // logical_and
-    // logical_not
-    // logical_or
-    // logical_xor
-    // mul, there is one
-    // mvlgamma
-    // neg
-    pub fn neg(&self) -> GenTensor<T> {
-        let mut ret = GenTensor {
-            d: Vec::with_capacity(self.d.len()),
-            dim: self.dim.to_vec(),
-        };
-
-        for i in &self.d {
-            ret.d.push(i.mul(T::zero() - T::one()));
-        }
-        ret
-    }
-    
-    // polygamma
-    // pow
-    pub fn pow(&self, n: T) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.powf(n)
-        })
-    }
-    // real
-    // reciprocal
-    pub fn reciprocal(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.recip()
-        })
-    }
-    // remainder
-    // round
-    pub fn round(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.round()
-        })
-    }
-    // rsqrt
-    pub fn rsqrt(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.sqrt()/(*x)
-        })
-    }
-    
-    pub fn sigmoid(&self) -> GenTensor<T> {
-        let mut ret = GenTensor {
-            d: self.d.to_vec(),
-            dim: self.dim.to_vec(),
-        };
-
-        for i in 0..self.d.len() {
-            if self.d[i] > T::zero() {
-                ret.d[i] = T::one()/(T::one() + self.d[i].neg().exp());
-            }
-            else {
-                ret.d[i] = self.d[i].exp()/(T::one() + self.d[i].exp());
-            }
-        }
-        ret
-    }
-
-    // sign
-    pub fn sign(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            if *x == T::zero() {
-                T::zero()
-            } else if *x > T::zero() {
-                T::one()
-            } else {
-                T::zero() - T::one()
-            }
-        })
-    }
-    // sin
-    pub fn sin(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.sin()
-        })
-    }
-    // sinh
-    pub fn sinh(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.sinh()
-        })
-    }
-    // sqrt
-    pub fn sqrt(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.sqrt()
-        })
-    }
-    // square
-    pub fn square(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            (*x)*(*x)
-        })
-    }
-    // tan
-    pub fn tan(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.tan()
-        })
-    }
-    // tanh
-    pub fn tanh(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.tanh()
-        })
-    }
-    // true_divide
-    // trunc
-    pub fn trunc(&self) -> GenTensor<T> {
-        self._pointwise(|x| {
-            x.trunc()
-        })
     }
     
     pub fn _right_broadcast<F>(&self, o: &GenTensor<T>, closure: F) -> GenTensor<T>
@@ -1452,6 +1177,7 @@ impl GenTensor<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    
 
     #[test]
     fn test_index2dimpos() {
@@ -1519,6 +1245,7 @@ mod tests {
     }
 
     // Pointwise Ops
+    use crate::tensor::elemwise::ElemwiseTensorOp;
     #[test]
     fn ceil() {
         let a = GenTensor::<f32>::new_raw(&vec![0.9213,  1.0887, -0.8858, -1.7683],
