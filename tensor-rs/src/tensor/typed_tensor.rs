@@ -3,6 +3,8 @@ use std::mem::discriminant;
 
 
 use super::gen_tensor::*;
+#[cfg(feature = "use-cuda")]
+use super::cuda_tensor::*;
 use crate::tensor::PaddingMode;
 use super::compare_tensor::CompareTensor;
 use super::index_slicing::IndexSlicing;
@@ -14,6 +16,8 @@ use super::reduction::ReduceTensor;
 pub enum TypedTensor {
     Typef32(GenTensor<f32>),
     Typef64(GenTensor<f64>),
+    #[cfg(feature = "use-cuda")]
+    Cudaf32(CudaTensor),
 }
 
 // used for size alike ops
@@ -23,7 +27,9 @@ macro_rules! typed_tensor_method_single_same_return {
             match &self {
                 TypedTensor::Typef32(v1) => {v1.$a()},
                 TypedTensor::Typef64(v1) => {v1.$a()},
-                //_ => {panic!("should have same tensor type!");},
+                #[cfg(feature = "use-cuda")]
+                TypedTensor::Cudaf32(v1) => {v1.$a()},
+                _ => {panic!("should have same tensor type!");},
             }
         }
     }
@@ -36,7 +42,9 @@ macro_rules! typed_tensor_method_single_tensor_return {
             match &self {
                 TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.$a())},
                 TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.$a())},
-                //_ => {panic!("should have same tensor type!");},
+                #[cfg(feature = "use-cuda")]
+                TypedTensor::Cudaf32(v1) => {TypedTensor::Cudaf32(v1.$a())},
+                _ => {panic!("should have same tensor type!");},
             }
         }
     }
@@ -49,6 +57,8 @@ macro_rules! typed_tensor_method {
             match (&self, o) {
                 (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.$a(v2))},
                 (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.$a(v2))},
+                #[cfg(feature = "use-cuda")]
+                (TypedTensor::Cudaf32(v1), TypedTensor::Cudaf32(v2)) => {TypedTensor::Cudaf32(v1.$a(v2))},
                 _ => {panic!("should have same tensor type!");},
             }
         }
@@ -66,14 +76,14 @@ impl TypedTensor {
         match self {
             TypedTensor::Typef32(v1) => {v1.index2dimpos(index)},
             TypedTensor::Typef64(v1) => {v1.index2dimpos(index)},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn dimpos2index(&self, dimpos: &[usize]) -> usize {
         match self {
             TypedTensor::Typef32(v1) => {v1.dimpos2index(dimpos)},
             TypedTensor::Typef64(v1) => {v1.dimpos2index(dimpos)},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
 
@@ -95,7 +105,7 @@ impl TypedTensor {
         match self {
             TypedTensor::Typef32(v1) => {v1.from_record(row, record)},
             TypedTensor::Typef64(v1) => {v1.from_record(row, record)},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
 
@@ -103,7 +113,7 @@ impl TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {v1.get(o)},
             TypedTensor::Typef64(v1) => {v1.get(o) as f32},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     // pub fn get_f32() -> f32 {}
@@ -111,7 +121,7 @@ impl TypedTensor {
         match self {
             TypedTensor::Typef32(v1) => {v1.set(o, v)},
             TypedTensor::Typef64(v1) => {v1.set(o, v as f64)},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
 
@@ -121,7 +131,7 @@ impl TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {v1.get_scale()},
             TypedTensor::Typef64(v1) => {v1.get_scale() as f32},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
 
@@ -137,7 +147,7 @@ impl TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.get_patch(range, step))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.get_patch(range, step))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
 
@@ -166,7 +176,7 @@ impl TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => v1.get_u8(),
             TypedTensor::Typef64(v1) => v1.get_u8(),
-            //_ => panic!("This is not f64 tensor"),
+            _ => panic!("This is not f64 tensor"),
         }
     }
 
@@ -181,6 +191,7 @@ impl TypedTensor {
                         match i {
                             TypedTensor::Typef32(v1) => {tmp_ref = v1;},
                             TypedTensor::Typef64(_v1) => {panic!("");},
+                            _ => panic!("Other case"),
                         }
                         converted_tensor.push(tmp_ref);
                     } else {
@@ -197,6 +208,7 @@ impl TypedTensor {
                         match i {
                             TypedTensor::Typef64(v1) => {tmp_ref = v1;},
                             TypedTensor::Typef32(_v1) => {panic!("");},
+                            _ => panic!("Other case"),
                         }
                         converted_tensor.push(tmp_ref);
                     } else {
@@ -205,6 +217,7 @@ impl TypedTensor {
                 }
                 TypedTensor::Typef64(v1.cat(&converted_tensor[..], dim))
             },
+            _ => panic!("Other case"),
         }
     }
 
@@ -238,7 +251,7 @@ impl TypedTensor {
             TypedTensor::Typef64(v1) => {
                 TypedTensor::Typef64(v1.reshape(new_shape))
             },
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
 
@@ -261,7 +274,7 @@ impl TypedTensor {
                 }
                 ret
             },
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
 
     }
@@ -270,7 +283,7 @@ impl TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.squeeze(dim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.squeeze(dim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
 
@@ -282,14 +295,14 @@ impl TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.permute(dim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.permute(dim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn unsqueeze(&self, dim: usize) -> TypedTensor {
         match self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.unsqueeze(dim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.unsqueeze(dim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn conditional_select(&self, x: &TypedTensor, y: &TypedTensor) -> TypedTensor {
@@ -307,7 +320,7 @@ impl TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.repeat(dim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.repeat(dim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     
@@ -337,7 +350,7 @@ impl TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.pow(n))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.pow(n as f64))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     typed_tensor_method_single_tensor_return!(reciprocal);
@@ -383,63 +396,63 @@ impl TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.argmax(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.argmax(dim, keepdim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn argmin(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.argmin(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.argmin(dim, keepdim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn logsumexp(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.logsumexp(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.logsumexp(dim, keepdim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.mean(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.mean(dim, keepdim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn std(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.std(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.std(dim, keepdim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn sum(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.sum(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.sum(dim, keepdim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn var(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.var(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.var(dim, keepdim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn max(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.max(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.max(dim, keepdim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
     pub fn min(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.max(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.min(dim, keepdim))},
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
 
@@ -513,6 +526,7 @@ impl fmt::Display for TypedTensor {
         match self {
             TypedTensor::Typef32(v) => write!(f, "{}", v),
             TypedTensor::Typef64(v) => write!(f, "({}, )", v),
+            _ => panic!("Other case"),
         }
     }
 }
@@ -532,7 +546,7 @@ impl Clone for TypedTensor {
         match self {
             TypedTensor::Typef32(v) => TypedTensor::Typef32(v.clone()),
             TypedTensor::Typef64(v) => TypedTensor::Typef64(v.clone()),
-            //_ => {panic!("should have same tensor type!");},
+            _ => {panic!("should have same tensor type!");},
         }
     }
 }
