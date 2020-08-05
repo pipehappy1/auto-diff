@@ -15,8 +15,8 @@
 //! Licese
 //! ------------
 
-extern crate ndarray;
-extern crate ndarray_linalg;
+//extern crate ndarray;
+//extern crate ndarray_linalg;
 
 pub mod tensor;
 
