@@ -28,6 +28,7 @@ rand = "0.7"
 rand_distr = "0.2"
 
 blas = { version = "0.20", optional = true }
+openblas-src = { version = "0.9", optional = true }
 
 #rcublas = { version = "0.5", optional = true }
 cuda11-cudart-sys = { version = "0.3", optional = true }
@@ -35,7 +36,7 @@ cuda11-cudart-sys = { version = "0.3", optional = true }
 criterion = "0.3"
 
 # one backend
-#openblas-src = "0.9" # or another backend of your choice
+
 
 # for examples
 csv = "1.1"
@@ -46,6 +47,6 @@ tensorboard-rs = "0.2.2"
 
 default = []
 
-use-blas = ["blas"]
+use-blas = ["blas", "openblas-src"]
 
 use-cuda = ["cuda11-cudart-sys"]

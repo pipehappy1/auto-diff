@@ -190,6 +190,7 @@ impl BlasAPI<f64> {
 #[cfg(all(test, feature = "use-blas"))]
 mod tests {
     use super::*;
+    
     extern crate openblas_src;
 
     #[test]
