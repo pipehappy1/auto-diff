@@ -50,19 +50,43 @@ impl CudaTensor {
     }
 
     pub fn new_move(data: Vec::<f32>, shape: Vec::<usize>) -> CudaTensor {
-        unimplemented!();
+        let mut device_data: *mut f32 = std::ptr::null_mut();
+        let elems: usize = shape.iter().product();
+        if elems != data.len() {
+            panic!();
+        }
+
+        unsafe {
+            //println!("cudaMalloc");
+            check_cuda_status(cudaMalloc(&mut device_data as *mut _ as *mut _,
+                                         std::mem::size_of::<f32>()*elems));
+            //println!("cudaMemcpy");
+            cudaMemcpy(device_data as *mut _,
+                       data.as_ptr() as *mut _,
+                       std::mem::size_of::<f32>()*elems,
+                       cudaMemcpyKind::cudaMemcpyHostToDevice);
+        }
+            
+        CudaTensor {
+            device_data: device_data,
+            dim: shape.to_vec(),
+        }
     }
+
+    /// copy data from GPU memory to mm.
+    fn to_GenTensor(&mut self) -> GenTensor<f32> {
+        let mut data = vec![0.; self.numel()];
         
-    //fn _sync(&mut self) {
-    //    let elems: usize = self.dim.iter().product();
-    //    
-    //    unsafe {
-    //        cudaMemcpy(self.mm_data.as_mut_ptr() as *mut _,
-    //                   self.device_data as *mut _,
-    //                   std::mem::size_of::<f32>()*elems,
-    //                   cudaMemcpyKind::cudaMemcpyDeviceToHost);
-    //    }
-    //}
+        unsafe {
+            //println!("cudaMemcpy");
+            cudaMemcpy(data.as_mut_ptr() as *mut _,
+                       self.device_data as *mut _,
+                       std::mem::size_of::<f32>()*self.numel(),
+                       cudaMemcpyKind::cudaMemcpyDeviceToHost);
+        }
+
+        GenTensor::<f32>::new_move(data, self.dim.clone())
+    }
 
     // 
     // as_tensor
@@ -247,9 +271,10 @@ impl CudaTensor {
         unimplemented!();
     }
 
-    /// Returns the total number of elements in the input tensor
+    /// Returns the total number of elements of the tensor
+    /// Return usize
     pub fn numel(&self) -> usize {
-        unimplemented!();
+        self.dim.iter().product()
     }
 
     /// Returns the total number of elements in the input tensor
@@ -353,5 +378,25 @@ mod tests {
                                             &vec![1, 1, 3, 3]);
         println!("{:?}", input);
     }
+
+    #[test]
+    fn cuda_to_GenTensor() {
+        let mut input = CudaTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., 9.],
+                                            &vec![1, 1, 3, 3]);
+        let local = input.to_GenTensor();
+        //println!("{:?}", local);
+        assert_eq!(local.numel(), 9);
+        assert_eq!(local.get_data().clone(), vec![1., 2., 3., 4., 5., 6., 7., 8., 9.]);
+    }
+
+    #[test]
+    fn cuda_numel() {
+        let mut input = CudaTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., 9.],
+                                            &vec![1, 1, 3, 3]);
+        //println!("{:?}", input.numel());
+        assert_eq!(input.numel(), 9);
+    }
+
+
 
 }
