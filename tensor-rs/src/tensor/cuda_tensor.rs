@@ -163,7 +163,19 @@ impl CudaTensor {
     }
     /// assign a row.
     pub fn from_record(&mut self, row: usize, record: &[f32]) -> Result<(), ()> {
-        unimplemented!();
+        if record.len() != self.dim[self.dim.len() - 1] {
+            Err(())
+        } else {
+            unsafe {
+            //println!("cudaMemcpy");
+                cudaMemcpy(((self.device_data as usize)
+                            + row*self.dim[self.dim.len()-1]*std::mem::size_of::<f32>()) as _,
+                           record.as_ptr() as *mut _,
+                           std::mem::size_of::<f32>()*record.len(),
+                           cudaMemcpyKind::cudaMemcpyHostToDevice);
+            }
+            Ok(())
+        }
     }
 
     /// Right dimension changes fastest.
@@ -387,6 +399,15 @@ mod tests {
         //println!("{:?}", local);
         assert_eq!(local.numel(), 9);
         assert_eq!(local.get_data().clone(), vec![1., 2., 3., 4., 5., 6., 7., 8., 9.]);
+    }
+
+    #[test]
+    fn cuda_from_record() {
+        let mut input = CudaTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., 9.],
+                                            &vec![1, 1, 3, 3]);
+        input.from_record(1, &vec![11., 12., 13.]);
+        //println!("{:?}", input.to_GenTensor());
+        assert_eq!(input.to_GenTensor().get_data().clone(), vec![1.0, 2.0, 3.0, 11.0, 12.0, 13.0, 7.0, 8.0, 9.0]);
     }
 
     #[test]
