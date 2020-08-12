@@ -88,6 +88,39 @@ impl CudaTensor {
         GenTensor::<f32>::new_move(data, self.dim.clone())
     }
 
+    /// Convert 1 dim index to multi-dim index.
+    pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {
+        if index >= self.numel() {
+            panic!("index out of range, {:?}, {:?}", index, self.numel());
+        }
+        let mut ret = Vec::new();
+        let mut reminder = index;
+        for i in &self.stride() {
+            //println!("{}", reminder);
+            ret.push(reminder/i);
+            reminder %= i;
+        }
+        ret
+    }
+
+    /// Convert multi-dim index to 1 dim index.
+    pub fn dimpos2index(&self, dimpos: &[usize]) -> usize {
+        if dimpos.len() != self.dim.len() {
+            panic!("get expects the same dim self.dim: {:?}, o: {:?}", self.dim, dimpos);
+        }
+        for (i, j) in self.dim.iter().zip(dimpos.iter()) {
+            if j >= i {
+                panic!("get expects the dim within range self.dim: {:?}, o: {:?}", self.dim, dimpos);
+            }
+        }
+        let mut ret = 0;
+        for (st, i) in self.stride().iter().zip(dimpos.iter()) {
+            //println!("{}", reminder);
+            ret += st*i;
+        }
+        ret
+    }
+
     // 
     // as_tensor
     // as_strided
@@ -207,13 +240,45 @@ impl CudaTensor {
     /// assert_eq!(m1.get(&vec![1,1]), 5.);
     /// ```
     pub fn get(&self, o: &[usize]) -> f32 {
-        unimplemented!();
+        let index = self.dimpos2index(o);
+        //println!("index: {:?}", index);
+
+        let mut data: Vec<f32> = vec![0.0];
+        unsafe {
+            //println!("cudaMemcpy");
+            cudaMemcpy(data.as_mut_ptr() as *mut _,
+                       ((self.device_data as usize)
+                        + std::mem::size_of::<f32>()*index) as *mut _,
+                       std::mem::size_of::<f32>(),
+                       cudaMemcpyKind::cudaMemcpyDeviceToHost);
+        }
+        data[0]
     }
     pub fn set(&mut self, o: &[usize], v: f32) {
-        unimplemented!();
+        let index = self.dimpos2index(o);
+        //println!("index: {:?}", index);
+
+        let mut data: Vec<f32> = vec![v];
+        unsafe {
+            //println!("cudaMemcpy");
+            cudaMemcpy(((self.device_data as usize)
+                        + std::mem::size_of::<f32>()*index) as *mut _,
+                       data.as_mut_ptr() as *mut _,
+                       std::mem::size_of::<f32>(),
+                       cudaMemcpyKind::cudaMemcpyHostToDevice);
+        }
     }
     pub fn set_1d(&mut self, o: usize, v: f32) {
-        unimplemented!();
+
+        let mut data: Vec<f32> = vec![v];
+        unsafe {
+            //println!("cudaMemcpy");
+            cudaMemcpy(((self.device_data as usize)
+                        + std::mem::size_of::<f32>()*o) as *mut _,
+                       data.as_mut_ptr() as *mut _,
+                       std::mem::size_of::<f32>(),
+                       cudaMemcpyKind::cudaMemcpyHostToDevice);
+        }
     }
     pub fn get_mut(&mut self, o: &[usize]) -> &mut f32 {
         unimplemented!();
@@ -357,7 +422,7 @@ impl Drop for CudaTensor {
     fn drop(&mut self) {
         if self.device_data != std::ptr::null_mut() {
             unsafe {
-                println!("cudaFree");
+                //println!("cudaFree");
                 check_cuda_status(cudaFree(self.device_data as _));                    
             }
         }
@@ -408,6 +473,32 @@ mod tests {
         input.from_record(1, &vec![11., 12., 13.]);
         //println!("{:?}", input.to_GenTensor());
         assert_eq!(input.to_GenTensor().get_data().clone(), vec![1.0, 2.0, 3.0, 11.0, 12.0, 13.0, 7.0, 8.0, 9.0]);
+    }
+
+    #[test]
+    fn cuda_get() {
+        let mut input = CudaTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., 9.],
+                                            &vec![1, 1, 3, 3]);
+        //println!("{:?}", input.get(&vec![0,0,1,1]));
+        assert_eq!(input.get(&vec![0,0,1,1]), 5.);
+    }
+
+    #[test]
+    fn cuda_set() {
+        let mut input = CudaTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., 9.],
+                                            &vec![1, 1, 3, 3]);
+        //println!("{:?}", input.get(&vec![0,0,1,1]));
+        input.set(&vec![0,0,1,1], 15.);
+        assert_eq!(input.get(&vec![0,0,1,1]), 15.);
+    }
+
+    #[test]
+    fn cuda_set_1d() {
+        let mut input = CudaTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., 9.],
+                                            &vec![1, 1, 3, 3]);
+        //println!("{:?}", input.get(&vec![0,0,1,1]));
+        input.set_1d(4, 15.);
+        assert_eq!(input.get(&vec![0,0,1,1]), 15.);
     }
 
     #[test]
