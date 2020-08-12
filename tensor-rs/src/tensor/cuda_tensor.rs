@@ -281,12 +281,20 @@ impl CudaTensor {
         }
     }
     pub fn get_mut(&mut self, o: &[usize]) -> &mut f32 {
-        unimplemented!();
+        unimplemented!("This deprecated, use set()");
     }
 
     /// dump the underlying vec
     pub fn get_raw(&self) -> Vec<f32> {
-        unimplemented!();
+        let mut data: Vec<f32> = vec![0.0; self.numel()];
+        unsafe {
+            //println!("cudaMemcpy");
+            cudaMemcpy(data.as_mut_ptr() as *mut _,
+                       self.device_data as *mut _,
+                       std::mem::size_of::<f32>()*self.numel(),
+                       cudaMemcpyKind::cudaMemcpyDeviceToHost);
+        }
+        data
     }
     pub fn get_u8(&self) -> Option<Vec<u8>> {
         unimplemented!();
