@@ -32,6 +32,7 @@ openblas-src = { version = "0.9", optional = true }
 
 #rcublas = { version = "0.5", optional = true }
 cuda11-cudart-sys = { version = "0.3", optional = true }
+cuda11-cutensor-sys = { version = "0.2", optional = true }
 [dev-dependencies]
 criterion = "0.3"
 
@@ -49,4 +50,4 @@ default = []
 
 use-blas = ["blas", "openblas-src"]
 
-use-cuda = ["cuda11-cudart-sys"]
+use-cuda = ["cuda11-cudart-sys", "cuda11-cutensor-sys"]
