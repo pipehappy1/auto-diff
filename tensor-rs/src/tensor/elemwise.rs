@@ -1,6 +1,10 @@
 use crate::tensor::gen_tensor::GenTensor;
 #[cfg(feature = "use-cuda")]
 use crate::tensor::cuda_tensor::CudaTensor;
+#[cfg(feature = "use-cuda")]
+use cuda11_cutensor_sys::{self, cutensorHandle_t, check_cutensor_status, cutensorInit, cudaDataType_t, cutensorTensorDescriptor_t, cutensorInitTensorDescriptor, cutensorOperator_t_CUTENSOR_OP_IDENTITY, cutensorOperator_t_CUTENSOR_OP_ABS, cutensorPermutation};
+#[cfg(feature = "use-cuda")]
+use cuda11_cudart_sys::{self, cudaMalloc, cudaStreamCreate, cudaMemcpy, cudaStreamSynchronize, cudaFree, cudaStreamDestroy, cudaMemcpyKind, check_cuda_status, cudaStream_t, cudaMemcpyAsync};
 
 pub trait ElemwiseTensorOp {
     type TensorType;
@@ -326,7 +330,68 @@ impl ElemwiseTensorOp for CudaTensor {
     // Pointwise Ops
     // abs
     fn abs(&self) -> CudaTensor {
-        unimplemented!();
+        let mut ret = CudaTensor::empty(self.size());
+        
+        unsafe {
+            let mut stream: cudaStream_t = std::ptr::null_mut();
+            check_cuda_status(cudaStreamCreate(&mut stream as *mut _ as _));
+        
+            let mut handle:cutensorHandle_t = std::mem::uninitialized();
+            check_cutensor_status(cutensorInit(&mut handle as *mut _));
+        
+            let alpha: f32 = 1.0;
+        
+            let extent: Vec<i64> = self.size().iter().map(|x| *x as i64).collect();
+            let elems: usize = self.numel();
+        
+            let sizeA = std::mem::size_of::<f32>()*elems;
+            let sizeB = std::mem::size_of::<f32>()*elems;
+            
+            let mut A_d: *mut f32 = self._get_device_data();
+            let mut B_d: *mut f32 = ret._get_device_data();
+        
+            let mut descA: cutensorTensorDescriptor_t = std::mem::uninitialized();
+            let mut descB: cutensorTensorDescriptor_t = std::mem::uninitialized();
+        
+            check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
+                                           &mut descA,
+                                           self.size().len() as _,
+                                           extent.as_ptr(),
+                                           std::ptr::null(),/*stride*/
+                                           cudaDataType_t::CUDA_R_32F,
+                                           cutensorOperator_t_CUTENSOR_OP_ABS));
+            check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
+                                           &mut descB,
+                                           self.size().len() as _,
+                                           extent.as_ptr(),
+                                           std::ptr::null(),/*stride*/
+                                           cudaDataType_t::CUDA_R_32F,
+                                           cutensorOperator_t_CUTENSOR_OP_IDENTITY));
+
+            let mut modeA: Vec<i32> = vec![32; self.size().len()];
+            let mut modeB: Vec<i32> = vec![32; self.size().len()];
+            for i in 0..self.size().len() {
+                modeA[i] = modeA[i] + i as i32;
+                modeB[i] = modeB[i] + i as i32;
+            }
+            
+            check_cutensor_status(cutensorPermutation(&handle,
+                                &alpha as *const _ as _,
+                                A_d as _,
+                                &descA as _,
+                                modeA.as_ptr(),
+                                B_d as _,
+                                &descB as _,
+                                modeB.as_ptr(),
+                                cudaDataType_t::CUDA_R_32F,
+                                stream as _
+            ));
+
+            cudaStreamSynchronize(stream as _);
+        
+            check_cuda_status(cudaStreamDestroy(stream as _));
+        }
+        ret
     }
     // acos
     fn acos(&self) -> CudaTensor {
@@ -487,5 +552,18 @@ impl ElemwiseTensorOp for CudaTensor {
     // trunc
     fn trunc(&self) -> CudaTensor {
         unimplemented!();
+    }
+}
+
+#[cfg(all(test, feature = "use-cuda"))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cuda_abs() {
+        let mut input = CudaTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., -9.],
+                                            &vec![1, 1, 3, 3]);
+        let output = input.abs();
+        println!("{:?}", output.to_GenTensor());
     }
 }

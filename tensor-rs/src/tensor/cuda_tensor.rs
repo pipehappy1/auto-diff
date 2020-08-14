@@ -83,7 +83,7 @@ pub struct CudaTensor {
 }
 
 impl CudaTensor {
-    fn new() -> CudaTensor {
+    pub fn new() -> CudaTensor {
         CudaTensor {
             device_data: std::ptr::null_mut(),
             dim: Vec::new(),
@@ -91,7 +91,7 @@ impl CudaTensor {
             cutensor: None,
         }
     }
-    fn new_raw(data: &[f32], shape: &[usize]) -> CudaTensor {
+    pub fn new_raw(data: &[f32], shape: &[usize]) -> CudaTensor {
         
         let mut device_data: *mut f32 = std::ptr::null_mut();
         let elems: usize = shape.iter().product();
@@ -144,8 +144,16 @@ impl CudaTensor {
         }
     }
 
+    pub fn _get_stream(&self) -> Option<Rc<CudaStream>> {
+        todo!();
+    }
+
+    pub fn _get_cutensor(&self) -> Option<Rc<CudaCutensor>>{
+        todo!();
+    }
+
     /// copy data from GPU memory to mm.
-    fn to_GenTensor(&mut self) -> GenTensor<f32> {
+    pub fn to_GenTensor(&self) -> GenTensor<f32> {
         let mut data = vec![0.; self.numel()];
         
         unsafe {
@@ -427,6 +435,9 @@ impl CudaTensor {
     }
     pub fn get_data_mut(&mut self) -> &mut Vec<f32> {
         unimplemented!();
+    }
+    pub fn _get_device_data(&self) -> *mut f32 {
+        self.device_data
     }
 
     /// Returns the total number of elements of the tensor
