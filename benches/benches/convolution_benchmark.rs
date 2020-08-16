@@ -4,7 +4,7 @@ use std::iter;
 use tensor_rs::tensor::gen_tensor::*;
 use tensor_rs::tensor::PaddingMode;
 use tensor_rs::tensor::index_slicing::IndexSlicing;
-use tensor_rs::tensor::convolution::{Convolution, gemm_conv};
+use tensor_rs::tensor::convolution::{Convolution, gemm_conv_f32};
 
 extern crate ndarray;
 extern crate ndarray_linalg;
@@ -31,7 +31,7 @@ fn varing_input_size_benchmark(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("dot_product", size*size), size, |b, &size| {
             b.iter(|| {
-                let result = gemm_conv(&data, &filter, &stride, &padding, &dilation, padding_mode);
+                let result = gemm_conv_f32(&data, &filter, &stride, &padding, &dilation, padding_mode);
             });
         });
     }

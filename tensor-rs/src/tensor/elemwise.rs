@@ -4,7 +4,34 @@ use crate::tensor::cuda_tensor::CudaTensor;
 #[cfg(feature = "use-cuda")]
 use cuda11_cutensor_sys::{self, cutensorHandle_t, check_cutensor_status, cutensorInit, cudaDataType_t, cutensorTensorDescriptor_t, cutensorInitTensorDescriptor, cutensorPermutation,
                           cutensorOperator_t_CUTENSOR_OP_IDENTITY,
-                          cutensorOperator_t_CUTENSOR_OP_ABS, };
+                          cutensorOperator_t_CUTENSOR_OP_SQRT,
+                          cutensorOperator_t_CUTENSOR_OP_RELU,
+                          cutensorOperator_t_CUTENSOR_OP_CONJ,
+                          cutensorOperator_t_CUTENSOR_OP_RCP,
+                          cutensorOperator_t_CUTENSOR_OP_SIGMOID,
+                          cutensorOperator_t_CUTENSOR_OP_TANH,
+                          cutensorOperator_t_CUTENSOR_OP_EXP,
+                          cutensorOperator_t_CUTENSOR_OP_LOG,
+                          cutensorOperator_t_CUTENSOR_OP_ABS,
+                          cutensorOperator_t_CUTENSOR_OP_NEG,
+                          cutensorOperator_t_CUTENSOR_OP_SIN,
+                          cutensorOperator_t_CUTENSOR_OP_COS,
+                          cutensorOperator_t_CUTENSOR_OP_TAN,
+                          cutensorOperator_t_CUTENSOR_OP_SINH,
+                          cutensorOperator_t_CUTENSOR_OP_COSH,
+                          cutensorOperator_t_CUTENSOR_OP_ASIN,
+                          cutensorOperator_t_CUTENSOR_OP_ACOS,
+                          cutensorOperator_t_CUTENSOR_OP_ATAN,
+                          cutensorOperator_t_CUTENSOR_OP_ASINH,
+                          cutensorOperator_t_CUTENSOR_OP_ACOSH,
+                          cutensorOperator_t_CUTENSOR_OP_ATANH,
+                          cutensorOperator_t_CUTENSOR_OP_CEIL,
+                          cutensorOperator_t_CUTENSOR_OP_FLOOR,
+                          cutensorOperator_t_CUTENSOR_OP_ADD,
+                          cutensorOperator_t_CUTENSOR_OP_MUL,
+                          cutensorOperator_t_CUTENSOR_OP_MAX,
+                          cutensorOperator_t_CUTENSOR_OP_MIN,
+};
 #[cfg(feature = "use-cuda")]
 use cuda11_cudart_sys::{self, cudaMalloc, cudaStreamCreate, cudaMemcpy, cudaStreamSynchronize, cudaFree, cudaStreamDestroy, cudaMemcpyKind, check_cuda_status, cudaStream_t, cudaMemcpyAsync};
 
@@ -321,6 +348,66 @@ impl<T> ElemwiseTensorOp for GenTensor<T> where T: num_traits::Float {
     }
 }
 
+// macro for cuda element
+macro_rules! unary_cuda_ops {
+    ($a: ident, $b: ident) => {
+        fn $a(&self) -> CudaTensor {
+            let mut ret = CudaTensor::empty(self.size());
+        
+            unsafe {
+                let mut stream: cudaStream_t = self._get_stream();
+        
+                let mut handle:cutensorHandle_t = std::mem::uninitialized();
+                check_cutensor_status(cutensorInit(&mut handle as *mut _));
+            
+                let alpha: f32 = 1.0;
+            
+                let extent: Vec<i64> = self.size().iter().map(|x| *x as i64).collect();
+            
+                let mut descA: cutensorTensorDescriptor_t = std::mem::uninitialized();
+                let mut descB: cutensorTensorDescriptor_t = std::mem::uninitialized();
+            
+                check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
+                                               &mut descA,
+                                               self.size().len() as _,
+                                               extent.as_ptr(),
+                                               std::ptr::null(),/*stride*/
+                                               cudaDataType_t::CUDA_R_32F,
+                                               $b));
+                check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
+                                               &mut descB,
+                                               self.size().len() as _,
+                                               extent.as_ptr(),
+                                               std::ptr::null(),/*stride*/
+                                               cudaDataType_t::CUDA_R_32F,
+                                               cutensorOperator_t_CUTENSOR_OP_IDENTITY));
+    
+                let mut modeA: Vec<i32> = vec![32; self.size().len()];
+                let mut modeB: Vec<i32> = vec![32; self.size().len()];
+                for i in 0..self.size().len() {
+                    modeA[i] = modeA[i] + i as i32;
+                    modeB[i] = modeB[i] + i as i32;
+                }
+                
+                check_cutensor_status(cutensorPermutation(&handle,
+                                    &alpha as *const _ as _,
+                                    self._get_device_data() as _,
+                                    &descA as _,
+                                    modeA.as_ptr(),
+                                    ret._get_device_data() as _,
+                                    &descB as _,
+                                    modeB.as_ptr(),
+                                    cudaDataType_t::CUDA_R_32F,
+                                    stream as _
+                ));
+    
+                cudaStreamSynchronize(stream as _);
+            }
+            ret
+        }
+    }
+}
+
 /****************/
 // Cuda element wise ops
 /****************/
@@ -331,108 +418,34 @@ impl ElemwiseTensorOp for CudaTensor {
 
     // Pointwise Ops
     // abs
-    fn abs(&self) -> CudaTensor {
-        let mut ret = CudaTensor::empty(self.size());
-        
-        unsafe {
-            let mut stream: cudaStream_t = std::ptr::null_mut();
-            check_cuda_status(cudaStreamCreate(&mut stream as *mut _ as _));
-        
-            let mut handle:cutensorHandle_t = std::mem::uninitialized();
-            check_cutensor_status(cutensorInit(&mut handle as *mut _));
-        
-            let alpha: f32 = 1.0;
-        
-            let extent: Vec<i64> = self.size().iter().map(|x| *x as i64).collect();
-            let elems: usize = self.numel();
-        
-            let sizeA = std::mem::size_of::<f32>()*elems;
-            let sizeB = std::mem::size_of::<f32>()*elems;
-            
-            let mut A_d: *mut f32 = self._get_device_data();
-            let mut B_d: *mut f32 = ret._get_device_data();
-        
-            let mut descA: cutensorTensorDescriptor_t = std::mem::uninitialized();
-            let mut descB: cutensorTensorDescriptor_t = std::mem::uninitialized();
-        
-            check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
-                                           &mut descA,
-                                           self.size().len() as _,
-                                           extent.as_ptr(),
-                                           std::ptr::null(),/*stride*/
-                                           cudaDataType_t::CUDA_R_32F,
-                                           cutensorOperator_t_CUTENSOR_OP_ABS));
-            check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
-                                           &mut descB,
-                                           self.size().len() as _,
-                                           extent.as_ptr(),
-                                           std::ptr::null(),/*stride*/
-                                           cudaDataType_t::CUDA_R_32F,
-                                           cutensorOperator_t_CUTENSOR_OP_IDENTITY));
+    unary_cuda_ops!(abs, cutensorOperator_t_CUTENSOR_OP_ABS);
 
-            let mut modeA: Vec<i32> = vec![32; self.size().len()];
-            let mut modeB: Vec<i32> = vec![32; self.size().len()];
-            for i in 0..self.size().len() {
-                modeA[i] = modeA[i] + i as i32;
-                modeB[i] = modeB[i] + i as i32;
-            }
-            
-            check_cutensor_status(cutensorPermutation(&handle,
-                                &alpha as *const _ as _,
-                                A_d as _,
-                                &descA as _,
-                                modeA.as_ptr(),
-                                B_d as _,
-                                &descB as _,
-                                modeB.as_ptr(),
-                                cudaDataType_t::CUDA_R_32F,
-                                stream as _
-            ));
-
-            cudaStreamSynchronize(stream as _);
-        
-            check_cuda_status(cudaStreamDestroy(stream as _));
-        }
-        ret
-    }
     // acos
-    fn acos(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(acos, cutensorOperator_t_CUTENSOR_OP_ACOS);
     // add, there is one.
     // addcdiv
     // addcmul
     // angle
     // asin
-    fn asin(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(asin, cutensorOperator_t_CUTENSOR_OP_ASIN);
     // atan
-    fn atan(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(atan, cutensorOperator_t_CUTENSOR_OP_ATAN);
     // atan2
     // bitwise_not
     // bitwise_and
     // bitwise_or
     // bitwise_xor
     // ceil
-    fn ceil(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(ceil, cutensorOperator_t_CUTENSOR_OP_CEIL);
     // clamp
     fn clamp(&self, min: Self::ElementType, max: Self::ElementType) -> CudaTensor {
         unimplemented!();
     }
     // conj
     // cos
-    fn cos(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(cos, cutensorOperator_t_CUTENSOR_OP_COS);
     // cosh
-    fn cosh(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(cosh, cutensorOperator_t_CUTENSOR_OP_COSH);
     // div, there is one.
     // digamma
     //fn digamma(&self) -> CudaTensor {
@@ -444,17 +457,13 @@ impl ElemwiseTensorOp for CudaTensor {
     // erfc
     // erfinv
     // exp
-    fn exp(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(exp, cutensorOperator_t_CUTENSOR_OP_EXP);
     // expm1
     fn expm1(&self) -> CudaTensor {
         unimplemented!();
     }
     // floor
-    fn floor(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(floor, cutensorOperator_t_CUTENSOR_OP_FLOOR);
     // floor_divide
     // fmod
     // frac
@@ -465,9 +474,7 @@ impl ElemwiseTensorOp for CudaTensor {
     // lerp, this is on Tensor.
     // lgamma
     // log
-    fn log(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(log, cutensorOperator_t_CUTENSOR_OP_LOG);
     // log10
     fn log10(&self) -> CudaTensor {
         unimplemented!();
@@ -494,9 +501,7 @@ impl ElemwiseTensorOp for CudaTensor {
     // mul, there is one
     // mvlgamma
     // neg
-    fn neg(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(neg, cutensorOperator_t_CUTENSOR_OP_NEG);
     
     // polygamma
     // pow
@@ -505,9 +510,7 @@ impl ElemwiseTensorOp for CudaTensor {
     }
     // real
     // reciprocal
-    fn reciprocal(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(reciprocal, cutensorOperator_t_CUTENSOR_OP_RCP);
     // remainder
     // round
     fn round(&self) -> CudaTensor {
@@ -517,39 +520,27 @@ impl ElemwiseTensorOp for CudaTensor {
     fn rsqrt(&self) -> CudaTensor {
         unimplemented!();
     }
-    
-    fn sigmoid(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    // sigmoid
+    unary_cuda_ops!(sigmoid, cutensorOperator_t_CUTENSOR_OP_SIGMOID);
 
     // sign
     fn sign(&self) -> CudaTensor {
         unimplemented!();
     }
     // sin
-    fn sin(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(sin, cutensorOperator_t_CUTENSOR_OP_SIN);
     // sinh
-    fn sinh(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(sinh, cutensorOperator_t_CUTENSOR_OP_SINH);
     // sqrt
-    fn sqrt(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(sqrt, cutensorOperator_t_CUTENSOR_OP_SQRT);
     // square
     fn square(&self) -> CudaTensor {
         unimplemented!();
     }
     // tan
-    fn tan(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(tan, cutensorOperator_t_CUTENSOR_OP_TAN);
     // tanh
-    fn tanh(&self) -> CudaTensor {
-        unimplemented!();
-    }
+    unary_cuda_ops!(tanh, cutensorOperator_t_CUTENSOR_OP_TANH);
     // true_divide
     // trunc
     fn trunc(&self) -> CudaTensor {
@@ -566,8 +557,13 @@ mod tests {
         let mut input = CudaTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., -9.],
                                             &vec![1, 1, 3, 3]);
         let output = input.abs();
-        assert_eq!(output.to_GenTensor(), GenTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., 9.],
-                                            &vec![1, 1, 3, 3]));
+
+        //let mut input_gen = GenTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., -9.],
+        //                                       &vec![1, 1, 3, 3]);
+        //let output_gen = input_gen.abs();
+        //assert_eq!(output.to_GenTensor(), output_gen);
         //println!("{:?}", output.to_GenTensor());
     }
+
+    
 }

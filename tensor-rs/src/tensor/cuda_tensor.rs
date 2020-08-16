@@ -23,8 +23,8 @@ use crate::tensor::cuda_helper::*;
 pub struct CudaTensor {
     device_data: *mut f32,
     dim: Vec<usize>,
-    stream: Option<Rc<RefCell<CudaStream>>>,
-    cutensor: Option<Rc<RefCell<CudaCutensor>>>,
+    stream: Rc<StreamCell>,
+    //cutensor: Option<Rc<RefCell<CudaCutensor>>>,
 }
 
 impl CudaTensor {
@@ -32,8 +32,8 @@ impl CudaTensor {
         CudaTensor {
             device_data: std::ptr::null_mut(),
             dim: Vec::new(),
-            stream: None,
-            cutensor: None,
+            stream: Rc::new(StreamCell::new()),
+            //cutensor: None,
         }
     }
     pub fn new_raw(data: &[f32], shape: &[usize]) -> CudaTensor {
@@ -58,8 +58,8 @@ impl CudaTensor {
         CudaTensor {
             device_data: device_data,
             dim: shape.to_vec(),
-            stream: None,
-            cutensor: None,
+            stream: Rc::new(StreamCell::new()),
+            //cutensor: None,
         }
     }
 
@@ -84,14 +84,13 @@ impl CudaTensor {
         CudaTensor {
             device_data: device_data,
             dim: shape.to_vec(),
-            stream: None,
-            cutensor: None,
+            stream: Rc::new(StreamCell::new()),
+            //cutensor: None,
         }
     }
 
-    pub fn _get_stream(&self) -> &CudaStream {
-        
-        todo!();
+    pub fn _get_stream(&self) -> cudaStream_t {
+         self.stream.get_stream().raw_stream()
     }
 
     pub fn _get_cutensor(&self) -> Option<Rc<CudaCutensor>>{
@@ -196,8 +195,8 @@ impl CudaTensor {
         let mut ret = CudaTensor {
             device_data: device_data,
             dim: shape.to_vec(),
-            stream: None,
-            cutensor: None,
+            stream: Rc::new(StreamCell::new()),
+            //cutensor: None,
         };
         ret
     }
