@@ -558,10 +558,10 @@ mod tests {
                                             &vec![1, 1, 3, 3]);
         let output = input.abs();
 
-        //let mut input_gen = GenTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., -9.],
-        //                                       &vec![1, 1, 3, 3]);
-        //let output_gen = input_gen.abs();
-        //assert_eq!(output.to_GenTensor(), output_gen);
+        let mut input_gen = GenTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., -9.],
+                                               &vec![1, 1, 3, 3]);
+        let output_gen = input_gen.abs();
+        assert_eq!(output.to_GenTensor(), output_gen);
         //println!("{:?}", output.to_GenTensor());
     }
 

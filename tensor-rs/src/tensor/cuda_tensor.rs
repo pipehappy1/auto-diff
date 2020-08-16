@@ -17,6 +17,7 @@ use crate::tensor::gen_tensor::{GenTensor};
 use crate::tensor::cuda_helper::*;
 
 
+
 //
 // The tensor with cuda backend
 //
@@ -110,6 +111,11 @@ impl CudaTensor {
         }
 
         GenTensor::<f32>::new_move(data, self.dim.clone())
+    }
+
+    /// copy data from mm to GPU
+    pub fn from_GenTensor(data: &GenTensor<f32>) -> CudaTensor {
+        todo!();
     }
 
     /// Convert 1 dim index to multi-dim index.

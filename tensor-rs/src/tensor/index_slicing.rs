@@ -1,38 +1,38 @@
 use std::ops::Range;
 use std::cmp;
 use super::gen_tensor::GenTensor;
+#[cfg(feature = "use-cuda")]
+use super::cuda_tensor::CudaTensor;
 
-pub trait IndexSlicing {
-    type TensorType;
+pub trait IndexSlicing where Self: std::marker::Sized {
 
-    fn cat(&self, tensors: &[&Self::TensorType], dim: usize) -> Self::TensorType;
-    fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self::TensorType>;
-    fn gather(&self, dim: usize, index: &Self::TensorType) -> Self::TensorType;
-    fn index_select(&self, dim: usize, index: &Self::TensorType) -> Self::TensorType;
+    fn cat(&self, tensors: &[&Self], dim: usize) -> Self;
+    fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self>;
+    fn gather(&self, dim: usize, index: &Self) -> Self;
+    fn index_select(&self, dim: usize, index: &Self) -> Self;
     // fn masked_select();
     //pub fn narrow() {}
     //pub fn nonzero() {}
-    fn reshape(&self, new_shape: &[usize]) -> Self::TensorType;
-    fn split(&self, sections: &[usize], dim: usize) -> Vec<Self::TensorType>;
-    fn squeeze(&self, dim: Option<usize>) -> Self::TensorType;
-    fn stack(tensors: &[&Self], dim: usize) -> Self::TensorType;
+    fn reshape(&self, new_shape: &[usize]) -> Self;
+    fn split(&self, sections: &[usize], dim: usize) -> Vec<Self>;
+    fn squeeze(&self, dim: Option<usize>) -> Self;
+    fn stack(tensors: &[&Self], dim: usize) -> Self;
     //pub fn t() {}
-    fn take(&self, index: &[usize]) -> Self::TensorType;
+    fn take(&self, index: &[usize]) -> Self;
     //pub fn transpose() {}
     //pub fn unbind() {}
-    fn permute(&self, dims: &[usize]) -> Self::TensorType;
-    fn unsqueeze(&self, dim: usize) -> Self::TensorType;
+    fn permute(&self, dims: &[usize]) -> Self;
+    fn unsqueeze(&self, dim: usize) -> Self;
     //pub fn condition() {} // this is pytorch where
-    fn conditional_select(&self, x: &Self::TensorType, y: &Self::TensorType) -> Self::TensorType;
+    fn conditional_select(&self, x: &Self, y: &Self) -> Self;
 
-    fn repeat(&self, sizes: &[usize]) -> Self::TensorType;
+    fn repeat(&self, sizes: &[usize]) -> Self;
 }
 
 impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
-    type TensorType = GenTensor<T>;
 
     /// Concatenates the given sequence of seq tensors in the given dimension.
-    fn cat(&self, tensors: &[&Self::TensorType], dim: usize) -> Self::TensorType {
+    fn cat(&self, tensors: &[&Self], dim: usize) -> Self {
         let total_dim = self.size();
         for i in tensors {
             if i.size().len() != total_dim.len() {
@@ -90,7 +90,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     }
 
     /// Splits a tensor into a specific number of chunks.
-    fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self::TensorType> {
+    fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self> {
         let mut ret = Vec::new();
         let mut chunk_size = self.size()[dim] / chunks;
         if self.size()[dim] % chunks > 0 {
@@ -111,7 +111,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         ret
     }
 
-    fn gather(&self, dim: usize, index: &Self::TensorType) -> Self::TensorType {
+    fn gather(&self, dim: usize, index: &Self) -> Self {
         if self.size().len() != index.size().len() {
             panic!("gather need two input has the same number of dim: {}, {}", self.size().len(), index.size().len());
         }
@@ -175,7 +175,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         };
         ret
     }
-    fn index_select(&self, dim: usize, index: &Self::TensorType) -> Self::TensorType {
+    fn index_select(&self, dim: usize, index: &Self) -> Self {
         if dim >= self.size().len() {
             panic!("index_select needs better dim: {:?}, {:?}", self.size(), dim);
         }
@@ -212,7 +212,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         ret
     }
 
-    fn reshape(&self, new_shape: &[usize]) -> Self::TensorType {
+    fn reshape(&self, new_shape: &[usize]) -> Self {
         if self.size().iter().product::<usize>() != new_shape.iter().product::<usize>() {
             panic!("reshape expects the same number of elements {:?}, {:?}", self.size(), new_shape);
         }
@@ -220,7 +220,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     }
     
     /// Splits the tensor into chunks. Each chunk is a view of the original tensor.
-    fn split(&self, sections: &[usize], dim: usize) -> Vec<Self::TensorType> {
+    fn split(&self, sections: &[usize], dim: usize) -> Vec<Self> {
         let total_dim = self.size();
         if sections.iter().sum::<usize>() != total_dim[dim] {
             panic!("sum of sections should be the size on dim.");
@@ -263,7 +263,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         ret
     }
 
-    fn squeeze(&self, dim: Option<usize>) -> Self::TensorType {
+    fn squeeze(&self, dim: Option<usize>) -> Self {
         let mut new_shape = Vec::new();
         for i in 0..new_shape.len() {
             if (new_shape[i] == 1 && dim.is_some() && i == dim.unwrap()) ||
@@ -291,7 +291,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     /// }
     /// assert_eq!(*result.size(), vec![3,2,2]);
     /// ```
-    fn stack(tensors: &[&Self], dim: usize) -> Self::TensorType {
+    fn stack(tensors: &[&Self], dim: usize) -> Self {
         
         let cap = tensors.len()*tensors[0].numel();
         let mut odim = Vec::new();
@@ -330,7 +330,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     /// Returns a new tensor with the elements of input at the given indices. 
     /// The input tensor is treated as if it were viewed as a 1-D tensor.
     /// The result takes the same shape as the indices.
-    fn take(&self, index: &[usize]) -> Self::TensorType {
+    fn take(&self, index: &[usize]) -> Self {
         let mut ret = Vec::<T>::with_capacity(index.len());
         for i in index {
             ret.push(self.get_data()[*i]);
@@ -346,7 +346,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     /// let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
     /// m1.permute(&vec![2, 0, 1]);
     /// ```
-    fn permute(&self, dims: &[usize]) -> Self::TensorType {
+    fn permute(&self, dims: &[usize]) -> Self {
 
         let ret_d = self.get_data().to_vec();
         let ret_dim = self.size();
@@ -394,7 +394,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         GenTensor::new_raw(&new_d, &ret_dim)
     }
     
-    fn unsqueeze(&self, dim: usize) ->  Self::TensorType {
+    fn unsqueeze(&self, dim: usize) ->  Self {
         let mut new_dim = Vec::new();
         for i in 0..self.size().len() {
             if i == dim {
@@ -408,7 +408,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         GenTensor::new_raw(&self.get_data(), &new_dim)
     }
 
-    fn conditional_select(&self, x: &Self::TensorType, y: &Self::TensorType) -> Self::TensorType {
+    fn conditional_select(&self, x: &Self, y: &Self) -> Self {
         if self.size() != x.size() || self.size() != y.size() {
             panic!("condition_select expect the same size: {:?}, {:?}, {:?}", self.size(), x.size(), y.size());
         }
@@ -423,7 +423,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         GenTensor::new_raw(&data, self.size())
     }
 
-    fn repeat(&self, sizes: &[usize]) -> Self::TensorType {
+    fn repeat(&self, sizes: &[usize]) -> Self {
         if self.size().len() != sizes.len() {
             panic!("repeat needs the same number of dimensions. {:?}, {:?}", self.size().len(), sizes.len());
         }
@@ -519,4 +519,59 @@ mod tests {
         println!("{:?}", b);
         assert_eq!(b, GenTensor::<f32>::new_raw(&[1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3. ], &[4, 6]));
     }
+}
+
+/****************/
+// Cuda tensor ops
+/****************/
+#[cfg(feature = "use-cuda")]
+impl IndexSlicing for CudaTensor {
+    fn cat(&self, tensors: &[&Self], dim: usize) -> Self {
+        todo!();
+    }
+    fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self> {
+        todo!();
+    }
+    fn gather(&self, dim: usize, index: &Self) -> Self {
+        todo!();
+    }
+    fn index_select(&self, dim: usize, index: &Self) -> Self
+    {
+        todo!();
+    }
+    // fn masked_select();
+    //pub fn narrow() {}
+    //pub fn nonzero() {}
+    fn reshape(&self, new_shape: &[usize]) -> Self {
+        todo!();
+    }
+    fn split(&self, sections: &[usize], dim: usize) -> Vec<Self> {
+        todo!();
+    }
+    fn squeeze(&self, dim: Option<usize>) -> Self {
+        todo!();
+    }
+    fn stack(tensors: &[&Self], dim: usize) -> Self {
+        todo!();
+    }
+    //pub fn t() {}
+    fn take(&self, index: &[usize]) -> Self {
+        todo!();
+    }
+    //pub fn transpose() {}
+    //pub fn unbind() {}
+    fn permute(&self, dims: &[usize]) -> Self {
+        todo!();
+    }
+    fn unsqueeze(&self, dim: usize) -> Self {
+        todo!();
+    }
+    //pub fn condition() {} // this is pytorch where
+    fn conditional_select(&self, x: &Self, y: &Self) -> Self {
+        todo!();
+    }
+    fn repeat(&self, sizes: &[usize]) -> Self {
+        todo!();
+    }
+
 }
