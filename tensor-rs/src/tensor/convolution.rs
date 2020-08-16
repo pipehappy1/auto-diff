@@ -3,47 +3,45 @@ use super::gen_tensor::*;
 use crate::tensor::PaddingMode;
 #[cfg(feature = "use-blas")]
 use crate::tensor::index_slicing::IndexSlicing;
-
-
 #[cfg(feature = "use-blas")]
 use crate::tensor::blas::BlasAPI;
+#[cfg(feature = "use-cuda")]
+use crate::tensor::cuda_tensor::CudaTensor;
 
-pub trait Convolution {
-    type TensorType;
+pub trait Convolution where Self: std::marker::Sized {
 
-    fn conv2d(&self, filter: &Self::TensorType,
+    fn conv2d(&self, filter: &Self,
                   stride: (usize, usize),
                   padding: (usize, usize),
                   dilation: (usize, usize),
                   padding_mode: PaddingMode
-    ) -> Self::TensorType;
+    ) -> Self;
 
-    fn conv2d_grad(&self, filter: &Self::TensorType,
+    fn conv2d_grad(&self, filter: &Self,
                        stride: (usize, usize),
                        padding: (usize, usize),
                        dilation: (usize, usize),
                        padding_mode: PaddingMode,
-                       output_grad: &Self::TensorType
-    ) -> (Self::TensorType, Self::TensorType);
+                       output_grad: &Self
+    ) -> (Self, Self);
 
-    fn conv_gen(&self, filter: &Self::TensorType,
+    fn conv_gen(&self, filter: &Self,
                     stride: &[usize],
                     padding: &[usize],
                     dilation: &[usize],
                     padding_mode: PaddingMode
-    ) -> Self::TensorType;
+    ) -> Self;
 
-    fn conv_grad_gen(&self, filter: &Self::TensorType,
+    fn conv_grad_gen(&self, filter: &Self,
                          stride: &[usize],
                          padding: &[usize],
                          dilation: &[usize],
                          padding_mode: PaddingMode,
-                         output_grad: &Self::TensorType,
-    ) -> (Self::TensorType, Self::TensorType);
+                         output_grad: &Self,
+    ) -> (Self, Self);
 }
 
 impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
-    type TensorType = GenTensor<T>;
 
     // conv2d ops
     fn conv2d(&self, filter: &GenTensor<T>,
@@ -51,7 +49,7 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
                   padding: (usize, usize),
                   dilation: (usize, usize),
                   padding_mode: PaddingMode
-    ) -> Self::TensorType {
+    ) -> Self {
         self.conv_gen(filter,
                       &vec![stride.0, stride.1],
                       &vec![padding.0, padding.1],
@@ -64,7 +62,7 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
                        dilation: (usize, usize),
                        padding_mode: PaddingMode,
                        output_grad: &GenTensor<T>
-    ) -> (Self::TensorType, Self::TensorType){
+    ) -> (Self, Self){
             self.conv_grad_gen(filter,
                            &vec![stride.0, stride.1],
                            &vec![padding.0, padding.1],
@@ -1005,5 +1003,51 @@ mod tests {
             //println!("final output: {:?}", result.get_data());
             assert_eq!(result, GenTensor::<f64>::new_raw(&vec![420.0, 492.0, 564.0, 924.0, 996.0, 1068.0, 1428.0, 1500.0, 1572.0, 1068.0, 1302.0, 1536.0, 2706.0, 2940.0, 3174.0, 4344.0, 4578.0, 4812.0], &vec![1, 2, 3, 3]));
         }
+    }
+}
+
+
+//////////////
+// for cuda tensor
+/////////
+#[cfg(feature = "use-cuda")]
+impl Convolution for CudaTensor {
+
+    fn conv2d(&self, filter: &Self,
+                  stride: (usize, usize),
+                  padding: (usize, usize),
+                  dilation: (usize, usize),
+                  padding_mode: PaddingMode
+    ) -> Self {
+        todo!();
+    }
+
+    fn conv2d_grad(&self, filter: &Self,
+                       stride: (usize, usize),
+                       padding: (usize, usize),
+                       dilation: (usize, usize),
+                       padding_mode: PaddingMode,
+                       output_grad: &Self
+    ) -> (Self, Self) {
+        todo!();
+    }
+
+    fn conv_gen(&self, filter: &Self,
+                    stride: &[usize],
+                    padding: &[usize],
+                    dilation: &[usize],
+                    padding_mode: PaddingMode
+    ) -> Self {
+        todo!();
+    }
+
+    fn conv_grad_gen(&self, filter: &Self,
+                         stride: &[usize],
+                         padding: &[usize],
+                         dilation: &[usize],
+                         padding_mode: PaddingMode,
+                         output_grad: &Self,
+    ) -> (Self, Self) {
+        todo!();
     }
 }
