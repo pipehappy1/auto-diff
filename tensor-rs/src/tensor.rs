@@ -14,6 +14,8 @@ use std::fmt;
 pub mod gen_tensor;
 #[cfg(feature = "use-cuda")]
 pub mod cuda_tensor;
+#[cfg(feature = "use-cuda")]
+pub mod cuda_helper;
 pub mod blas;
 pub mod typed_tensor;
 pub mod compare_tensor;

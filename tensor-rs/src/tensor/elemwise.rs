@@ -2,7 +2,9 @@ use crate::tensor::gen_tensor::GenTensor;
 #[cfg(feature = "use-cuda")]
 use crate::tensor::cuda_tensor::CudaTensor;
 #[cfg(feature = "use-cuda")]
-use cuda11_cutensor_sys::{self, cutensorHandle_t, check_cutensor_status, cutensorInit, cudaDataType_t, cutensorTensorDescriptor_t, cutensorInitTensorDescriptor, cutensorOperator_t_CUTENSOR_OP_IDENTITY, cutensorOperator_t_CUTENSOR_OP_ABS, cutensorPermutation};
+use cuda11_cutensor_sys::{self, cutensorHandle_t, check_cutensor_status, cutensorInit, cudaDataType_t, cutensorTensorDescriptor_t, cutensorInitTensorDescriptor, cutensorPermutation,
+                          cutensorOperator_t_CUTENSOR_OP_IDENTITY,
+                          cutensorOperator_t_CUTENSOR_OP_ABS, };
 #[cfg(feature = "use-cuda")]
 use cuda11_cudart_sys::{self, cudaMalloc, cudaStreamCreate, cudaMemcpy, cudaStreamSynchronize, cudaFree, cudaStreamDestroy, cudaMemcpyKind, check_cuda_status, cudaStream_t, cudaMemcpyAsync};
 
@@ -564,6 +566,8 @@ mod tests {
         let mut input = CudaTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., -9.],
                                             &vec![1, 1, 3, 3]);
         let output = input.abs();
-        println!("{:?}", output.to_GenTensor());
+        assert_eq!(output.to_GenTensor(), GenTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., 9.],
+                                            &vec![1, 1, 3, 3]));
+        //println!("{:?}", output.to_GenTensor());
     }
 }
