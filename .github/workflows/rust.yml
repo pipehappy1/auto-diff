@@ -17,9 +17,15 @@ jobs:
       run: sudo apt-get install -y gfortran
     - name: Build
       run: cargo build --verbose
-    - name: Run tests
+    - name: Run test 1
       run: cargo test --verbose
+      working-directory: tensor-rs
+    - name: Run test 2
+      run: cargo test --verbose
+      working-directory: auto-diff
     - name: Run examples
       run: cargo run --verbose --example linear_regression
+      working-directory: auto-diff
     - name: Run benchmark
       run: cargo bench --verbose
+      working-directory: benches
