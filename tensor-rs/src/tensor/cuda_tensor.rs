@@ -93,6 +93,13 @@ impl CudaTensor {
     pub fn _get_stream(&self) -> cudaStream_t {
          self.stream.get_stream().raw_stream()
     }
+    /// NEVER call _flush when _get_stream scope is still valid!
+    /// Always call _flush when final result is required.
+    pub fn _flush(&self) {
+        unsafe {
+            cudaStreamSynchronize(self._get_stream() as _);
+        }
+    }
 
     pub fn _get_cutensor(&self) -> Option<Rc<CudaCutensor>>{
         todo!();
@@ -101,6 +108,7 @@ impl CudaTensor {
     /// copy data from GPU memory to mm.
     pub fn to_GenTensor(&self) -> GenTensor<f32> {
         let mut data = vec![0.; self.numel()];
+        self._flush();
         
         unsafe {
             //println!("cudaMemcpy");
@@ -207,6 +215,24 @@ impl CudaTensor {
         ret
     }
     // empty_like
+    pub fn empty_like(&self) -> CudaTensor {
+        let mut device_data: *mut f32 = std::ptr::null_mut();
+        let elems: usize = self.dim.iter().product();
+
+        unsafe {
+            //println!("cudaMalloc");
+            check_cuda_status(cudaMalloc(&mut device_data as *mut _ as *mut _,
+                                         std::mem::size_of::<f32>()*elems));
+        }
+            
+        let mut ret = CudaTensor {
+            device_data: device_data,
+            dim: self.dim.to_vec(),
+            stream: self.stream.clone(), // share the cuda stream!!!
+            //cutensor: None,
+        };
+        ret
+    }
     // empty_stided
     // full
     // full_like
@@ -329,13 +355,17 @@ impl CudaTensor {
         data
     }
     pub fn get_u8(&self) -> Option<Vec<u8>> {
-        unimplemented!();
+        self.to_GenTensor().get_u8()
     }
     
     /// dump the single value in the tensor
     /// if it is the single value in the tensor.
     pub fn get_scale(&self) -> f32 {
-        unimplemented!();
+        if self.dim.len() <= 1 && self.dim[0] == 1 {
+            return self.to_GenTensor().get_scale();
+        } else {
+            panic!("Only one element tensor can get_scale()");
+        }
     }
 
     // get NCHW elements
@@ -382,10 +412,10 @@ impl CudaTensor {
         &self.dim
     }
     pub fn get_data(&self) -> &Vec<f32> {
-        unimplemented!();
+        unimplemented!("tensor on device cannot get mut reference");
     }
     pub fn get_data_mut(&mut self) -> &mut Vec<f32> {
-        unimplemented!();
+        unimplemented!("tensor on device cannot get mut reference");
     }
     pub fn _get_device_data(&self) -> *mut f32 {
         self.device_data
@@ -399,10 +429,16 @@ impl CudaTensor {
 
     /// Returns the total number of elements in the input tensor
     pub fn numel_tensor(&self) -> CudaTensor {
-        unimplemented!();
+        CudaTensor::new_move(vec![self.dim.iter().map(|x| *x as f32).product()], vec![1])
     }
 
+    pub fn get_patch(&self, range: &[(usize, usize)], step: Option<&[usize]>) -> CudaTensor {
+        todo!();
+    }
 
+    pub fn set_patch(&mut self, val: &CudaTensor, range: &[(usize, usize)], step: Option<&[usize]>) {
+        todo!();
+    }
 
     /// element-wise add with right-hand broadcast.
     ///
@@ -431,6 +467,8 @@ impl CudaTensor {
     pub fn squared_error(t1: &Self, t2: &Self) -> CudaTensor {
         unimplemented!();
     }
+
+    // Comparison Ops
     pub fn all_close(&self, o: &CudaTensor) -> CudaTensor {
         unimplemented!();
     }

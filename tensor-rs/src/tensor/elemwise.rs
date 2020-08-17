@@ -349,10 +349,12 @@ impl<T> ElemwiseTensorOp for GenTensor<T> where T: num_traits::Float {
 }
 
 // macro for cuda element
+#[cfg(feature = "use-cuda")]
 macro_rules! unary_cuda_ops {
     ($a: ident, $b: ident) => {
         fn $a(&self) -> CudaTensor {
-            let mut ret = CudaTensor::empty(self.size());
+            //let mut ret = CudaTensor::empty(self.size());
+            let mut ret = self.empty_like();
         
             unsafe {
                 let mut stream: cudaStream_t = self._get_stream();
@@ -400,8 +402,9 @@ macro_rules! unary_cuda_ops {
                                     cudaDataType_t::CUDA_R_32F,
                                     stream as _
                 ));
-    
-                cudaStreamSynchronize(stream as _);
+
+                // this is called in CudaTensor::_flush() !!!
+                //cudaStreamSynchronize(stream as _);
             }
             ret
         }

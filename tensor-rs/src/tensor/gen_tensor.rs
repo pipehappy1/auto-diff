@@ -132,6 +132,16 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     // empty_like
+    pub fn empty_like(&self) -> GenTensor<T> {
+        let elem = self.dim.iter().product();
+        
+        let mut new_data = Vec::with_capacity(elem);
+        unsafe{ new_data.set_len(elem); }
+        GenTensor {
+            d: new_data,
+            dim: self.dim.clone(),
+        }
+    }
     // empty_stided
     // full
     // full_like
