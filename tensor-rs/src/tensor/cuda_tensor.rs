@@ -12,7 +12,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use cuda11_cudart_sys::{self, cudaMalloc, cudaStreamCreate, cudaMemcpy, cudaStreamSynchronize, cudaFree, cudaStreamDestroy, cudaMemcpyKind, check_cuda_status, cudaStream_t};
-use cuda11_cutensor_sys::{self, cutensorHandle_t, check_cutensor_status, cutensorInit};
+use cuda11_cutensor_sys::{self, cutensorHandle_t, check_cutensor_status, cutensorInit, cudaDataType_t,cutensorOperator_t_CUTENSOR_OP_IDENTITY, cutensorTensorDescriptor_t, cutensorInitTensorDescriptor, cutensorPermutation, cutensorOperator_t_CUTENSOR_OP_ADD,cutensorElementwiseBinary};
 use crate::tensor::gen_tensor::{GenTensor};
 use crate::tensor::cuda_helper::*;
 
@@ -108,7 +108,12 @@ impl CudaTensor {
     /// copy data from GPU memory to mm.
     pub fn to_GenTensor(&self) -> GenTensor<f32> {
         let mut data = vec![0.; self.numel()];
-        self._flush();
+        // finish all jobs on stream before output to main memory.
+        self._flush(); // This makes sure when copy to main memory, the data is there.
+        // However, this is not optimal case, as the stream is shared between
+        // multiple cuda tensor. Un related ops may prevent the copying.
+        // The ideal case would be set up callback event when the tensor op is issued
+        // and wait only on that event.
         
         unsafe {
             //println!("cudaMemcpy");
@@ -123,7 +128,7 @@ impl CudaTensor {
 
     /// copy data from mm to GPU
     pub fn from_GenTensor(data: &GenTensor<f32>) -> CudaTensor {
-        todo!();
+        CudaTensor::new_raw(data.get_data(), data.size())
     }
 
     /// Convert 1 dim index to multi-dim index.
@@ -444,7 +449,76 @@ impl CudaTensor {
     ///
     ///
     pub fn add(&self, o: &CudaTensor) -> CudaTensor {
-        unimplemented!();
+        let mut ret = self.empty_like();
+        
+        unsafe {
+            let mut stream: cudaStream_t = self._get_stream();
+        
+            let mut handle:cutensorHandle_t = std::mem::uninitialized();
+            check_cutensor_status(cutensorInit(&mut handle as *mut _));
+            
+            let alpha: f32 = 1.0;
+            let gamma: f32 = 1.0;
+            
+            let extent: Vec<i64> = self.size().iter().map(|x| *x as i64).collect();
+            
+            let mut descA: cutensorTensorDescriptor_t = std::mem::uninitialized();
+            let mut descC: cutensorTensorDescriptor_t = std::mem::uninitialized();
+            let mut descD: cutensorTensorDescriptor_t = std::mem::uninitialized();
+            
+            check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
+                                                                 &mut descA,
+                                                                 self.size().len() as _,
+                                                                 extent.as_ptr(),
+                                                                 std::ptr::null(),/*stride*/
+                                                                 cudaDataType_t::CUDA_R_32F,
+                                                                 cutensorOperator_t_CUTENSOR_OP_IDENTITY));
+            check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
+                                                                 &mut descC,
+                                                                 self.size().len() as _,
+                                                                 extent.as_ptr(),
+                                                                 std::ptr::null(),/*stride*/
+                                                                 cudaDataType_t::CUDA_R_32F,
+                                                                 cutensorOperator_t_CUTENSOR_OP_IDENTITY));
+            check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
+                                                                 &mut descD,
+                                                                 self.size().len() as _,
+                                                                 extent.as_ptr(),
+                                                                 std::ptr::null(),/*stride*/
+                                                                 cudaDataType_t::CUDA_R_32F,
+                                                                 cutensorOperator_t_CUTENSOR_OP_IDENTITY));
+    
+            let mut modeA: Vec<i32> = vec![32; self.size().len()];
+            let mut modeC: Vec<i32> = vec![32; self.size().len()];
+            let mut modeD: Vec<i32> = vec![32; self.size().len()];
+            for i in 0..self.size().len() {
+                modeA[i] = modeA[i] + i as i32;
+                modeC[i] = modeC[i] + i as i32;
+                modeD[i] = modeD[i] + i as i32;
+            }
+            
+            check_cutensor_status(cutensorElementwiseBinary(&handle,
+                                                            &alpha as *const _ as _,
+                                                            self._get_device_data() as _,
+                                                            &descA as _,
+                                                            modeA.as_ptr(),
+                                                            &gamma as *const _ as _,
+                                                            o._get_device_data() as _,
+                                                            &descC as _,
+                                                            modeC.as_ptr(),
+                                                            ret._get_device_data() as _,
+                                                            &descD as _,
+                                                            modeD.as_ptr(),
+                                                            cutensorOperator_t_CUTENSOR_OP_ADD,
+                                                            cudaDataType_t::CUDA_R_32F,
+                                                            stream as _
+            ));
+
+            // this is called in CudaTensor::_flush() !!!
+            //cudaStreamSynchronize(stream as _);
+        }
+        ret
+        //unimplemented!();
     }
     pub fn sub(&self, o: &CudaTensor) -> CudaTensor {
         unimplemented!();
@@ -593,6 +667,15 @@ mod tests {
                                             &vec![1, 1, 3, 3]);
         //println!("{:?}", input.numel());
         assert_eq!(input.numel(), 9);
+    }
+
+    // binary ops
+    #[test]
+    fn cuda_add() {
+        let m1 = CudaTensor::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
+        let m2 = CudaTensor::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
+        let m3 = m1.add(&m2);
+        println!("{:?}", m3.to_GenTensor());
     }
 
 }
