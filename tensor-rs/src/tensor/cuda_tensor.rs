@@ -449,7 +449,7 @@ impl CudaTensor {
     ///
     ///
     pub fn add(&self, o: &CudaTensor) -> CudaTensor {
-        let mut ret = self.empty_like();
+        let mut ret = o.clone();
         
         unsafe {
             let mut stream: cudaStream_t = self._get_stream();
@@ -464,7 +464,6 @@ impl CudaTensor {
             
             let mut descA: cutensorTensorDescriptor_t = std::mem::uninitialized();
             let mut descC: cutensorTensorDescriptor_t = std::mem::uninitialized();
-            let mut descD: cutensorTensorDescriptor_t = std::mem::uninitialized();
             
             check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
                                                                  &mut descA,
@@ -480,21 +479,13 @@ impl CudaTensor {
                                                                  std::ptr::null(),/*stride*/
                                                                  cudaDataType_t::CUDA_R_32F,
                                                                  cutensorOperator_t_CUTENSOR_OP_IDENTITY));
-            check_cutensor_status(cutensorInitTensorDescriptor( &mut handle,
-                                                                 &mut descD,
-                                                                 self.size().len() as _,
-                                                                 extent.as_ptr(),
-                                                                 std::ptr::null(),/*stride*/
-                                                                 cudaDataType_t::CUDA_R_32F,
-                                                                 cutensorOperator_t_CUTENSOR_OP_IDENTITY));
     
             let mut modeA: Vec<i32> = vec![32; self.size().len()];
             let mut modeC: Vec<i32> = vec![32; self.size().len()];
-            let mut modeD: Vec<i32> = vec![32; self.size().len()];
+
             for i in 0..self.size().len() {
                 modeA[i] = modeA[i] + i as i32;
                 modeC[i] = modeC[i] + i as i32;
-                modeD[i] = modeD[i] + i as i32;
             }
             
             check_cutensor_status(cutensorElementwiseBinary(&handle,
@@ -503,12 +494,12 @@ impl CudaTensor {
                                                             &descA as _,
                                                             modeA.as_ptr(),
                                                             &gamma as *const _ as _,
-                                                            o._get_device_data() as _,
+                                                            ret._get_device_data() as _,
                                                             &descC as _,
                                                             modeC.as_ptr(),
                                                             ret._get_device_data() as _,
-                                                            &descD as _,
-                                                            modeD.as_ptr(),
+                                                            &descC as _,
+                                                            modeC.as_ptr(),
                                                             cutensorOperator_t_CUTENSOR_OP_ADD,
                                                             cudaDataType_t::CUDA_R_32F,
                                                             stream as _
@@ -586,18 +577,32 @@ impl Drop for CudaTensor {
 
 impl std::fmt::Debug for CudaTensor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-
-        write!(f, "{:?}\n", self.dim)
+        write!(f, "{:?}\n", self.to_GenTensor())
     }
 }
 
-//impl<T> Clone for CudaTensor<T> where T: num_traits::Float {
-//    fn clone(&self) -> Self {
-//        CudaTensor {
-//            
-//        }
-//    }
-//}
+impl Clone for CudaTensor {
+    fn clone(&self) -> Self {
+        let mut device_data: *mut f32 = std::ptr::null_mut();
+        
+        unsafe {
+            //println!("cudaMalloc");
+            check_cuda_status(cudaMalloc(&mut device_data as *mut _ as *mut _,
+                                         std::mem::size_of::<f32>()*self.numel()));
+            //println!("cudaMemcpy");
+            cudaMemcpy(device_data as _,
+                       self.device_data as _,
+                       std::mem::size_of::<f32>()*self.numel(),
+                       cudaMemcpyKind::cudaMemcpyDeviceToDevice);
+        }
+        
+        CudaTensor {
+            device_data: device_data,
+            dim: self.dim.clone(),
+            stream: self.stream.clone()
+        }
+    }
+}
 
 
 #[cfg(all(test, feature = "use-cuda"))]
@@ -675,7 +680,15 @@ mod tests {
         let m1 = CudaTensor::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
         let m2 = CudaTensor::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
         let m3 = m1.add(&m2);
-        println!("{:?}", m3.to_GenTensor());
+        println!("{:?}", m3);
     }
 
+    #[test]
+    fn cuda_clone() {
+        let mut input = CudaTensor::new_raw(&vec![1., 2., 3., 4., 5., 6., 7., 8., 9.],
+                                            &vec![1, 1, 3, 3]);
+        let input2 = input.clone();
+        //println!("{:?}", input2.to_GenTensor());
+        assert_eq!(input2.to_GenTensor(), input.to_GenTensor());
+    }
 }

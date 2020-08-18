@@ -38,7 +38,7 @@ impl Drop for CudaStream {
         if self.stream != std::ptr::null_mut() {
             unsafe {
                 check_cuda_status(cudaStreamDestroy(self.stream as _));
-                println!("cudaFree");
+                //println!("cudaFree");
             }
         }
     }
