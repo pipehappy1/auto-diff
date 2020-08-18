@@ -11,9 +11,9 @@ use crate::collection::generational_index::*;
 
 
 macro_rules! default_op_for_module {
-    ($a:ident, $b:ident) => {
-        pub fn $a(&self,) -> Func {
-            let op = $b::new();
+    ($a:ident, $b:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        pub fn $a(&self, $( $arg_name : $ArgTy ),*) -> Func {
+            let op = $b::new($( $arg_name ),*);
             let id = self.net.borrow_mut().init_op(Op::new(Box::new(op)));
             let ret = Func::_new(id, self.net.clone(), None);
             ret
@@ -100,22 +100,19 @@ impl Module {
     //
     // concrete Func
     //
-    pub fn linear(&self, in_features: Option<usize>,
+    default_op_for_module!(linear, Linear, in_features: Option<usize>,
                   out_features: Option<usize>,
-                  bias: bool) -> Func {
-        let op = Linear::new(in_features, out_features, bias);
-        let id = self.net.borrow_mut().init_op(Op::new(Box::new(op)));
-        let ret = Func::_new(id, self.net.clone(), None);
-        ret
-    }
+                  bias: bool,);
+    // convolution
+    
 
     // Non-linear Activation
-    default_op_for_module!(sigmoid, Sigmoid);
+    default_op_for_module!(sigmoid, Sigmoid, );
 
     // Loss function
-    default_op_for_module!(mse_loss, MSELoss);
-    default_op_for_module!(bce_with_logits_loss, BCEWithLogitsLoss);
-    default_op_for_module!(cross_entropy_loss, CrossEntropyLoss);
+    default_op_for_module!(mse_loss, MSELoss, );
+    default_op_for_module!(bce_with_logits_loss, BCEWithLogitsLoss, );
+    default_op_for_module!(cross_entropy_loss, CrossEntropyLoss, );
 }
 
 
