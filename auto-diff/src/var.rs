@@ -4,7 +4,7 @@ use std::fmt;
 use std::rc::Rc;
 use std::mem::drop;
 
-use tensor_rs::tensor::Tensor;
+use tensor_rs::tensor::{Tensor, PaddingMode};
 use crate::op::*;
 use crate::compute_graph::*;
 use crate::collection::generational_index::*;
@@ -100,13 +100,24 @@ impl Module {
     //
     // concrete Func
     //
+    default_op_for_module!(add, Add, );
+    default_op_for_module!(sub, Sub, );
+    default_op_for_module!(mul, Mul, );
+    default_op_for_module!(div, Div, );
+    default_op_for_module!(conv2d, Conv2d, in_channels: usize, out_channels: usize,
+               kernel_size: (usize, usize),
+               stride: (usize, usize),
+               padding: (usize, usize),
+               dilation: (usize, usize),
+               bias: bool,
+               padding_mode: PaddingMode, );
     default_op_for_module!(linear, Linear, in_features: Option<usize>,
                   out_features: Option<usize>,
                   bias: bool,);
-    // convolution
-    
 
     // Non-linear Activation
+    default_op_for_module!(elu, ELU, alpha: f32, );
+    default_op_for_module!(relu, ReLU, );
     default_op_for_module!(sigmoid, Sigmoid, );
 
     // Loss function
