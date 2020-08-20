@@ -33,6 +33,10 @@ openblas-src = { version = "0.9", optional = true }
 #rcublas = { version = "0.5", optional = true }
 cuda11-cudart-sys = { version = "0.3", optional = true }
 cuda11-cutensor-sys = { version = "0.3", optional = true }
+
+serde = { version = "1.0", features = ["derive"], optional = true}
+
+
 [dev-dependencies]
 criterion = "0.3"
 
@@ -47,6 +51,8 @@ tensorboard-rs = "0.2.2"
 [features]
 
 default = []
+
+use-serde = ["serde",]
 
 use-blas = ["blas", "openblas-src"]
 

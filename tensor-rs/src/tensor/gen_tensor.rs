@@ -3,7 +3,11 @@ use std::fmt;
 #[cfg(feature = "use-blas")]
 use crate::tensor::blas::BlasAPI;
 
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+
 /// Naive tensor implementation, single thread
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct GenTensor<T> {
     d: Vec<T>,
     dim: Vec<usize>,
