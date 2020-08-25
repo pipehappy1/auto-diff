@@ -9,6 +9,9 @@ use std::rc::Rc;
 use std::cell::RefCell;
 //use std::ops::Index;
 
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+
 use std::fmt;
 
 pub mod gen_tensor;

@@ -1,6 +1,8 @@
 use std::fmt;
 use std::mem::discriminant;
 
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
 
 use super::gen_tensor::*;
 #[cfg(feature = "use-cuda")]
@@ -14,6 +16,7 @@ use super::convolution::{Convolution};
 use super::convolution::{gemm_conv_f32, gemm_conv_f64};
 use super::reduction::ReduceTensor;
 
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub enum TypedTensor {
     Typef32(GenTensor<f32>),
     Typef64(GenTensor<f64>),

@@ -11,6 +11,9 @@
 
 use std::rc::Rc;
 use std::cell::RefCell;
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize, Serializer};
+
 use cuda11_cudart_sys::{self, cudaMalloc, cudaStreamCreate, cudaMemcpy, cudaStreamSynchronize, cudaFree, cudaStreamDestroy, cudaMemcpyKind, check_cuda_status, cudaStream_t};
 use cuda11_cutensor_sys::{self, cutensorHandle_t, check_cutensor_status, cutensorInit, cudaDataType_t,cutensorOperator_t_CUTENSOR_OP_IDENTITY, cutensorTensorDescriptor_t, cutensorInitTensorDescriptor, cutensorPermutation, cutensorOperator_t_CUTENSOR_OP_ADD,cutensorElementwiseBinary};
 use crate::tensor::gen_tensor::{GenTensor};
@@ -601,6 +604,19 @@ impl Clone for CudaTensor {
             dim: self.dim.clone(),
             stream: self.stream.clone()
         }
+    }
+}
+
+#[cfg(feature = "use-serde")]
+impl Serialize for CudaTensor {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let t = self.to_GenTensor();
+        let mut state = serializer.serialize_struct("CudaTensor", 3)?;
+        //state.serialize
+        state.end()
     }
 }
 
