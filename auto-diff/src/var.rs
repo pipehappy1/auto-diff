@@ -307,7 +307,10 @@ pub struct Func {
     net: Rc<RefCell<Net>>,
     closure: Option<Rc<Box<dyn Fn(&[&Var]) -> Var>>>,
 }
+
 impl Func {
+    /// Default constructor with everything to be default and zero.
+    /// This sould never be called? As func should always be valid?
     pub fn _default() -> Func {
         Func {
             id: NetIndex::new(0, 0),
@@ -316,6 +319,9 @@ impl Func {
         }
     }
 
+    /// _new should be used for create a new Func in module.
+    /// The implementation is the Module::func() method for composed function
+    /// and 
     pub fn _new(id: NetIndex,
                 net: Rc<RefCell<Net>>,
                 closure: Option<Rc<Box<dyn Fn(&[&Var]) -> Var>>>) -> Func {
@@ -340,7 +346,6 @@ impl Func {
         //     1. call the closure.
         //
         // If there is already a output variable, it SHOULD be reused.
-
         //
         // If there is already an output variable associated with this
         // Func, just use it.
@@ -411,6 +416,7 @@ impl Func {
 }
 
 impl Clone for Func {
+    /// Func should never be cloned? It should be singleton?
     fn clone(&self) -> Self {
         if self.closure.is_some() {
             let closure_copy = self.closure.as_ref().unwrap().clone();
