@@ -4,14 +4,12 @@
 //!
 //! Introduction
 //! ------------
-//! Tensor-rs is a simple tensor implementation for auto difference implementation.
+//! This is a type less tensor library with the option to use
+//! built-in operators or third-party acceleration library.
 //!
 //! Install
 //! ------------
-//! The package is on the Cargo.rs and to use it. Put the following line in your Cargo.toml file.
-//!
-//!     [dev-dependencies]
-//!     tensor-rs = "0.3"
+//! cargo install tensor-rs
 //!
 //! Example
 //! ------------
