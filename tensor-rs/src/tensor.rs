@@ -26,10 +26,12 @@ pub mod elemwise;
 pub mod index_slicing;
 pub mod convolution;
 pub mod reduction;
+pub mod quaternion;
 
 
 use typed_tensor::TypedTensor;
 use gen_tensor::GenTensor;
+//use quaternion::Quaternion;
 
 macro_rules! tensor_method {
     ($a:ident) => {
