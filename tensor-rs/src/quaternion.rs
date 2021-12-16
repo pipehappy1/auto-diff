@@ -31,4 +31,14 @@ where T: num_traits::Float {
             d: (T::one(), T::one(), T::one(), T::one())
         }
     }
+
+    pub fn to_tensor(&self) -> Tensor {
+        Tensor::ones(&[4])
+    }
+
+    pub fn from_tensor(t: &Tensor) -> Self {
+        Quaternion {
+            d: (T::one(), T::one(), T::one(), T::one())
+        }
+    }
 }
