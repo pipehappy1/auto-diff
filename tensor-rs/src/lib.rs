@@ -27,3 +27,4 @@
 //extern crate ndarray_linalg;
 
 pub mod tensor;
+pub mod quaternion;

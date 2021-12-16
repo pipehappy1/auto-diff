@@ -26,7 +26,6 @@ pub mod elemwise;
 pub mod index_slicing;
 pub mod convolution;
 pub mod reduction;
-pub mod quaternion;
 
 
 use typed_tensor::TypedTensor;
@@ -73,9 +72,13 @@ impl Tensor {
         }
     }
 
+    /// Right most is the continous indexing,
+    /// This method convert continuous index to index along each dimension.
     pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {
         self.v.borrow().index2dimpos(index)
     }
+    /// Right most is the continous indexing,
+    /// This method convert index along each dimension to continuous index.
     pub fn dimpos2index(&self, dimpos: &[usize]) -> usize {
         self.v.borrow().dimpos2index(dimpos)
     }
@@ -409,11 +412,11 @@ impl Tensor {
 
     tensor_method!(add);
     tensor_method!(sub);
-    tensor_method!(mul);
+    tensor_method!(mul); // element-wise
     tensor_method!(div);
 
-    tensor_method!(mm);
-    tensor_method!(matmul);
+    tensor_method!(mm); //  matrix-multiplication
+    tensor_method!(matmul); // tensor-multiplication
     pub fn outer(&self, o: &Tensor, avg: Option<bool>) -> Tensor {
             Tensor {
                 v: Rc::new(RefCell::new(self.v.borrow().outer(&o.v.borrow(), avg))),
