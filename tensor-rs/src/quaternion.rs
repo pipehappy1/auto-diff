@@ -41,4 +41,18 @@ where T: num_traits::Float {
             d: (T::one(), T::one(), T::one(), T::one())
         }
     }
+
+    pub fn slerp(p: &Self, q: &Self, t: T) -> Self {
+        Quaternion {
+            d: (T::one(), T::one(), T::one(), T::one())
+        }
+    }
+
+    pub fn rotation_around_axis(axis: (T, T, T), theta: T) -> Self {
+        Quaternion {
+            d: (T::one(), T::one(), T::one(), T::one())
+        }
+    }
+
+    
 }
