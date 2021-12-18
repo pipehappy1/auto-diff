@@ -1,5 +1,4 @@
 use std::ops::Div;
-use crate::tensor::Tensor;
 
 #[derive(PartialEq, Debug)]
 pub struct Quaternion<T> {
@@ -49,11 +48,15 @@ where T: num_traits::Float {
         }
     }
 
+    pub fn dot(&self, o: &Quaternion<T>) -> T {
+        self.d.0*o.d.0
+            + self.d.1*o.d.1
+            + self.d.2*o.d.2
+            + self.d.3*o.d.3
+    }
+
     pub fn len(&self) -> T {
-        T::sqrt(self.d.0*self.d.0
-                + self.d.1*self.d.1
-                + self.d.1*self.d.1
-                + self.d.1*self.d.1)
+        T::sqrt(self.dot(self))
     }
 
     pub fn norm(&self) -> T {
@@ -61,15 +64,12 @@ where T: num_traits::Float {
     }
 
     pub fn inverse(&self) -> Self {
-        self.conjugate()/(self.d.0*self.d.0
-                          + self.d.1*self.d.1
-                          + self.d.1*self.d.1
-                          + self.d.1*self.d.1)
+        self.conjugate()/self.dot(self)
     }
 
     /// Make it a unit quaternion
     pub fn normalize(&self) -> Self {
-        let n = self.len();
+        let n = self.norm();
         
         Quaternion {
             d: (self.d.0/n, self.d.1/n, self.d.2/n, self.d.3/n)
@@ -86,14 +86,47 @@ where T: num_traits::Float {
         }
     }
 
-    pub fn to_tensor(&self) -> Tensor {
-        Tensor::ones(&[4])
+    /// Create a quaternion ready to apply to vector for rotation.
+    pub fn rotation_around_axis(axis: (T, T, T), theta: T) -> Self {
+        let a = T::cos(theta/(T::one() + T::one()));
+        let coef = T::sin(theta/(T::one() + T::one()));
+        let norm = T::sqrt(axis.0*axis.0 + axis.1*axis.1 + axis.2*axis.2);
+        
+        Quaternion {
+            d: (a, coef*axis.0/norm,
+                coef*axis.1/norm,
+                coef*axis.2/norm)
+        }
     }
 
-    pub fn from_tensor(t: &Tensor) -> Self {
-        Quaternion {
-            d: (T::one(), T::one(), T::one(), T::one())
+    pub fn rotate_around_x(theta: T) -> Self {
+        Self::rotation_around_axis((T::one(), T::zero(), T::zero()), theta)
+    }
+
+    pub fn rotate_around_y(theta: T) -> Self {
+        Self::rotation_around_axis((T::zero(), T::one(), T::zero()), theta)
+    }
+
+    pub fn rotate_around_z(theta: T) -> Self {
+        Self::rotation_around_axis((T::zero(), T::zero(), T::one()), theta)
+    }
+
+    /// Apply unit quaternion to 3d vector for rotation.
+    pub fn apply_rotation(&self, v: (T, T, T)) -> (T, T, T) {
+        if self.norm() != T::one() {
+            println!("Apply a non unit quaternion for rotation!");
         }
+        
+        let x = Quaternion {
+            d: (T::zero(), v.0, v.1, v.2)
+        };
+        let xp = self.qm(&x).qm(&self.conjugate());
+        (xp.d.1, xp.d.2, xp.d.3)
+    }
+
+    pub fn rotate_around_axis(axis: (T, T, T), theta: T, v: (T, T, T)) -> (T, T, T) {
+        let q = Self::rotation_around_axis(axis, theta);
+        q.apply_rotation(v)
     }
 
     pub fn slerp(p: &Self, q: &Self, t: T) -> Self {
@@ -102,29 +135,7 @@ where T: num_traits::Float {
         }
     }
 
-    pub fn rotation_around_axis(axis: (T, T, T), theta: T) -> Self {
-        Quaternion {
-            d: (T::one(), T::one(), T::one(), T::one())
-        }
-    }
-
-    pub fn rotate_around_x() -> Self {
-        Quaternion {
-            d: (T::one(), T::one(), T::one(), T::one())
-        }
-    }
-
-    pub fn rotate_around_y() -> Self {
-        Quaternion {
-            d: (T::one(), T::one(), T::one(), T::one())
-        }
-    }
-
-    pub fn rotate_around_z() -> Self {
-        Quaternion {
-            d: (T::one(), T::one(), T::one(), T::one())
-        }
-    }
+    
     
 }
 
