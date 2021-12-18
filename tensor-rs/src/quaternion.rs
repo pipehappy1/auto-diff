@@ -129,10 +129,27 @@ where T: num_traits::Float {
         q.apply_rotation(v)
     }
 
-    pub fn slerp(p: &Self, q: &Self, t: T) -> Self {
-        Quaternion {
-            d: (T::one(), T::one(), T::one(), T::one())
+    pub fn unit_exp(&self, t: T) -> Self {
+        if self.norm() != T::one() {
+            println!("unit_exp needs unit quaternion!");
         }
+
+        let omega = T::acos(self.d.0);
+        Quaternion {
+            d: (T::cos(t*omega), T::sin(t*omega)*self.d.1,
+                T::sin(t*omega)*self.d.2, T::sin(t*omega)*self.d.3)
+        }
+    }
+
+    pub fn slerp(p: &Self, q: &Self, t: T) -> Self {
+        if p.norm() != T::one() || q.norm() != T::one() {
+            println!("slerp need unit quaternion!");
+        }
+
+        let p1 = p.normalize();
+        let q1 = q.normalize();
+
+        p1.qm(&p1.inverse().qm(&q1).unit_exp(t))
     }
 
     
