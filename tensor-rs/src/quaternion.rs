@@ -1,4 +1,4 @@
-
+use std::ops::Div;
 use crate::tensor::Tensor;
 
 #[derive(PartialEq, Debug)]
@@ -15,6 +15,17 @@ where T: num_traits::Float {
     }
 }
 
+impl<T> Div<T> for Quaternion<T>
+where T: num_traits::Float {
+    type Output = Self;
+    
+    fn div(self, rhs: T) -> Self::Output {
+        Quaternion {
+            d: (self.d.0/rhs, self.d.1/rhs, self.d.2/rhs, self.d.3/rhs)
+        }
+    }
+}
+
 impl<T> Quaternion<T>
 where T: num_traits::Float {
 
@@ -24,10 +35,44 @@ where T: num_traits::Float {
         }
     }
 
+    pub fn scalar_part(&self) -> T {
+        self.d.0
+    }
+
+    pub fn vector_part(&self) -> (T, T, T) {
+        (self.d.1, self.d.2, self.d.3)
+    }
+
+    pub fn conjugate(&self) -> Self {
+        Quaternion {
+            d: (self.d.0, -self.d.1, -self.d.2, -self.d.3)
+        }
+    }
+
+    pub fn len(&self) -> T {
+        T::sqrt(self.d.0*self.d.0
+                + self.d.1*self.d.1
+                + self.d.1*self.d.1
+                + self.d.1*self.d.1)
+    }
+
+    pub fn norm(&self) -> T {
+        self.len()
+    }
+
+    pub fn inverse(&self) -> Self {
+        self.conjugate()/(self.d.0*self.d.0
+                          + self.d.1*self.d.1
+                          + self.d.1*self.d.1
+                          + self.d.1*self.d.1)
+    }
+
     /// Make it a unit quaternion
     pub fn normalize(&self) -> Self {
+        let n = self.len();
+        
         Quaternion {
-            d: (T::one(), T::one(), T::one(), T::one())
+            d: (self.d.0/n, self.d.1/n, self.d.2/n, self.d.3/n)
         }
     }
 
