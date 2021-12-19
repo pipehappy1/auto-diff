@@ -135,9 +135,18 @@ where T: num_traits::Float {
         }
 
         let omega = T::acos(self.d.0);
+
+        if T::sin(omega) == T::zero() {
+            return Self::default();
+        }
+        
+        let i = self.d.1/T::sin(omega);
+        let j = self.d.2/T::sin(omega);
+        let k = self.d.3/T::sin(omega);
+        
         Quaternion {
-            d: (T::cos(t*omega), T::sin(t*omega)*self.d.1,
-                T::sin(t*omega)*self.d.2, T::sin(t*omega)*self.d.3)
+            d: (T::cos(t*omega), T::sin(t*omega)*i,
+                T::sin(t*omega)*j, T::sin(t*omega)*k)
         }
     }
 
@@ -185,25 +194,31 @@ mod tests {
         let b1 = b.unit_exp(1.);
         assert_eq!(b1, Quaternion::<f64>::new(1., 0., 0., 0.));
 
+        let b = Quaternion::<f64>::new(0.5, 0.5, 0.5, 0.5);
+        let b1 = b.unit_exp(0.);
+        assert_eq!(b1, Quaternion::<f64>::new(1., 0., 0., 0.));
+
+        //let b = Quaternion::<f64>::new(0.5, 0.5, 0.5, 0.5);
+        //let b1 = b.unit_exp(0.5);
+        //assert_eq!(b1, Quaternion::<f64>::new(1., 0., 0., 0.));
+
         //let b = Quaternion::<f64>::new(0.5, 0.5, 0.5, 0.5);
         //let b1 = b.unit_exp(1.);
-        //assert_eq!(b1, Quaternion::<f64>::new(1., 0., 0., 0.));
+        //assert_eq!(b1, Quaternion::<f64>::new(0.5, 0.5, 0.5, 0.5));
         
     }
 
     #[test]
     fn test_slerp() {
         let a = Quaternion::<f64>::rotate_around_x(3.1415/2.);
-        println!("{:?}", a);
         let b = Quaternion::<f64>::default();
-
-        let c = Quaternion::<f64>::slerp(&a, &b, 1.);
+        let c = Quaternion::<f64>::slerp(&a, &b, 0.5);
 
         let v = (0., 0., 1.);
         let r = c.apply_rotation(v);
 
-        assert_eq!(r, (1., 1., 1.,));
+        assert_eq!(r, (0.0, -0.7070904020014415, 0.7071231599922606));
 
-        assert_eq!(c, Quaternion::<f64>::default());
+        //assert_eq!(c, Quaternion::<f64>::default());
     }
 }
