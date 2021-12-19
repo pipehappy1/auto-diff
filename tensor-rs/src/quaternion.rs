@@ -9,7 +9,7 @@ impl<T> Default for Quaternion<T>
 where T: num_traits::Float {
     fn default() -> Self {
         Quaternion {
-            d: (T::one(), T::one(), T::one(), T::one())
+            d: (T::one(), T::zero(), T::zero(), T::zero())
         }
     }
 }
@@ -162,11 +162,48 @@ mod tests {
     use super::*;
 
     #[test]
-    fn tensor_qm() {
+    fn test_qm() {
         let a = Quaternion::<f64>::new(1., 2., 3., 4.);
         let b = Quaternion::<f64>::new(2., 3., 4., 5.);
 
         let c = a.qm(&b);
         assert_eq!(c, Quaternion::<f64>::new(-36., 6., 12., 12.,))
+    }
+
+    #[test]
+    fn test_rotate_around_axis() {
+        let a = Quaternion::<f64>::rotate_around_x(3.1415/2.);
+        let v = (0., 0., 1.);
+        let r = a.apply_rotation(v);
+
+        assert!(f64::abs(r.0-0.) + f64::abs(r.1 + 1.) + f64::abs(r.2-0.) < 0.001);
+    }
+
+    #[test]
+    fn test_unit_exp() {
+        let b = Quaternion::<f64>::default();
+        let b1 = b.unit_exp(1.);
+        assert_eq!(b1, Quaternion::<f64>::new(1., 0., 0., 0.));
+
+        //let b = Quaternion::<f64>::new(0.5, 0.5, 0.5, 0.5);
+        //let b1 = b.unit_exp(1.);
+        //assert_eq!(b1, Quaternion::<f64>::new(1., 0., 0., 0.));
+        
+    }
+
+    #[test]
+    fn test_slerp() {
+        let a = Quaternion::<f64>::rotate_around_x(3.1415/2.);
+        println!("{:?}", a);
+        let b = Quaternion::<f64>::default();
+
+        let c = Quaternion::<f64>::slerp(&a, &b, 1.);
+
+        let v = (0., 0., 1.);
+        let r = c.apply_rotation(v);
+
+        assert_eq!(r, (1., 1., 1.,));
+
+        assert_eq!(c, Quaternion::<f64>::default());
     }
 }
