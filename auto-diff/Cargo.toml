@@ -19,7 +19,7 @@ exclude = ["/dev/**"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tensor-rs = { path = "../tensor-rs", version = "0.3.7" }
+tensor-rs = { path = "../tensor-rs", version = "0.3.9" }
 
 num-traits = "0.2"
 # matrix library
