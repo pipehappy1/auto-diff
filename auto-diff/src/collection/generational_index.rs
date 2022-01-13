@@ -1,3 +1,7 @@
+/// A generational index implementation.
+/// A generational index is a map-a-like container, which
+/// invalidate index/key when the item is removed,
+/// even the container itself don't have the access to that index/key.
 use std::fmt;
 
 /// NetIndex index used for generational index.
@@ -153,7 +157,7 @@ mod tests {
         #[derive(Debug, Copy, Clone)]
         struct A {
             v: u32,
-        };
+        }
         let mut a = GenIndex::<A>::new();
     
         let index1 = a.insert(A { v: 10 });

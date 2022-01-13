@@ -1,18 +1,21 @@
+/// A directed graph implementation with interleave op node and data node
+/// and all the edges are data node.
+
 use std::collections::{BTreeMap, BTreeSet};
-use super::generational_index::*;
 
-
-pub struct Graph {
-    data: BTreeSet<NetIndex>,
-    op: BTreeSet<NetIndex>,
-    forward_dt_op: BTreeMap<NetIndex, BTreeSet<NetIndex>>,
-    forward_op_dt: BTreeMap<NetIndex, BTreeSet<NetIndex>>,
-    backward_dt_op: BTreeMap<NetIndex, BTreeSet<NetIndex>>,
-    backward_op_dt: BTreeMap<NetIndex, BTreeSet<NetIndex>>,
+/// Graph
+pub struct Graph<T> {
+    data: BTreeSet<T>,
+    op: BTreeSet<T>,
+    forward_dt_op: BTreeMap<T, BTreeSet<T>>,
+    forward_op_dt: BTreeMap<T, BTreeSet<T>>,
+    backward_dt_op: BTreeMap<T, BTreeSet<T>>,
+    backward_op_dt: BTreeMap<T, BTreeSet<T>>,
 }
-impl Graph {
+
+impl<T: Clone + Copy + Ord> Graph<T> {
     /// Create a graph with defaults
-    pub fn new() -> Graph {
+    pub fn new() -> Graph<T> {
         Graph{
             data: BTreeSet::new(),
             op: BTreeSet::new(),
@@ -24,8 +27,8 @@ impl Graph {
     }
 
     /// iterator over data node.
-    pub fn list_data(&self) -> Vec<NetIndex> {
-        let mut ret = Vec::new();
+    pub fn list_data(&self) -> Vec<T> {
+        let mut ret = Vec::<T>::new();
 
         for i in &self.data {
             ret.push(i.clone());
@@ -33,7 +36,7 @@ impl Graph {
         ret
     }
     /// iterator over op node.
-    pub fn list_op(&self) -> Vec<NetIndex> {
+    pub fn list_op(&self) -> Vec<T> {
         let mut ret = Vec::new();
 
         for i in &self.op {
@@ -45,11 +48,11 @@ impl Graph {
     ///
     /// Return the list of ops that the given variable is the input.
     ///
-    pub fn list_as_input(&self, var: &NetIndex) -> Result<Vec<NetIndex>, &str> {
+    pub fn list_as_input(&self, var: &T) -> Result<Vec<T>, &str> {
         if !self.data.contains(var) {
             Err("Not a valid variable/data")
         } else {
-            let ret: Vec<NetIndex> = self.forward_dt_op.get(var).expect("")
+            let ret: Vec<T> = self.forward_dt_op.get(var).expect("")
                 .iter().map(|x| x.clone()).collect();
             Ok(ret)
         }
@@ -58,11 +61,11 @@ impl Graph {
     ///
     /// Return the list of ops that the given variable is the output.
     ///
-    pub fn list_as_output(&self, var: &NetIndex) -> Result<Vec<NetIndex>, &str> {
+    pub fn list_as_output(&self, var: &T) -> Result<Vec<T>, &str> {
         if !self.data.contains(var) {
             Err("Not a valid variable/data")
         } else {
-            let ret: Vec<NetIndex> = self.backward_dt_op.get(var).expect("")
+            let ret: Vec<T> = self.backward_dt_op.get(var).expect("")
                 .iter().map(|x| x.clone()).collect();
             Ok(ret)
         }
@@ -71,11 +74,11 @@ impl Graph {
     ///
     /// Return the list of input given the func.
     ///
-    pub fn list_input(&self, func: &NetIndex) -> Result<Vec<NetIndex>, &str> {
+    pub fn list_input(&self, func: &T) -> Result<Vec<T>, &str> {
         if !self.op.contains(func) {
             Err("Bad func id.")
         } else {
-            let ret: Vec<NetIndex> = self.backward_op_dt.get(func).expect("").
+            let ret: Vec<T> = self.backward_op_dt.get(func).expect("").
                 iter().map(|x| x.clone()).collect();
             Ok(ret)
         }
@@ -84,11 +87,11 @@ impl Graph {
     ///
     /// Return a list of data as the output of the op.
     ///
-    pub fn list_output(&self, func: &NetIndex) -> Result<Vec<NetIndex>, &str> {
+    pub fn list_output(&self, func: &T) -> Result<Vec<T>, &str> {
         if !self.op.contains(func) {
             Err("Bad func id.")
         } else {
-            let ret: Vec<NetIndex> = self.forward_op_dt.get(func).expect("").
+            let ret: Vec<T> = self.forward_op_dt.get(func).expect("").
                 iter().map(|x| x.clone()).collect();
             Ok(ret)
         }
@@ -99,12 +102,12 @@ impl Graph {
     /// # use auto_diff::collection::graph::*;
     /// # use auto_diff::collection::generational_index::*;
     /// let mut g = Graph::new();
-    /// let data1 = NetIndex::new(0,0);
-    /// let data2 = NetIndex::new(1,0);
+    /// let data1 = T::new(0,0);
+    /// let data2 = T::new(1,0);
     /// g.add_data(&data1);
     /// g.add_data(&data2);
     /// ```
-    pub fn add_data(&mut self, id: &NetIndex) -> Result<NetIndex, &str> {
+    pub fn add_data(&mut self, id: &T) -> Result<T, &str> {
         if !self.data.contains(id) {
             self.data.insert(*id);
             self.forward_dt_op.insert(id.clone(), BTreeSet::new());
@@ -116,7 +119,7 @@ impl Graph {
     }
 
     /// Remove a data node, op node and downstream data/op node are removed.
-    pub fn del_data(&mut self, id: &NetIndex) -> Result<NetIndex, &str> {
+    pub fn del_data(&mut self, id: &T) -> Result<T, &str> {
         if self.data.contains(id) {
             self.data.remove(id);
             for i in self.forward_dt_op.get_mut(id).expect("").iter() {
@@ -135,7 +138,7 @@ impl Graph {
     }
 
     /// Add a danglging op node.
-    pub fn add_op(&mut self, id: &NetIndex) -> Result<NetIndex, &str> {
+    pub fn add_op(&mut self, id: &T) -> Result<T, &str> {
         if !self.op.contains(id) {
             self.op.insert(*id);
             self.forward_op_dt.insert(id.clone(), BTreeSet::new());
@@ -147,7 +150,7 @@ impl Graph {
     }
 
     /// Remvoe an op node, input data node and downstream data/op node are removed.
-    pub fn del_op(&mut self, id: &NetIndex) -> Result<NetIndex, &str> {
+    pub fn del_op(&mut self, id: &T) -> Result<T, &str> {
         if self.op.contains(id) {
             self.op.remove(id);
             for i in self.forward_op_dt.get_mut(id).expect("").iter() {
@@ -168,7 +171,7 @@ impl Graph {
     ///
     /// Decouple input variable and op
     ///
-    pub fn decouple_data_func(&mut self, var: &NetIndex, func: &NetIndex) -> Result<(), ()> {
+    pub fn decouple_data_func(&mut self, var: &T, func: &T) -> Result<(), ()> {
         if self.data.contains(var) && self.op.contains(func) {
             self.forward_dt_op.get_mut(var).expect("").remove(func);
             self.backward_op_dt.get_mut(func).expect("").remove(var);
@@ -181,7 +184,7 @@ impl Graph {
     ///
     /// Decouple op and output variable
     ///
-    pub fn decouple_func_data(&mut self, func: &NetIndex, var: &NetIndex) -> Result<(), ()> {
+    pub fn decouple_func_data(&mut self, func: &T, var: &T) -> Result<(), ()> {
         if self.data.contains(var) && self.op.contains(func) {
             self.forward_op_dt.get_mut(func).expect("").remove(var);
             self.backward_dt_op.get_mut(var).expect("").remove(func);
@@ -192,8 +195,8 @@ impl Graph {
     }
 
     /// list data node without upstream op node in a set.
-    pub fn get_input_cache(&self) -> BTreeSet<NetIndex> {
-        let mut jobs = BTreeSet::<NetIndex>::new();
+    pub fn get_input_cache(&self) -> BTreeSet<T> {
+        let mut jobs = BTreeSet::<T>::new();
         for i in &self.data {
             if self.backward_dt_op.get(i).expect("").len() <= 0 {
                 jobs.insert(i.clone());
@@ -203,8 +206,8 @@ impl Graph {
     }
 
     /// list data node without downstream op node in a set.
-    pub fn get_output_cache(&self) -> BTreeSet<NetIndex> {
-        let mut jobs = BTreeSet::<NetIndex>::new();
+    pub fn get_output_cache(&self) -> BTreeSet<T> {
+        let mut jobs = BTreeSet::<T>::new();
         for i in &self.data {
             if self.forward_dt_op.get(i).expect("").len() <= 0 {
                 jobs.insert(i.clone());
@@ -214,9 +217,9 @@ impl Graph {
     }
 
     /// Connect input data, output data and operation
-    pub fn connect(&mut self, dti: &[NetIndex],
-                   dto: &[NetIndex],
-                   op: &NetIndex) -> Result<NetIndex, &str> {
+    pub fn connect(&mut self, dti: &[T],
+                   dto: &[T],
+                   op: &T) -> Result<T, &str> {
         let mut valid_ids = true;
 
         // make sure pre-exist
@@ -255,10 +258,10 @@ impl Graph {
     /// Walk through the graph with a starting set of data nodes.
     /// Go through backwards if forward is false.
     ///
-    pub fn walk<F>(&self, start_set: &[NetIndex],
+    pub fn walk<F>(&self, start_set: &[T],
                    forward: bool,
-                   closure: F) -> Result<(), BTreeSet<NetIndex>>
-    where F: Fn(&[NetIndex], &[NetIndex], &NetIndex)  {
+                   closure: F) -> Result<(), BTreeSet<T>>
+    where F: Fn(&[T], &[T], &T)  {
         let mut fdo = &self.forward_dt_op;
         let mut fod = &self.forward_op_dt;
         //let mut bdo = &self.backward_dt_op;
@@ -271,9 +274,9 @@ impl Graph {
         }
 
         // data id has a value
-        let mut jobs = BTreeSet::<NetIndex>::new();
+        let mut jobs = BTreeSet::<T>::new();
         // op is done.
-        let mut done = BTreeSet::<NetIndex>::new(); // ops done.
+        let mut done = BTreeSet::<T>::new(); // ops done.
 
         for index in start_set {
             jobs.insert(*index);
@@ -283,7 +286,7 @@ impl Graph {
             let mut made_progress = false;
 
             // collect ops needs to do given the data in jobs.
-            let mut edge_op = BTreeSet::<NetIndex>::new();
+            let mut edge_op = BTreeSet::<T>::new();
             for dt in &jobs {
                 for op_candidate in &fdo[dt] {
                     edge_op.insert(op_candidate.clone());
@@ -297,12 +300,12 @@ impl Graph {
                     .all(|dt| jobs.contains(dt)) {
 
                         // collect input ids.
-                        let mut inputs = Vec::<NetIndex>::new();
+                        let mut inputs = Vec::<T>::new();
                         for input in bod[&op_candidate].iter() {
                             inputs.push(input.clone());
                         }
                         // collect output ids.
-                        let mut outputs = Vec::<NetIndex>::new();
+                        let mut outputs = Vec::<T>::new();
                         for output in fod[&op_candidate].iter() {
                             outputs.push(output.clone());
                         }
@@ -351,10 +354,11 @@ impl Graph {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::collection::generational_index::{NetIndex};
     
     #[test]
     fn new() {
-        let _g = Graph::new();
+        let _g = Graph::<NetIndex>::new();
     }
 
     // A   B
@@ -362,7 +366,7 @@ mod tests {
     //   Op
     //   |
     //   C
-    fn setup_y(g: &mut Graph) {
+    fn setup_y(g: &mut Graph<NetIndex>) {
         let data_a = NetIndex::new(0,0);
         let data_b = NetIndex::new(1,0);
         let data_c = NetIndex::new(2,0);
@@ -385,7 +389,7 @@ mod tests {
     //     Op2
     //     |
     //     E
-    fn setup_yy(g: &mut Graph) {
+    fn setup_yy(g: &mut Graph<NetIndex>) {
         let data_a = NetIndex::new(0,0);
         let data_b = NetIndex::new(1,0);
         let data_c = NetIndex::new(2,0);
@@ -412,7 +416,7 @@ mod tests {
         setup_y(&mut g);
         assert_eq!(g.get_input_cache().len(), 2);
 
-        let mut g = Graph::new();
+        let mut g = Graph::<NetIndex>::new();
         setup_yy(&mut g);
         assert_eq!(g.get_input_cache().len(), 3);
     }
@@ -423,7 +427,7 @@ mod tests {
         setup_y(&mut g);
         assert_eq!(g.get_output_cache().len(), 1);
 
-        let mut g = Graph::new();
+        let mut g = Graph::<NetIndex>::new();
         setup_yy(&mut g);
         assert_eq!(g.get_output_cache().len(), 1);
     }

@@ -1,6 +1,6 @@
 use std::collections::{BTreeSet, BTreeMap};
 
-use crate::collection::generational_index::*;
+use crate::collection::generational_index::{GenIndex, NetIndex};
 use crate::collection::graph::Graph;
 use tensor_rs::tensor::Tensor;
 use crate::op::*;
@@ -13,7 +13,7 @@ pub struct Net {
     ops: GenIndex<Op>,
     funcs: BTreeMap<NetIndex, Vec<NetIndex>>, // for func composition
     set_mark: BTreeSet<NetIndex>,
-    graph: Graph,
+    graph: Graph<NetIndex>,
     data_grad: BTreeMap<NetIndex, Tensor>,
 }
 

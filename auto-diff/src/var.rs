@@ -6,7 +6,7 @@ use std::mem::drop;
 
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use crate::op::*;
-use crate::compute_graph::*;
+use crate::compute_graph::{Net};
 use crate::collection::generational_index::*;
 
 
@@ -441,6 +441,25 @@ impl fmt::Display for Func {
 impl Drop for Func {
     fn drop(&mut self) {
         self.net.borrow_mut().del_func_or_op(&self);
+    }
+}
+
+
+pub struct V {
+    data: Tensor,
+}
+
+impl V {
+    pub fn new() -> V {
+        V {
+            data: Tensor::new(),
+        }
+    }
+
+    pub fn eye(n: usize, m: usize) -> V {
+        V {
+            data: Tensor::eye(n, m),
+        }
     }
 }
 
