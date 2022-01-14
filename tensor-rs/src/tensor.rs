@@ -26,6 +26,7 @@ pub mod elemwise;
 pub mod index_slicing;
 pub mod convolution;
 pub mod reduction;
+pub mod linalg;
 
 
 use typed_tensor::TypedTensor;

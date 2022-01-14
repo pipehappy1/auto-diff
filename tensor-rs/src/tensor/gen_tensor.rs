@@ -1,4 +1,5 @@
 use std::fmt;
+use std::cmp;
 
 #[cfg(feature = "use-blas")]
 use crate::tensor::blas::BlasAPI;
@@ -120,7 +121,18 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     // range
     // linspace
     // logspace
-    // eye
+    pub fn eye(n: usize, m: usize) -> GenTensor<T> {
+        let cap = n*m;
+        let d = vec![T::zero(); cap];
+        let mut ret = GenTensor {
+            d: d,
+            dim: [n, m].to_vec(),
+        };
+        for i in 0..cmp::min(n, m) {
+            ret.set(&[i, i], T::one());
+        }
+        ret
+    }
     pub fn empty(shape: &[usize]) -> GenTensor<T> {
         let mut elem = 1;
         for i in shape {
@@ -354,7 +366,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         &self.dim
     }
     pub fn get_size(&self) -> &Vec<usize> {
-        &self.dim
+        self.size()
     }
     pub fn get_data(&self) -> &Vec<T> {
         &self.d

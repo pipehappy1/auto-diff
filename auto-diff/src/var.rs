@@ -461,6 +461,20 @@ impl V {
             data: Tensor::eye(n, m),
         }
     }
+
+    pub fn matmul(&self, o: &V) -> V {
+        V {
+            data: self.data.matmul(&o.data)
+        }
+    }
+
+    pub fn eq(&self, o: &V) -> bool {
+        self.data.eq(&o.data)
+    }
+
+    pub fn det(&self) -> f64 {
+        self.data.
+    }
 }
 
 
