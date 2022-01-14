@@ -473,7 +473,7 @@ impl V {
     }
 
     pub fn det(&self) -> f64 {
-        self.data.
+        1.0
     }
 }
 
