@@ -648,7 +648,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         ret
     }
     // TODO: handle batched matrix.
-    pub fn set_column(&mut self, o: GenTensor<T>, i: usize) {
+    pub fn set_column(&mut self, o: &GenTensor<T>, i: usize) {
         let nr = self.size()[self.size().len()-2];
         for r in 0..nr {
             self.set(&[r, i], o.get(&[r, 0]));
@@ -664,7 +664,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         ret
     }
     // TODO: handle batched matrix.
-    pub fn set_row(&mut self, o: GenTensor<T>, i: usize) {
+    pub fn set_row(&mut self, o: &GenTensor<T>, i: usize) {
         let nc = self.size()[self.size().len()-1];
         for c in 0..nc {
             self.set(&[i, c], o.get(&[c]));
@@ -787,10 +787,36 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         ret
     }
 
+    pub fn dot(&self, b: &GenTensor<T>) -> T {
+        let mut sum = T::zero();
+        for (l, m) in self.d.iter().zip(b.d.iter()) {
+            sum = (*l)*(*m) + sum;
+        }
+        sum
+    }
+
+    /// Project a vector onto another one.
+    // TODO, support batched vector.
+    pub fn proj(&self, b: &GenTensor<T>) -> GenTensor<T> {
+        let mut sum = T::zero();
+        for (l, m) in self.d.iter().zip(b.d.iter()) {
+            sum = (*l)*(*m) + sum;
+        }
+        let mut ret = b.clone();
+        for i in ret.d.iter_mut() {
+            *i = (*i) * sum;
+        }
+        ret
+    }
+
     /// matrix multiplication of two tensor
+    /// This is also for dot/inner product.
     pub fn matmul(&self, o: &GenTensor<T>) -> GenTensor<T> {
         if self.dim[self.dim.len()-1] != o.dim[0] {
             panic!("matmul expect matched size {:?}, {:?}", self.dim, o.dim);
+        }
+        if self.size().len() == 1 && o.size().len() == 1 {
+            panic!("Two vector have not matched size for matmul!");
         }
         let inner = o.dim[0];
         let mut cap = 1;
@@ -1172,7 +1198,7 @@ impl fmt::Display for GenTensor<f64> {
 
 impl fmt::Debug for GenTensor<f32> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                if self.dim.len() == 2 {
+        if self.dim.len() == 2 {
             write!(f, "[")?;
             for i in 0..self.dim[0] {
                 write!(f, "[")?;
@@ -1183,8 +1209,8 @@ impl fmt::Debug for GenTensor<f32> {
             }
             write!(f, "]\n")
         } else {
-            write!(f, "{:?}\n", self.dim)?;
-            write!(f, "{:?}", self.d)            
+            write!(f, "size: {:?}\n", self.dim)?;
+            write!(f, "data: {:?}", self.d)            
         }
     }
 }
@@ -1303,6 +1329,13 @@ mod tests {
 
         let e = a.outer(&b, Some(true));
         assert_eq!(e, GenTensor::ones(&[2, 3]));
+    }
+
+    #[test]
+    fn proj() {
+        let a = GenTensor::<f32>::fill(1., &vec![2]);
+        let b = GenTensor::<f32>::new_raw(&[3., -2.], &[2, 1]);
+        assert_eq!(a.proj(&b), b);
     }
 
     #[test]
