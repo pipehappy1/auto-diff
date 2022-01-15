@@ -621,7 +621,58 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
+    pub fn get_diag(&self) -> GenTensor<T> {
+        // TODO: handle batched matrix.
+        let n = *self.size().last().unwrap();
+        let mut ret = GenTensor::<T>::zeros(&[n]);
+        for i in 0..n {
+            ret.set(&[i], self.get(&[i, i]))
+        }
+        ret
+    }
+    pub fn set_diag(&mut self, o: &GenTensor<T>)  {
+        // TODO: handle batched matrix.
+        let n = *self.size().last().unwrap();
+        for i in 0..n {
+            self.set(&[i,i], o.get(&[i]));
+        }
+    }
+
+    // TODO: handle batched matrix.
+    pub fn get_column(&self, i: usize) -> GenTensor<T> {
+        let nr = self.size()[self.size().len()-2];
+        let mut ret = GenTensor::zeros(&[nr, 1]);
+        for r in 0..nr {
+            ret.set(&[r, 0], self.get(&[r, i]));
+        }
+        ret
+    }
+    // TODO: handle batched matrix.
+    pub fn set_column(&mut self, o: GenTensor<T>, i: usize) {
+        let nr = self.size()[self.size().len()-2];
+        for r in 0..nr {
+            self.set(&[r, i], o.get(&[r, 0]));
+        }
+    }
+    // TODO: handle batched matrix.
+    pub fn get_row(&self, i: usize) -> GenTensor<T> {
+        let nc = self.size()[self.size().len()-1];
+        let mut ret = GenTensor::zeros(&[nc]);
+        for c in 0..nc {
+            ret.set(&[c], self.get(&[i, c]));
+        }
+        ret
+    }
+    // TODO: handle batched matrix.
+    pub fn set_row(&mut self, o: GenTensor<T>, i: usize) {
+        let nc = self.size()[self.size().len()-1];
+        for c in 0..nc {
+            self.set(&[i, c], o.get(&[c]));
+        }
+    }
+
     // reduction ops
+    // Implementation see the reduction.rs file.
 
     // Pointwise Ops
     pub fn _pointwise<F>(&self, closure: F) -> GenTensor<T>

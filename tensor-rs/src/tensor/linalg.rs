@@ -1,10 +1,14 @@
-use crate::tensor::gen_tensor::GenTensor;
+use super::gen_tensor::GenTensor;
+use super::reduction::*;
 
 pub trait ElemwiseTensorOp {
     type TensorType;
     type ElementType;
 
     fn lu(&self) -> Option<[Self::TensorType; 2]>;
+    fn qr(&self) -> Option<[Self::TensorType; 2]>;
+    fn eigen(&self) -> Option<[Self::TensorType; 2]>;
+    fn cholesky(&self) -> Option<Self::TensorType>;
     fn det(&self) -> Option<Self::ElementType>;
 }
 
@@ -39,12 +43,39 @@ where T: num_traits::Float {
 
         Some([l, u])
     }
+
+    fn qr(&self) -> Option<[Self::TensorType; 2]> {
+        // qr is for square matrix only.
+        // TODO; handle the batched/3d case.
+        if self.size().len() != 2 {
+            return None;
+        }
+        if self.size()[0] != self.size()[1] {
+            return None;
+        }
+        let n = self.size()[0];
+
+        let mut q = GenTensor::<T>::zeros(&[n, n]);
+        let mut r = GenTensor::<T>::zeros(&[n]);
+        for i in 0..n {
+            let a = self.get_column(i);
+        }
+        
+
+        None
+    }
+    fn eigen(&self) -> Option<[Self::TensorType; 2]> {
+        None
+    }
+    fn cholesky(&self) -> Option<Self::TensorType> {
+        None
+    }
     
     fn det(&self) -> Option<Self::ElementType> {
         if let Some(v) = self.lu() {
-            let [l, u] = v;
-
-            Some(T::zero())
+            let [_l, u] = v;
+            let ret = u.get_diag().prod(None, false).get(&[0]);
+            Some(ret)
         } else {
             None
         }
@@ -65,4 +96,11 @@ mod tests {
         assert_eq!(l, el);
         assert_eq!(u, eu);
     }
+
+    #[test]
+    fn det() {
+        let m = GenTensor::<f64>::new_raw(&[1., 1., 1., 4., 3., -1., 3., 5., 3.], &[3,3]);
+        assert_eq!(m.det(), Some(10.));
+    }
+        
 }
