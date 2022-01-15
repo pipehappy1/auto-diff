@@ -8,6 +8,7 @@ pub trait LinearAlgbra {
 
     fn normalize_unit(&self) -> Self::TensorType;
     fn lu(&self) -> Option<[Self::TensorType; 2]>;
+    fn lu_solve(&self, y: &Self::TensorType) -> Option<Self::TensorType>;
     fn qr(&self) -> Option<[Self::TensorType; 2]>;
     fn eigen(&self) -> Option<[Self::TensorType; 2]>;
     fn cholesky(&self) -> Option<Self::TensorType>;
@@ -51,6 +52,38 @@ where T: num_traits::Float {
         Some([l, u])
     }
 
+    fn lu_solve(&self, b: &Self::TensorType) -> Option<Self::TensorType> {
+        if self.size().len() != 2 {
+            return None;
+        }
+        if self.size()[0] != self.size()[1] {
+            return None;
+        }
+        let n = self.size()[0];
+        if b.size().len() != 2 || b.size()[0] != n || b.size()[1] != 1 {
+            return None;
+        }
+        
+        match self.lu() {
+            Some([l, u]) => {
+         
+                let mut y = GenTensor::<T>::zeros(&[n, 1]);
+                for i in 0..n {
+                    y.set(&[i, 0],
+                          (b.get(&[i, 0]) - y.dot(&l.get_row(i))) / l.get(&[i, i]));
+                }
+                let mut x = GenTensor::<T>::zeros(&[n, 1]);
+                for i in 0..n {
+                    x.set(&[n-i-1, 0],
+                          (y.get(&[n-i-1, 0]) - x.dot(&u.get_row(n-i-1))) / u.get(&[n-i-1, n-i-1]));
+                }
+                
+                Some(x)
+            },
+            None => {None}
+        }
+    }
+
     fn qr(&self) -> Option<[Self::TensorType; 2]> {
         // qr is for square matrix only.
         // TODO; handle the batched/3d case.
@@ -81,6 +114,7 @@ where T: num_traits::Float {
     }
 
     fn eigen(&self) -> Option<[Self::TensorType; 2]> {
+        
         None
     }
     fn cholesky(&self) -> Option<Self::TensorType> {
@@ -140,6 +174,15 @@ mod tests {
         let eu = GenTensor::<f64>::new_raw(&[1., 1., 1., 0., -1., -5., 0., 0., -10.], &[3,3]);
         assert_eq!(l, el);
         assert_eq!(u, eu);
+    }
+
+    #[test]
+    fn lu_solve() {
+        let cap_a = GenTensor::<f64>::new_raw(&[7., -2., 1., 14., -7., -3., -7., 11., 18.], &[3,3]);
+        let b = GenTensor::<f64>::new_raw(&[12., 17., 5.], &[3,1]);
+        let x = cap_a.lu_solve(&b).unwrap();
+        let ex = GenTensor::<f64>::new_raw(&[3., 4., -1.,], &[3,1]);
+        assert_eq!(x, ex);
     }
 
     #[test]
