@@ -84,7 +84,26 @@ where T: num_traits::Float {
         None
     }
     fn cholesky(&self) -> Option<Self::TensorType> {
-        None
+        // TODO; handle the batched/3d case.
+        if self.size().len() != 2 {
+            return None;
+        }
+        if self.size()[0] != self.size()[1] {
+            return None;
+        }
+        let n = self.size()[0];
+
+        let mut ret = GenTensor::<T>::zeros(&[n, n]);
+        for i in 0..n {
+            for j in 0..i {
+                ret.set(&[j, i],
+                        (self.get(&[j, i]) -
+                         ret.get_column(j).dot(&ret.get_column(i)))/ret.get(&[j, j]))
+            }
+            ret.set(&[i, i],
+                    T::sqrt(self.get(&[i,i]) - ret.get_column(i).dot(&ret.get_column(i))));
+        }
+        Some(ret)
     }
     
     fn det(&self) -> Option<Self::ElementType> {
@@ -140,5 +159,12 @@ mod tests {
         assert_eq!(q, eq);
         assert_eq!(r, er);
     }
-        
+
+    #[test]
+    fn cholesky() {
+        let m = GenTensor::<f64>::new_raw(&[4., 12., -16., 12., 37., -43., -16., -43., 98.], &[3,3]);
+        let c = m.cholesky().unwrap();
+        let ec = GenTensor::<f64>::new_raw(&[2., 6., -8., 0., 1., 5., 0., 0., 3.], &[3,3]);
+        assert_eq!(c, ec);
+    }
 }
