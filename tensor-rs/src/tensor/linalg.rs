@@ -114,6 +114,16 @@ where T: num_traits::Float {
     }
 
     fn eigen(&self) -> Option<[Self::TensorType; 2]> {
+        // TODO; handle the batched/3d case.
+        if self.size().len() != 2 {
+            return None;
+        }
+        if self.size()[0] != self.size()[1] {
+            return None;
+        }
+        let n = self.size()[0];
+
+        
         
         None
     }
