@@ -11,7 +11,6 @@ pub trait ReduceTensor where Self: std::marker::Sized {
     fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> Self;
     fn median();
     fn mode();
-    fn norm();
     fn prod(&self, dim: Option<&[usize]>, keepdim: bool) -> Self;
     fn std(&self, dim: Option<&[usize]>, keepdim: bool) -> Self;
     fn std_mean();
@@ -172,7 +171,6 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     }
     fn median(){unimplemented!();}
     fn mode() {unimplemented!();}
-    fn norm() {unimplemented!();}
     fn prod(&self, dim: Option<&[usize]>, keep_dim: bool) -> GenTensor<T> {
         self._iter_patch(dim, keep_dim,
                          |x| {
@@ -375,9 +373,6 @@ impl ReduceTensor for CudaTensor {
         todo!();
     }
     fn mode() {
-        todo!();
-    }
-    fn norm() {
         todo!();
     }
     fn prod(&self, dim: Option<&[usize]>, keepdim: bool) -> Self {

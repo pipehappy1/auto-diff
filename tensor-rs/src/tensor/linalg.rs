@@ -1,11 +1,13 @@
 use super::gen_tensor::GenTensor;
 use super::reduction::ReduceTensor;
 use super::elemwise::ElemwiseTensorOp;
+use super::index_slicing::IndexSlicing;
 
 pub trait LinearAlgbra {
     type TensorType;
     type ElementType;
 
+    fn norm(&self) -> Self::TensorType;
     fn normalize_unit(&self) -> Self::TensorType;
     fn lu(&self) -> Option<[Self::TensorType; 2]>;
     fn lu_solve(&self, y: &Self::TensorType) -> Option<Self::TensorType>;
@@ -20,6 +22,11 @@ impl<T> LinearAlgbra for GenTensor<T>
 where T: num_traits::Float {
     type TensorType = GenTensor<T>;
     type ElementType = T;
+
+    fn norm(&self) -> Self::TensorType {
+        // TODO: support 'fro', 'nuc', 'inf', '-inf'...
+        self.mul(self).sum(None, false).sqrt()
+    }
 
     fn normalize_unit(&self) -> Self::TensorType {
         let s = self.mul(self).sum(None, false);
@@ -123,9 +130,26 @@ where T: num_traits::Float {
         }
         let n = self.size()[0];
 
+        let tolerance: f64 = 1e-12;
+        let iter_max = 100;
+
+        let mut x = GenTensor::<T>::fill(T::one(), &[n, 1]);
+        let mut iter_counter = 0;
+        loop {
+            if iter_counter > iter_max {
+                break;
+            }
+            let x1 = x.clone();
+            x = self.matmul(&x).normalize_unit();
+            if x1.sub(&x).norm().get_scale() < T::from(tolerance).unwrap() {
+                break;
+            }
+            iter_counter += 1;
+        }
+        //println!("iter: {:?}", iter_counter);
+        let lambda = x.permute(&[1, 0]).matmul(self).matmul(&x);
         
-        
-        None
+        Some([x, lambda])
     }
     fn cholesky(&self) -> Option<Self::TensorType> {
         // TODO; handle the batched/3d case.
@@ -219,5 +243,12 @@ mod tests {
         let c = m.cholesky().unwrap();
         let ec = GenTensor::<f64>::new_raw(&[2., 6., -8., 0., 1., 5., 0., 0., 3.], &[3,3]);
         assert_eq!(c, ec);
+    }
+
+    #[test]
+    fn eigen() {
+        let m = GenTensor::<f64>::new_raw(&[2., 3., 2., 1.], &[2,2]);
+        let [v, l] = m.eigen().unwrap();
+        println!("{:?}, {:?}", v, l);
     }
 }
