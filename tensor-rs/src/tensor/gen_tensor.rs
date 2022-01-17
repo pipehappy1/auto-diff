@@ -294,7 +294,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// dump the single value in the tensor
     /// if it is the single value in the tensor.
     pub fn get_scale(&self) -> T {
-        if self.dim.len() <= 1 && self.d.len() == 1 {
+        if self.d.len() == 1 {
             self.d[0]
         } else {
             panic!("Only one element tensor can get_scale()");

@@ -129,27 +129,39 @@ where T: num_traits::Float {
             return None;
         }
         let n = self.size()[0];
+        let mut cap_a = self.clone();
 
-        let tolerance: f64 = 1e-12;
+        let tolerance: f64 = 1e-9;
         let iter_max = 100;
 
-        let mut x = GenTensor::<T>::fill(T::one(), &[n, 1]);
-        let mut iter_counter = 0;
-        loop {
-            if iter_counter > iter_max {
-                break;
+        let mut evec = GenTensor::<T>::zeros(&[n, n]);
+        let mut eval = GenTensor::<T>::zeros(&[n, 1]);
+        for i in 0..n {
+            let mut x = GenTensor::<T>::fill(T::one(), &[n, 1]);
+            let mut iter_counter = 0;
+            loop {
+                if iter_counter > iter_max {
+                    break;
+                }
+                let x1 = x.clone();
+                x = cap_a.matmul(&x).normalize_unit();
+                if x1.sub(&x).norm().get_scale() < T::from(tolerance).unwrap() {
+                    break;
+                }
+                iter_counter += 1;
             }
-            let x1 = x.clone();
-            x = self.matmul(&x).normalize_unit();
-            if x1.sub(&x).norm().get_scale() < T::from(tolerance).unwrap() {
-                break;
-            }
-            iter_counter += 1;
+            //println!("iter: {:?}", iter_counter);
+            let lambda = x.permute(&[1, 0]).matmul(self).matmul(&x).squeeze(None);
+
+            evec.set_column(&x, i);
+            eval.set(&[i, 0], lambda.get_scale());
+
+            cap_a = cap_a.sub(&GenTensor::<T>::eye(n, n).mul(&lambda));
+
+            //println!("index: {:?}", i);
         }
-        //println!("iter: {:?}", iter_counter);
-        let lambda = x.permute(&[1, 0]).matmul(self).matmul(&x);
-        
-        Some([x, lambda])
+
+        Some([evec, eval])
     }
     fn cholesky(&self) -> Option<Self::TensorType> {
         // TODO; handle the batched/3d case.
@@ -247,8 +259,12 @@ mod tests {
 
     #[test]
     fn eigen() {
-        let m = GenTensor::<f64>::new_raw(&[2., 3., 2., 1.], &[2,2]);
-        let [v, l] = m.eigen().unwrap();
-        println!("{:?}, {:?}", v, l);
+        let m = GenTensor::<f64>::new_raw(&[4., 3., -2., -3.], &[2,2]);
+        //let ec = GenTensor::<f64>::new_raw(&[4., 3., -2., -3.], &[2,2]);
+        let el = GenTensor::<f64>::new_raw(&[3., -2.], &[2,1]);
+        let [_evec, eval] = m.eigen().unwrap();
+        //println!("{:?}, {:?}", _evec, eval);
+        //println!("{:?}", eval.sub(&el).norm());
+        assert!(eval.sub(&el).norm().get_scale() < 1e-6);
     }
 }
