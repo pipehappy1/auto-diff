@@ -21,6 +21,6 @@ A typeless tensor library
 
 ## Dependence
 
-install gfortran is openblas-src = "0.9" is used.
+install gfortran when openblas-src = "0.9" is used.
 
 
