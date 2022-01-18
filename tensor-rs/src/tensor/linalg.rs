@@ -209,17 +209,25 @@ where T: num_traits::Float {
         let m = self.size()[self.size().len()-2];
         let n = self.size()[self.size().len()-1];
 
+        let cap_a: GenTensor<T>;
+        if m > n {
+            cap_a = self.permute(&[1, 0]).matmul(self);
+        } else if m < n {
+            cap_a = self.matmul(&self.permute(&[1, 0]));
+        } else {
+            cap_a = self.clone();
+        }
+
         let tolerance: f64 = 1e-9;
         let iter_max = 100;
 
-        let mut u = self.clone();
         let mut s: GenTensor<T>;
         let mut v = GenTensor::<T>::eye(n, n);
         let mut iter_counter = 0;
         loop {
 
             let v1 = v.clone();
-            let [qv, r] = self.matmul(&v).qr().unwrap();
+            let [qv, r] = cap_a.matmul(&v).qr().unwrap();
             v = qv;
             
             if v1.sub(&v).norm().get_scale() < T::from(tolerance).unwrap() {
@@ -233,7 +241,22 @@ where T: num_traits::Float {
             }
 
             iter_counter += 1;
-            println!("iter_counter {:?}", iter_counter);
+            //println!("iter_counter {:?}", iter_counter);
+        }
+
+        let u: GenTensor<T>;
+        if m > n {
+            s = s.sqrt();
+            v = v.permute(&[1, 0]);
+            let invs = GenTensor::<T>::ones(&[n]).div(&s.get_diag());
+            u = self.matmul(&v.permute(&[1, 0])).matmul(&invs);
+        } else if m < n {
+            s = s.sqrt();
+            u = v.permute(&[1, 0]);
+            let invs = GenTensor::<T>::ones(&[n]).div(&s.get_diag());
+            v = invs.matmul(&u.permute(&[1, 0])).matmul(self);
+        } else {
+            u = v.permute(&[1, 0]);
         }
         
         Some([u, s, v])
@@ -315,6 +338,9 @@ mod tests {
     fn svd() {
         let m = GenTensor::<f64>::new_raw(&[4., 12., -16., 12., 37., -43., -16., -43., 98.], &[3,3]);
         let [u, s, v] = m.svd().unwrap();
-        println!("{:?}, {:?}, {:?}", u, s, v);
+        //println!("{:?}, {:?}, {:?}", u, s, v);
+        let es = GenTensor::<f64>::new_raw(&[123.47723179013161, 15.503963229407585, 0.018804980460810704], &[3]);
+        assert!(es.sub(&s.get_diag()).norm().get_scale() < 1e-6);
+
     }
 }
