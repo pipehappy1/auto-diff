@@ -510,6 +510,11 @@ mod tests {
         let m2 = GenTensor::<f64>::new_raw(&vec![1., 2., 3., 4.,], &vec![2, 2]);
         let m22 = m2.permute(&vec![1, 0]);
         assert_eq!(m22.get_raw(), vec![1., 3., 2., 4.]);
+
+        let m3 = GenTensor::<f64>::new_raw(&vec![1., 2., 3., 4., 5., 6.], &vec![3, 2]);
+        let m32 = m3.permute(&vec![1, 0]);
+        assert_eq!(m32.get_raw(), vec![1., 3., 5., 2., 4., 6.]);
+        assert_eq!(*m32.size(), vec![2, 3]);
     }
 
     #[test]

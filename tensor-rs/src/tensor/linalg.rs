@@ -1,3 +1,4 @@
+use std::cmp;
 use super::gen_tensor::GenTensor;
 use super::reduction::ReduceTensor;
 use super::elemwise::ElemwiseTensorOp;
@@ -15,6 +16,7 @@ pub trait LinearAlgbra {
     fn eigen(&self) -> Option<[Self::TensorType; 2]>;
     fn cholesky(&self) -> Option<Self::TensorType>;
     fn det(&self) -> Option<Self::ElementType>;
+    fn svd(&self) -> Option<[Self::TensorType; 3]>;
 }
 
 
@@ -97,12 +99,13 @@ where T: num_traits::Float {
         if self.size().len() != 2 {
             return None;
         }
-        if self.size()[0] != self.size()[1] {
-            return None;
-        }
-        let n = self.size()[0];
+        //if self.size()[0] != self.size()[1] {
+        //    return None;
+        //}
+        let m = self.size()[self.size().len()-2];
+        let n = self.size()[self.size().len()-1];
 
-        let mut q = GenTensor::<T>::zeros(&[n, n]);
+        let mut q = GenTensor::<T>::zeros(&[m, cmp::min(m, n)]);
         let mut r = GenTensor::<T>::zeros(&[n, n]);
         for i in 0..n {
             let a = self.get_column(i);
@@ -110,10 +113,14 @@ where T: num_traits::Float {
             for j in 0..i {
                 u = u.sub(&a.proj(&q.get_column(j)));
             }
-            let e = u.normalize_unit();
-            q.set_column(&e, i);
-            for j in 0..i+1 {
-                r.set(&[j, i], a.dot(&q.get_column(j)));
+            if i < cmp::min(m, n) {
+                let e = u.normalize_unit();
+                q.set_column(&e, i);
+            }
+            for j in 0..cmp::min(i+1, cmp::min(m, n)) {
+                if j <= m {
+                    r.set(&[j, i], a.dot(&q.get_column(j)));
+                }
             }
         }
         
@@ -195,6 +202,42 @@ where T: num_traits::Float {
             None
         }
     }
+
+    fn svd(&self) -> Option<[Self::TensorType; 3]> {
+        // TODO; handle the batched/3d case.
+        // TODO: assume the input is thin matrix.
+        let m = self.size()[self.size().len()-2];
+        let n = self.size()[self.size().len()-1];
+
+        let tolerance: f64 = 1e-9;
+        let iter_max = 100;
+
+        let mut u = self.clone();
+        let mut s: GenTensor<T>;
+        let mut v = GenTensor::<T>::eye(n, n);
+        let mut iter_counter = 0;
+        loop {
+
+            let v1 = v.clone();
+            let [qv, r] = self.matmul(&v).qr().unwrap();
+            v = qv;
+            
+            if v1.sub(&v).norm().get_scale() < T::from(tolerance).unwrap() {
+                s = r.clone();
+                break;
+            }
+
+            if iter_counter > iter_max {
+                s = r.clone();
+                break;
+            }
+
+            iter_counter += 1;
+            println!("iter_counter {:?}", iter_counter);
+        }
+        
+        Some([u, s, v])
+    }
 }
 
 
@@ -266,5 +309,12 @@ mod tests {
         //println!("{:?}, {:?}", _evec, eval);
         //println!("{:?}", eval.sub(&el).norm());
         assert!(eval.sub(&el).norm().get_scale() < 1e-6);
+    }
+
+    #[test]
+    fn svd() {
+        let m = GenTensor::<f64>::new_raw(&[4., 12., -16., 12., 37., -43., -16., -43., 98.], &[3,3]);
+        let [u, s, v] = m.svd().unwrap();
+        println!("{:?}, {:?}, {:?}", u, s, v);
     }
 }
