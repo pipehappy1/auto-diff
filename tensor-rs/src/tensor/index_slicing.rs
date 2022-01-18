@@ -17,7 +17,7 @@ pub trait IndexSlicing where Self: std::marker::Sized {
     fn split(&self, sections: &[usize], dim: usize) -> Vec<Self>;
     fn squeeze(&self, dim: Option<usize>) -> Self;
     fn stack(tensors: &[&Self], dim: usize) -> Self;
-    //pub fn t() {}
+    fn t(&self) -> Self;
     fn take(&self, index: &[usize]) -> Self;
     //pub fn transpose() {}
     //pub fn unbind() {}
@@ -325,6 +325,14 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
             }
         }
         GenTensor::new_raw(&d, &odim)
+    }
+
+    fn t(&self) -> Self {
+        let n = self.size().len();
+        let mut di: Vec<usize> = (0..n).collect();
+        di[n-1] = n-2;
+        di[n-2] = n-1;
+        self.permute(&di)
     }
 
     /// Returns a new tensor with the elements of input at the given indices. 
