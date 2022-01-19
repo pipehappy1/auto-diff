@@ -2,7 +2,6 @@ use std::cell::RefCell;
 use std::collections::{BTreeMap};
 use std::fmt;
 use std::rc::Rc;
-use std::mem::drop;
 
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use crate::op::*;
@@ -55,13 +54,11 @@ impl Module {
         
         let sub_ops = Vec::new();
         let id = self.net.borrow_mut().init_func(&sub_ops);
-        let ret = Func::_new(id, self.net.clone(), Some(Rc::new(Box::new(closure))));
-        ret
+        Func::_new(id, self.net.clone(), Some(Rc::new(Box::new(closure))))
     }
     
     pub fn rm_var(&mut self, var: &Var) {
         self.net.borrow_mut().del_var(var);
-        drop(var);
     }
 
     /// Try best evaluation of the computation graph.
@@ -148,7 +145,7 @@ macro_rules! var_op_method {
             let result = self.new_attached();
             self.net
                 .borrow_mut()
-                .connect(&vec![self.id, o.id], Op::new(Box::new($b::new())), &vec![result.id]);
+                .connect(&[self.id, o.id], Op::new(Box::new($b::new())), &[result.id]);
             result
         }
     }
@@ -238,7 +235,7 @@ impl Var {
     /// apply the var to pre-faburacated op.
     pub fn to(&self, op: &Op) -> Var {
         let result = self.new_attached();
-        self.net.borrow_mut().connect(&vec![self.id], op.clone(), &vec![result.id]);
+        self.net.borrow_mut().connect(&[self.id], op.clone(), &[result.id]);
         result
     }
 
@@ -275,9 +272,9 @@ impl fmt::Display for Var {
 
 impl Drop for Var {
     fn drop(&mut self) {
-        let result = self.net.borrow().is_dangling_var(&self);
+        let result = self.net.borrow().is_dangling_var(self);
         if result.ok().is_some() && result.ok().unwrap() {
-            self.net.borrow_mut().del_var(&self);
+            self.net.borrow_mut().del_var(self);
         }
     }
 }
@@ -285,17 +282,17 @@ impl Drop for Var {
 // uplift loss function from op to here.
 pub fn mseloss(a: &Var, b: &Var) -> Var {
     let result = a.new_attached();
-    a.net.borrow_mut().connect(&vec![a.id, b.id], Op::new(Box::new(MSELoss::new())), &vec![result.id]);
+    a.net.borrow_mut().connect(&[a.id, b.id], Op::new(Box::new(MSELoss::new())), &[result.id]);
     result
 }
 pub fn bcewithlogitsloss(predict: &Var, label: &Var) -> Var {
     let result = predict.new_attached();
-    predict.net.borrow_mut().connect(&vec![predict.id, label.id], Op::new(Box::new(BCEWithLogitsLoss::new())), &vec![result.id]);
+    predict.net.borrow_mut().connect(&[predict.id, label.id], Op::new(Box::new(BCEWithLogitsLoss::new())), &[result.id]);
     result
 }
 pub fn crossentropyloss(predict: &Var, label: &Var) -> Var {
     let result = predict.new_attached();
-    predict.net.borrow_mut().connect(&vec![predict.id, label.id], Op::new(Box::new(CrossEntropyLoss::new())), &vec![result.id]);
+    predict.net.borrow_mut().connect(&[predict.id, label.id], Op::new(Box::new(CrossEntropyLoss::new())), &[result.id]);
     result
 }
 
@@ -355,15 +352,15 @@ impl Func {
             return (self.closure.as_ref().unwrap())(input);
             
         } else {
-            let ret;
-            let existing_output = self.net.borrow().get_func_output(&self);
-            if existing_output.is_some() {
-                ret = Var::_new(existing_output.unwrap(), self.net.clone());
+            
+            let existing_output = self.net.borrow().get_func_output(self);
+            let ret = if let Some(_val) = existing_output {
+                Var::_new(existing_output.unwrap(), self.net.clone())
             } else {
-                ret = Var::new_variable(self.net.clone());
-            }
+                Var::new_variable(self.net.clone())
+            };
 
-            let decoupled_input_ids = self.net.borrow_mut().decouple_input(&self);
+            let decoupled_input_ids = self.net.borrow_mut().decouple_input(self);
             for input_id in decoupled_input_ids {
                 let the_input = Var::_new(input_id, self.net.clone());
                 let result = self.net.borrow().is_dangling_var(&the_input);
@@ -372,11 +369,11 @@ impl Func {
                 }
             }
 
-            self.net.borrow_mut().connect2(input, &self, &[&ret]);
+            self.net.borrow_mut().connect2(input, self, &[&ret]);
 
-            self.net.borrow().eval_op(input, &self, &[&ret]);
+            self.net.borrow().eval_op(input, self, &[&ret]);
 
-            return ret;
+            ret
         }
     }
 
@@ -384,14 +381,14 @@ impl Func {
         if self.closure.is_some() {
             None
         } else {
-            Some(self.net.borrow().get_op(&self).unwrap().get_values())
+            Some(self.net.borrow().get_op(self).unwrap().get_values())
         }
     }
     pub fn set_values(&self, data: &[Tensor]) {
         if self.closure.is_some() {
             panic!("set value for composed func is not yet there");
         } else {
-            self.net.borrow().get_op(&self).unwrap().set_values(data);
+            self.net.borrow().get_op(self).unwrap().set_values(data);
         }
     }
 
@@ -420,9 +417,9 @@ impl Clone for Func {
     fn clone(&self) -> Self {
         if self.closure.is_some() {
             let closure_copy = self.closure.as_ref().unwrap().clone();
-            Func::_new(self.id.clone(), self.net.clone(), Some(closure_copy))
+            Func::_new(self.id, self.net.clone(), Some(closure_copy))
         } else {
-            Func::_new(self.id.clone(), self.net.clone(), None)
+            Func::_new(self.id, self.net.clone(), None)
         }
     }
 }
@@ -440,7 +437,7 @@ impl fmt::Display for Func {
 
 impl Drop for Func {
     fn drop(&mut self) {
-        self.net.borrow_mut().del_func_or_op(&self);
+        self.net.borrow_mut().del_func_or_op(self);
     }
 }
 

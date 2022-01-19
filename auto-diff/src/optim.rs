@@ -49,7 +49,7 @@ pub struct SGD {
 impl SGD {
     pub fn new(lr: f32) -> SGD {
         SGD {
-            lr: Tensor::from_vec_f32(&vec![lr], &vec![1]),
+            lr: Tensor::from_vec_f32(&[lr], &[1]),
         }
     }
 }
@@ -72,7 +72,7 @@ impl Optimizer for SGD {
 
     fn step2(&mut self, m: &Func) {
         m._visit_op(|x| {
-            if x.get_update_counter() <= 0 && x.get_name() != "Nop" {
+            if x.get_update_counter() == 0 && x.get_name() != "Nop" {
                 println!("name: {}, ", x.get_name(), );
                 println!("Warning: haven't seen a backward pass, missing .backward call before update?");
                 return;

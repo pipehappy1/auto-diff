@@ -74,20 +74,20 @@ impl Conv2d {
                padding_mode: PaddingMode
     ) -> Conv2d {
         Conv2d {
-            in_channels: in_channels,
-            out_channels: out_channels,
-            kernel_size: kernel_size,
-            stride: stride,
-            padding: padding,
-            dilation: dilation,
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding,
+            dilation,
             groups: 1,
             bias_option: bias,
-            padding_mode: padding_mode,
+            padding_mode,
             
-            weight: Tensor::empty(&vec![out_channels, in_channels, kernel_size.0, kernel_size.1]),
-            bias: Tensor::empty(&vec![out_channels, ]),
-            weight_grad: Tensor::empty(&vec![out_channels, in_channels, kernel_size.0, kernel_size.1]),
-            bias_grad: Tensor::empty(&vec![out_channels, ]),
+            weight: Tensor::empty(&[out_channels, in_channels, kernel_size.0, kernel_size.1]),
+            bias: Tensor::empty(&[out_channels, ]),
+            weight_grad: Tensor::empty(&[out_channels, in_channels, kernel_size.0, kernel_size.1]),
+            bias_grad: Tensor::empty(&[out_channels, ]),
         }
     }
 }

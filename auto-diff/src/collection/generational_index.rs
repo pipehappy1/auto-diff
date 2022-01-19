@@ -54,11 +54,7 @@ impl<T> GenIndex<T> {
     /// Check if a key is in the collection
     ///
     pub fn contains(&self, index: &NetIndex) -> bool {
-        if index.id < self.generation.len() && self.generation[index.id] == index.gen {
-            true
-        } else {
-            false
-        }
+        index.id < self.generation.len() && self.generation[index.id] == index.gen
     }
 
     /// Return the registered item
@@ -83,11 +79,14 @@ impl<T> GenIndex<T> {
     pub fn len(&self) -> usize {
         self.data.len() - self.available.len()
     }
+    pub fn is_empty(self) -> bool {
+        self.len() == 0
+    }
 
     /// Add a new item to the list.
     pub fn insert(&mut self, val: T) -> NetIndex {
         let mut ret = NetIndex::new(0, 0);
-        if self.available.len() <= 0 {
+        if self.available.is_empty() {
             ret.id = self.data.len();
             self.data.push(val);
             self.generation.push(0);

@@ -1,3 +1,4 @@
+#![allow(clippy::redundant_closure)]
 use std::collections::{BTreeSet, BTreeMap};
 
 use crate::collection::generational_index::{GenIndex, NetIndex};
@@ -44,14 +45,13 @@ impl Net {
     pub fn is_dangling_var(&self, var: &Var) -> Result<bool, ()> {
         if !self.data.contains(var.get_id()) {
             Err(())
-        } else {
-            if self.graph.list_as_input(var.get_id()).expect("").len() == 0 &&
-                self.graph.list_as_output(var.get_id()).expect("").len() == 0 {
-                    Ok(true)
-                } else {
-                    Ok(false)
-                }
-        }
+        } else if self.graph.list_as_input(var.get_id()).expect("").is_empty() &&
+            self.graph.list_as_output(var.get_id()).expect("").is_empty() {
+                Ok(true)
+            } else {
+                Ok(false)
+            }
+
     }
 
     pub fn get_grad(&self)  -> &BTreeMap<NetIndex, Tensor> {
@@ -63,7 +63,7 @@ impl Net {
     ///
     pub fn get_func_output(&self, func: &Func) -> Option<NetIndex> {
         let outputs = self.graph.list_output(func.get_id()).ok()?;
-        if outputs.len() > 0 {
+        if !outputs.is_empty() {
             Some(outputs[0])            
         } else {
             None
@@ -84,9 +84,9 @@ impl Net {
 
     /// Insert operator into the network.
     pub fn init_op(&mut self, op: Op) -> NetIndex {
-        let id = self.ops.insert(op.clone());
+        let id = self.ops.insert(op);
         self.graph.add_op(&id).expect("");
-        self.funcs.insert(id.clone(), Vec::new());
+        self.funcs.insert(id, Vec::new());
         id
     }
 
@@ -96,7 +96,7 @@ impl Net {
     pub fn init_func(&mut self, funcs: &[NetIndex]) -> NetIndex {
         let id = self.ops.insert(Op::nop());
         self.graph.add_op(&id).expect("");
-        self.funcs.insert(id.clone(), funcs.to_vec());
+        self.funcs.insert(id, funcs.to_vec());
         id
     }
 
@@ -130,7 +130,7 @@ impl Net {
         let mut decoupled_inputs = Vec::new();
         for i in &self.graph.list_input(func.get_id()).expect("") {
             self.graph.decouple_data_func(i, func.get_id()).expect("");
-            decoupled_inputs.push(i.clone());
+            decoupled_inputs.push(*i);
         }
         decoupled_inputs
     }
@@ -148,7 +148,7 @@ impl Net {
     ///
     pub fn is_composed(&self, func: &Func) -> Result<bool, ()> {
         if self.ops.contains(func.get_id()) {
-            if self.funcs.get(func.get_id()).expect("").len() > 0 {
+            if !self.funcs.get(func.get_id()).expect("").is_empty() {
                 Ok(true)
             } else {
                 Ok(false)
@@ -172,11 +172,11 @@ impl Net {
         // do nothing if there is already a connection.
         let mut input_ids = Vec::with_capacity(input.len());
         for i in input {
-            input_ids.push(i.get_id().clone());
+            input_ids.push(*i.get_id());
         }
         let mut output_ids = Vec::with_capacity(output.len());
         for i in output {
-            output_ids.push(i.get_id().clone());
+            output_ids.push(*i.get_id());
         }
         
         self.graph.connect(&input_ids, &output_ids, func.get_id()).expect("");
@@ -200,7 +200,7 @@ impl Net {
         println!("Deprecated! no more whole network forward pass.");
         let mut all_input = Vec::new();
         for i in &self.set_mark {
-            all_input.push(i.clone());
+            all_input.push(*i);
         }
         
         self.graph
@@ -258,7 +258,7 @@ impl Net {
         let output = self.graph.get_output_cache();
         let mut output_grad = BTreeMap::new();
         for i in &output {
-            output_grad.insert(i.clone(),
+            output_grad.insert(*i,
                                Tensor::fill(&self.data.get(i).expect("").size(),
                                             r));
         }
@@ -269,14 +269,12 @@ impl Net {
         let mut output = Vec::new();
         self.data_grad.clear();
         for (k, v) in output_grad {
-            output.push(k.clone());
-            self.data_grad.insert(k.clone(), v.clone());
+            output.push(*k);
+            self.data_grad.insert(*k, v.clone());
         }
 
         for i in self.graph.list_data() {
-            if ! self.data_grad.contains_key(&i) {
-                self.data_grad.insert(i, Tensor::new());                
-            }
+            self.data_grad.entry(i).or_insert_with(|| Tensor::new());
         }
         
         self.graph
@@ -329,19 +327,13 @@ impl Net {
                        allow: Option<Vec<NetIndex>>,
                        skip: Option<Vec<NetIndex>>)
     where F: Fn(&Op) {
-        let mut allow_list = Vec::new();
-        let mut skip_list = Vec::new();
-        if allow.is_some() {
-            allow_list = allow.unwrap();
-        }
-        if skip.is_some() {
-            skip_list = skip.unwrap();
-        }
+        let allow_list = if let Some(val) = allow { val } else {Vec::new()};
+        let skip_list = if let Some(val) = skip {val} else {Vec::new()};
         
         for i in self.graph.list_op() {
-            if (allow_list.len() == 0 && skip_list.len() == 0) ||
-                (allow_list.len() != 0 && allow_list.contains(&i)) ||
-                (skip_list.len() != 0 && !skip_list.contains(&i) ) {
+            if (allow_list.is_empty() && skip_list.is_empty()) ||
+                (!allow_list.is_empty() && allow_list.contains(&i)) ||
+                (!skip_list.is_empty() && !skip_list.contains(&i) ) {
                     closure(self.ops.get(&i).expect(""));
             }
         }

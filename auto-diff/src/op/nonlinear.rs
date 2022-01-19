@@ -133,7 +133,7 @@ impl OpTrait for Sigmoid {
     }
     /// The first is the prediction, the second input is the label
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        if input.len() < 1 {
+        if input.is_empty() {
             panic!("{} expect two input, get {}", self.get_name(), input.len());
         }
         output[0].swap(input[0].sigmoid());

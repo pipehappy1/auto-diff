@@ -102,7 +102,7 @@ impl Op {
         self.o.borrow_mut().get_name()
     }
     pub fn get_update_counter(&self) -> usize {
-        self.update_counter.borrow().clone()
+        *self.update_counter.borrow()
     }
     pub fn apply(&self, input: &[&Tensor], output: &[&Tensor]) {
         self.o.borrow_mut().apply(input, output)
@@ -147,26 +147,10 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
                          one_input: &[&Tensor], input_mask: Option<&[bool]>,
                          step: Option<f32>, tolerance: Option<f32>) -> bool {
 
-    let x_mask;
-    if input_mask.is_none() {
-        x_mask = vec![true; one_input.len()];
-    } else {
-        x_mask = input_mask.unwrap().to_vec();
-    }
+    let x_mask = if let Some(val) = input_mask {val.to_vec()} else {vec![true; one_input.len()]};
+    let delta = if let Some(val) = step {val} else {0.01};
+    let tol = if let Some(val) = tolerance {val} else {0.01};
 
-    let delta;
-    if step.is_none() {
-        delta = 0.01;
-    } else {
-        delta = step.unwrap();
-    }
-
-    let tol;
-    if tolerance.is_none() {
-        tol = 0.01;
-    } else {
-        tol = tolerance.unwrap();
-    }
 
     // system output
     let output = op.call(one_input);

@@ -21,10 +21,8 @@ impl RNG {
 
     pub fn gen_range_usize(&mut self, left: usize, right: usize,
                            vec_size: Option<usize>) -> Vec::<usize> {
-        let mut size = 1;
-        if vec_size.is_some() {
-            size = vec_size.unwrap();
-        }
+
+        let size = if let Some(val) = vec_size {val} else {1};
         let mut ret = Vec::new();
 
         let mut index = 0;

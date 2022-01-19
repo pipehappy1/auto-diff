@@ -49,7 +49,7 @@ impl OpTrait for MSELoss {
         if input_grad.len() < 2 {
             panic!("MSELoss expect two input gradient tensor, get {}", input_grad.len());
         }
-        if output_grad.len() < 1 {
+        if output_grad.is_empty() {
             panic!("MSELoss expect one output gradient, get {}", output_grad.len());
         }
         if ! input[0].same_shape(input[1]) {
@@ -219,7 +219,7 @@ impl OpTrait for BCEWithLogitsLoss {
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
         // ddx y log (1 + exp(-x)) = -y  / (1 + exp(x))
         // ddx (1-y) log (1 + exp(x)) = (1-y) / (1 + exp(-x))
-        let ones = Tensor::ones_like(&input[0]);
+        let ones = Tensor::ones_like(input[0]);
         let tmp1 = input[1].neg().div(&input[0].exp().add(&ones));
         let tmp2 = input[1].neg().add(&ones).div(&input[0].neg().exp().add(&ones));
         let tmp3 = tmp1.add(&tmp2);

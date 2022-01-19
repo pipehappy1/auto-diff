@@ -1,3 +1,4 @@
+#![allow(clippy::redundant_closure_call)]
 use tensor_rs::tensor::Tensor;
 use super::OpTrait;
 
@@ -39,7 +40,7 @@ macro_rules! new_binary_op {
 
 new_binary_op!(Add, "add",
                (|a:&[&Tensor], b:&[&Tensor]|
-                b[0].swap(a[0].add(&a[1]))
+                b[0].swap(a[0].add(a[1]))
                ),
                (|input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]| {
                    let x = input[0].ones_like().mul(output_grad[0]);

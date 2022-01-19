@@ -29,8 +29,8 @@ impl Linear {
         ret
     }
     fn _new(&mut self) {
-        self.weight = Tensor::fill(&vec![self.in_fea.unwrap(), self.out_fea.unwrap()], 0.);
-        self.bias = Tensor::fill(&vec![self.out_fea.unwrap(),], 0.);
+        self.weight = Tensor::fill(&[self.in_fea.unwrap(), self.out_fea.unwrap()], 0.);
+        self.bias = Tensor::fill(&[self.out_fea.unwrap(),], 0.);
     }
 
     pub fn weight(&self) -> &Tensor {
@@ -73,7 +73,7 @@ impl OpTrait for Linear {
         }
     }
     fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        if input.len() < 1 {
+        if input.is_empty() {
             panic!("Expect one input tensor");
         }
         if input[0].size()[1] != self.weight.size()[0] {
@@ -89,16 +89,15 @@ impl OpTrait for Linear {
                    output_grad[0].size(), self.weight.size());
         }
 
-        input_grad[0].swap(output_grad[0].matmul(&self.weight.permute(&vec![1,0])));
-        self.weight_grad.swap(input[0].outer(&output_grad[0], Some(true)));
+        input_grad[0].swap(output_grad[0].matmul(&self.weight.permute(&[1,0])));
+        self.weight_grad.swap(input[0].outer(output_grad[0], Some(true)));
         if self.bias_option {
             self.bias_grad.swap(output_grad[0].mean(Some(&[0]), false));
         }
     }
 
     fn get_values(&self) -> Vec<&Tensor> {
-        let mut ret = Vec::new();
-        ret.push(&self.weight);
+        let mut ret = vec![&self.weight];
         if self.bias_option {
             ret.push(&self.bias);
         }
@@ -111,8 +110,7 @@ impl OpTrait for Linear {
         }
     }
     fn get_grads(&self) -> Vec<&Tensor> {
-        let mut ret = Vec::new();
-        ret.push(&self.weight_grad);
+        let mut ret = vec![&self.weight_grad];
         if self.bias_option {
             ret.push(&self.bias_grad);
         }

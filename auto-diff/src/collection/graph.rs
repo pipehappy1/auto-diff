@@ -44,7 +44,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         let mut ret = Vec::new();
 
         for i in &self.data {
-            ret.push(i.clone());
+            ret.push(*i);
         }
         ret
     }
@@ -53,7 +53,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         let mut ret = Vec::new();
 
         for i in &self.op {
-            ret.push(i.clone());
+            ret.push(*i);
         }
         ret
     }
@@ -123,9 +123,9 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     pub fn add_data(&mut self, id: &TData) -> Result<TData, &str> {
         if !self.data.contains(id) {
             self.data.insert(*id);
-            self.forward_dt_op.insert(id.clone(), BTreeSet::new());
-            self.backward_dt_op.insert(id.clone(), BTreeSet::new());
-            Ok(id.clone())            
+            self.forward_dt_op.insert(*id, BTreeSet::new());
+            self.backward_dt_op.insert(*id, BTreeSet::new());
+            Ok(*id)
         } else {
             Err("data is exits!")
         }
@@ -144,7 +144,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             }
             self.backward_dt_op.remove(id);
 
-            Ok(id.clone())
+            Ok(*id)
         } else {
             Err("data id is not found!")
         }
@@ -156,7 +156,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             self.op.insert(*id);
             self.forward_op_dt.insert(id.clone(), BTreeSet::new());
             self.backward_op_dt.insert(id.clone(), BTreeSet::new());
-            Ok(id.clone())
+            Ok(*id)
         } else {
             Err("op id exists.")
         }
@@ -174,7 +174,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
                 self.forward_dt_op.get_mut(i).expect("").remove(id);
             }
             self.backward_op_dt.remove(id);
-            Ok(id.clone())
+            Ok(*id)
         } else {
             Err("op id is not found!")
         }
@@ -211,8 +211,8 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     pub fn get_input_cache(&self) -> BTreeSet<TData> {
         let mut jobs = BTreeSet::new();
         for i in &self.data {
-            if self.backward_dt_op.get(i).expect("").len() <= 0 {
-                jobs.insert(i.clone());
+            if self.backward_dt_op.get(i).expect("").is_empty() {
+                jobs.insert(*i);
             }
         }
         jobs
@@ -222,8 +222,8 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     pub fn get_output_cache(&self) -> BTreeSet<TData> {
         let mut jobs = BTreeSet::new();
         for i in &self.data {
-            if self.forward_dt_op.get(i).expect("").len() <= 0 {
-                jobs.insert(i.clone());
+            if self.forward_dt_op.get(i).expect("").is_empty() {
+                jobs.insert(*i);
             }
         }
         jobs
@@ -254,14 +254,14 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         
         if valid_ids {
             for i in dti {
-                self.forward_dt_op.get_mut(i).expect("").insert(op.clone());
-                self.backward_op_dt.get_mut(op).expect("").insert(i.clone());
+                self.forward_dt_op.get_mut(i).expect("").insert(*op);
+                self.backward_op_dt.get_mut(op).expect("").insert(*i);
             }
             for i in dto {
-                self.forward_op_dt.get_mut(op).expect("").insert(i.clone());
-                self.backward_dt_op.get_mut(i).expect("").insert(op.clone());
+                self.forward_op_dt.get_mut(op).expect("").insert(*i);
+                self.backward_dt_op.get_mut(i).expect("").insert(*op);
             }
-            Ok(op.clone())
+            Ok(*op)
         } else {
             Err("Invalid id!")
         }
@@ -302,7 +302,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             let mut edge_op = BTreeSet::<TOp>::new();
             for dt in &jobs {
                 for op_candidate in &fdo[dt] {
-                    edge_op.insert(op_candidate.clone());
+                    edge_op.insert(*op_candidate);
                 }
             }
 
@@ -315,12 +315,12 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
                         // collect input ids.
                         let mut inputs = Vec::<TData>::new();
                         for input in bod[&op_candidate].iter() {
-                            inputs.push(input.clone());
+                            inputs.push(*input);
                         }
                         // collect output ids.
                         let mut outputs = Vec::<TData>::new();
                         for output in fod[&op_candidate].iter() {
-                            outputs.push(output.clone());
+                            outputs.push(*output);
                         }
 
                         // all the closure
@@ -340,7 +340,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
                         // add the output back to the jobs.
                         for output in fod[&op_candidate].iter() {
                             // don't add to jobs if it's the final data node.
-                            if fdo[output].len() > 0 {
+                            if !fdo[output].is_empty() {
                                 jobs.insert(*output);                                
                             }
                         }
@@ -355,7 +355,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             }
         }
 
-        if jobs.len() > 0 {
+        if !jobs.is_empty() {
             Err(jobs)
         } else {
             Ok(())
