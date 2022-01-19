@@ -51,9 +51,9 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
                   padding_mode: PaddingMode
     ) -> Self {
         self.conv_gen(filter,
-                      &vec![stride.0, stride.1],
-                      &vec![padding.0, padding.1],
-                      &vec![dilation.0, dilation.1],
+                      &[stride.0, stride.1],
+                      &[padding.0, padding.1],
+                      &[dilation.0, dilation.1],
                       padding_mode)
     }
     fn conv2d_grad(&self, filter: &GenTensor<T>,
@@ -64,9 +64,9 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
                        output_grad: &GenTensor<T>
     ) -> (Self, Self){
             self.conv_grad_gen(filter,
-                           &vec![stride.0, stride.1],
-                           &vec![padding.0, padding.1],
-                           &vec![dilation.0, dilation.1],
+                           &[stride.0, stride.1],
+                           &[padding.0, padding.1],
+                           &[dilation.0, dilation.1],
                            padding_mode,
                            output_grad)
     }
@@ -126,9 +126,7 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
             let output_dim = (padded_dim[i] - dilation[i]*(filter_dim[2+i]-1)-1)/stride[i] + 1;
             output_size.push(output_dim);
         }
-        let mut output_tensor_size = Vec::new();
-        output_tensor_size.push(sample_size);
-        output_tensor_size.push(out_channels);
+        let mut output_tensor_size = vec![sample_size, out_channels];
         output_tensor_size.append(&mut output_size.clone()); // output_size moved.
         let output_inner_size = output_size.iter().product::<usize>();
         //println!("output_size: {:?}", output_size);
@@ -325,7 +323,7 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
                                     .iter()
                                     .product::<usize>();
                                 filter_elem.push(reminder / left_product);
-                                reminder = reminder % left_product;
+                                reminder %= left_product;
                             }
                             //println!("filter_elem: {:?}", filter_elem);
 
@@ -414,17 +412,17 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
                                 //         output_gradient_value.to_f32(),
                                 //         data_value.to_f32());
                                 
-                                if ! w_grad.contains_key(&total_w_index) {
-                                    w_grad.insert(total_w_index, vec![w_grad_value]);
+                                if let std::collections::btree_map::Entry::Vacant(e) = w_grad.entry(total_w_index) {
+                                    e.insert(vec![w_grad_value]);
                                 } else {
                                     w_grad.get_mut(&total_w_index).expect("").push(w_grad_value);
                                 }
                                 
-                                if ! x_grad.contains_key(&total_x_index) {
-                                    x_grad.insert(total_x_index, vec![x_grad_value]);
-                                } else {
-                                    x_grad.get_mut(&total_x_index).expect("").push(x_grad_value);
-                                }    
+                                if let std::collections::btree_map::Entry::Vacant(e) = x_grad.entry(total_x_index) {
+                                     e.insert(vec![x_grad_value]);
+                                 } else {
+                                     x_grad.get_mut(&total_x_index).expect("").push(x_grad_value);
+                                 }    
                             }
                             
                         }
@@ -453,8 +451,8 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
             }
         }
 
-        let mut ret_w_grad = GenTensor::zeros(&filter.size());
-        let mut ret_x_grad = GenTensor::zeros(&self.size());
+        let mut ret_w_grad = GenTensor::zeros(filter.size());
+        let mut ret_x_grad = GenTensor::zeros(self.size());
 
         for i in w_grad.keys() {
             //println!("i: {:?}", i);

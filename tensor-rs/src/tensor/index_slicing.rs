@@ -227,7 +227,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
 
         let mut outer_size = 1;
         let mut inner_size = 1;
-        for (i, index) in total_dim.iter().zip(0..total_dim.len()) {
+        for (index, i) in total_dim.iter().enumerate() {
             if index < dim {
                 outer_size *= i;
             }
@@ -239,7 +239,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         let mut ret = Vec::new();
         for i in sections {
             let mut t_size = Vec::new();
-            for (j, index) in total_dim.iter().zip(0..total_dim.len()) {
+            for (index, j) in total_dim.iter().enumerate() {
                 if index == dim {
                     t_size.push(*i);
                 } else {
@@ -317,9 +317,9 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
             }
         }
         for i in 0..outter_loop {
-            for j in 0..tensors.len() {
+            for j in tensors {
                 for k in 0..inner_loop {
-                    d.push(tensors[j].get_data()[k + i*inner_loop]);
+                    d.push(j.get_data()[k + i*inner_loop]);
                 }
             }
         }
@@ -342,7 +342,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         for i in index {
             ret.push(self.get_data()[*i]);
         }
-        GenTensor::new_raw(&ret, &vec![index.len()])
+        GenTensor::new_raw(&ret, &[index.len()])
     }
 
     /// Permute the dimensions of this tensor.
@@ -412,7 +412,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         if dim == self.size().len() {
             new_dim.push(1);
         }
-        GenTensor::new_raw(&self.get_data(), &new_dim)
+        GenTensor::new_raw(self.get_data(), &new_dim)
     }
 
     fn conditional_select(&self, x: &Self, y: &Self) -> Self {

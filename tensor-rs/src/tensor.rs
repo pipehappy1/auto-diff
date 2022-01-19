@@ -66,6 +66,15 @@ macro_rules! tensor_method_single_tensor_return {
 pub struct Tensor {
     v: Rc<RefCell<TypedTensor>>,
 }
+
+impl Default for Tensor {
+    fn default() -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::new())),
+        }
+    }
+}
+
 impl Tensor {
     pub fn new() -> Tensor {
         Tensor {
@@ -216,7 +225,7 @@ impl Tensor {
             index += 1;
         }
         
-        Tensor::from_vec_f32(&data, &vec![index])
+        Tensor::from_vec_f32(&data, &[index])
     }
     // linspace
     pub fn linspace(start: f32, end: f32, steps: usize) -> Tensor {
@@ -231,22 +240,22 @@ impl Tensor {
             index += 1;
         }
         
-        Tensor::from_vec_f32(&data, &vec![index])
+        Tensor::from_vec_f32(&data, &[index])
     }
     // logspace
     pub fn logspace(start: f32, end: f32, steps: usize, base: f32) -> Tensor {
         let linspace_data = Tensor::linspace(start, end, steps);
         let mut ret_data = Vec::new();
         for i in 0..linspace_data.numel() {
-            ret_data.push(base.powf(linspace_data.get_f32(&vec![i])));
+            ret_data.push(base.powf(linspace_data.get_f32(&[i])));
         }
-        Tensor::from_vec_f32(&ret_data, &vec![ret_data.len()])
+        Tensor::from_vec_f32(&ret_data, &[ret_data.len()])
     }
     // eye
     pub fn eye(n: usize, m: usize) -> Tensor {
-        let ret = Tensor::zeros(&vec![n, m]);
+        let ret = Tensor::zeros(&[n, m]);
         for i in 0..n.min(m) {
-            ret.v.borrow_mut().set_f32(&vec![i, i], 1.);
+            ret.v.borrow_mut().set_f32(&[i, i], 1.);
         }
         ret
     }
@@ -494,13 +503,12 @@ impl Tensor {
         }
         
         let data_mean = self.mean(Some(&[0]), false);
-        let tmp1 = self.sub(&data_mean).add(&Tensor::from_vec_f32(mean, &vec![width]));
+        let tmp1 = self.sub(&data_mean).add(&Tensor::from_vec_f32(mean, &[width]));
         //let tmp1 = Tensor::from_vec_f32(mean, &vec![width]).sub(&data_mean).add(self);
 
         let data_std = tmp1.std(Some(&[0]), false);
         //println!("data_std: {:?}, tmp1: {:?}", data_std, tmp1);
-        let tmp2 = tmp1.div(&data_std);
-        tmp2
+        tmp1.div(&data_std)
     }
     pub fn normalize_unit(&self) -> Tensor {
         if self.size().len() != 2 {

@@ -1,3 +1,4 @@
+#![allow(clippy::comparison_chain)]
 use std::cmp;
 use super::gen_tensor::GenTensor;
 use super::reduction::ReduceTensor;
@@ -233,12 +234,12 @@ where T: num_traits::Float {
             v = qv;
             
             if v1.sub(&v).norm().get_scale() < T::from(tolerance).unwrap() {
-                s = r.clone();
+                s = r;
                 break;
             }
 
             if iter_counter > iter_max {
-                s = r.clone();
+                s = r;
                 break;
             }
 

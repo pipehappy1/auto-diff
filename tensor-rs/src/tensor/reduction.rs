@@ -31,8 +31,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             panic!("argmax cannot keep dim");
         }
         let dim2aggregate;
-        if dim.is_some() {
-            dim2aggregate = (0..self.size().len()).filter(|x| dim.unwrap().contains(&x)).collect();
+        if let Some(dim_val) = dim {
+            dim2aggregate = (0..self.size().len()).filter(|x| dim_val.contains(x)).collect();
         } else {
             dim2aggregate = self.size().to_vec();
         }
@@ -55,7 +55,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         let mut ret = Self::zeros(&ret_dim);
         //println!("{:?}, {:?}, {:?}", ret.size(), self.size(), dim);
 
-        let kept_dim: Vec<usize> = (0..self.size().len()).filter(|x| !dim.contains(&x)).collect();
+        let kept_dim: Vec<usize> = (0..self.size().len()).filter(|x| !dim.contains(x)).collect();
         let mut index = vec![0; kept_dim.len()]; // index for the loop.
 
         loop {
