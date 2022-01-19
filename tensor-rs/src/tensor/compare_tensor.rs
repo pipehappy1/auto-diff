@@ -17,7 +17,7 @@ impl<T> CompareTensor for GenTensor<T> where T: num_traits::Float {
         if self.size() != o.size() {
             panic!("max needs two tensor have the same size, {:?}, {:?}", self.size(), o.size());
         }
-        let mut ret = GenTensor::empty(&self.size());
+        let mut ret = GenTensor::zeros(&self.size());
 
         for ((a, b), c) in self.get_data().iter().zip(o.get_data().iter()).zip(ret.get_data_mut().iter_mut()) {
             if a >= b {
@@ -33,7 +33,7 @@ impl<T> CompareTensor for GenTensor<T> where T: num_traits::Float {
         if self.size() != o.size() {
             panic!("max needs two tensor have the same size, {:?}, {:?}", self.size(), o.size());
         }
-        let mut ret = GenTensor::empty(&self.size());
+        let mut ret = GenTensor::zeros(&self.size());
 
         for ((a, b), c) in self.get_data().iter().zip(o.get_data().iter()).zip(ret.get_data_mut().iter_mut()) {
             if a >= b {

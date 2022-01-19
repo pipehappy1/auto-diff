@@ -244,7 +244,7 @@ impl Tensor {
     }
     // eye
     pub fn eye(n: usize, m: usize) -> Tensor {
-        let ret = Tensor::empty(&vec![n, m]);
+        let ret = Tensor::zeros(&vec![n, m]);
         for i in 0..n.min(m) {
             ret.v.borrow_mut().set_f32(&vec![i, i], 1.);
         }
@@ -258,7 +258,7 @@ impl Tensor {
             }
         }
         Tensor {
-            v: Rc::new(RefCell::new(TypedTensor::empty(shape))),
+            v: Rc::new(RefCell::new(TypedTensor::zeros(shape))),
         }
     }
 

@@ -52,7 +52,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                                                                  self.size()[x]
                                                              }
         ).collect();
-        let mut ret = Self::empty(&ret_dim);
+        let mut ret = Self::zeros(&ret_dim);
         //println!("{:?}, {:?}, {:?}", ret.size(), self.size(), dim);
 
         let kept_dim: Vec<usize> = (0..self.size().len()).filter(|x| !dim.contains(&x)).collect();

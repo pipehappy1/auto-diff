@@ -135,13 +135,11 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
         //println!("{:?}", output_inner_size);
         //println!("{:?}", output_tensor_size);
         
-        let mut ret = GenTensor::<T>::empty(&output_tensor_size);
+        let mut ret = GenTensor::<T>::zeros(&output_tensor_size);
 
         let conv_size = filter_dim.iter().product::<usize>()/out_channels; // this is Cin xd1xd2xd3...
-        let mut data_block = Vec::<T>::with_capacity(conv_size);
-        unsafe{ data_block.set_len(conv_size); }
-        let mut filter_block = Vec::<T>::with_capacity(conv_size);
-        unsafe{ filter_block.set_len(conv_size); }
+        let mut data_block = vec![T::zero(); conv_size];
+        let mut filter_block = vec![T::zero(); conv_size];
 
         let inner_steps = output_inner_size*out_channels;
         let filter_step = conv_size;

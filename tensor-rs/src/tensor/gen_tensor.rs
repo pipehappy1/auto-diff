@@ -112,7 +112,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
     // arange
     pub fn arange(end: usize) -> GenTensor<T> {
-        let mut ret = GenTensor::<T>::empty(&vec![end]);
+        let mut ret = GenTensor::<T>::zeros(&vec![end]);
         for i in 0..end {
             ret.d[i] = T::from(i).expect("");
         }
@@ -133,31 +133,31 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
         ret
     }
-    pub fn empty(shape: &[usize]) -> GenTensor<T> {
-        let mut elem = 1;
-        for i in shape {
-            elem *= i;
-        }
-        
-        let mut new_data = Vec::with_capacity(elem);
-        unsafe{ new_data.set_len(elem); }
-        let new_dim = shape.to_vec();
-        GenTensor {
-            d: new_data,
-            dim: new_dim,
-        }
-    }
-    // empty_like
-    pub fn empty_like(&self) -> GenTensor<T> {
-        let elem = self.dim.iter().product();
-        
-        let mut new_data = Vec::with_capacity(elem);
-        unsafe{ new_data.set_len(elem); }
-        GenTensor {
-            d: new_data,
-            dim: self.dim.clone(),
-        }
-    }
+    ////pub fn empty(shape: &[usize]) -> GenTensor<T> {
+    ////    let mut elem = 1;
+    ////    for i in shape {
+    ////        elem *= i;
+    ////    }
+    ////    
+    ////    let mut new_data = Vec::with_capacity(elem);
+    ////    unsafe{ new_data.set_len(elem); }
+    ////    let new_dim = shape.to_vec();
+    ////    GenTensor {
+    ////        d: new_data,
+    ////        dim: new_dim,
+    ////    }
+    ////}
+    ////// empty_like
+    ////pub fn empty_like(&self) -> GenTensor<T> {
+    ////    let elem = self.dim.iter().product();
+    ////    
+    ////    let mut new_data = Vec::with_capacity(elem);
+    ////    unsafe{ new_data.set_len(elem); }
+    ////    GenTensor {
+    ////        d: new_data,
+    ////        dim: self.dim.clone(),
+    ////    }
+    ////}
     // empty_stided
     // full
     // full_like
@@ -401,7 +401,6 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
         // index store the the index needs visit at each dim.
         let mut index = Vec::<Vec::<usize>>::new();
-        let mut total_elem = 1;
         let mut ret_dim = Vec::new();
         for (i, dim_index) in range.iter().zip(0..self.dim.len()) {
             let mut pos = i.0;
@@ -412,15 +411,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             }
             //println!("{:?}", &all_index);
             ret_dim.push(all_index.len());
-            total_elem *= all_index.len();
             index.push(all_index);
         }
-        let mut ret_data = Vec::<T>::with_capacity(total_elem);
-        unsafe{ ret_data.set_len(total_elem); }
-        let mut ret = GenTensor {
-            d: ret_data,
-            dim: ret_dim,
-        };
+        let mut ret = Self::zeros(&ret_dim);
 
         let d = self.dim.len();
         let mut pos_index = vec![0; d];
@@ -525,7 +518,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                 ret_dim.push(self.size()[i]);
             }
         }
-        let mut ret = Self::empty(&ret_dim);
+        let mut ret = Self::zeros(&ret_dim);
 
          
         let kept_dim: Vec<usize> = (0..self.size().len()).filter(|x| !dim.contains(&x)).collect();
@@ -1043,7 +1036,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if self.size() != o.size() {
             panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
         }
-        let mut ret = GenTensor::empty(&self.dim);
+        let mut ret = GenTensor::zeros(&self.dim);
 
         for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
             if a >= b {
@@ -1059,7 +1052,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if self.size() != o.size() {
             panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
         }
-        let mut ret = GenTensor::empty(&self.dim);
+        let mut ret = GenTensor::zeros(&self.dim);
 
         for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
             if a > b {
@@ -1091,7 +1084,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if self.size() != o.size() {
             panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
         }
-        let mut ret = GenTensor::empty(&self.dim);
+        let mut ret = GenTensor::zeros(&self.dim);
 
         for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
             if a <= b {
@@ -1107,7 +1100,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if self.size() != o.size() {
             panic!("max needs two tensor have the same size, {:?}, {:?}", self.dim, o.dim);
         }
-        let mut ret = GenTensor::empty(&self.dim);
+        let mut ret = GenTensor::zeros(&self.dim);
 
         for ((a, b), c) in self.d.iter().zip(o.d.iter()).zip(ret.d.iter_mut()) {
             if a < b {
@@ -1284,7 +1277,7 @@ mod tests {
 
     #[test]
     fn test_index2dimpos() {
-        let a = GenTensor::<f32>::empty(&vec![10, 5, 3, 4]);
+        let a = GenTensor::<f32>::zeros(&vec![10, 5, 3, 4]);
 
         let b = a.index2dimpos(10);
         assert_eq!(b, vec![0, 0, 2, 2]);

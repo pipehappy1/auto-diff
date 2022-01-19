@@ -354,7 +354,7 @@ macro_rules! unary_cuda_ops {
     ($a: ident, $b: ident) => {
         fn $a(&self) -> CudaTensor {
             //let mut ret = CudaTensor::empty(self.size());
-            let mut ret = self.empty_like();
+            let mut ret = self.zeros_like();
         
             unsafe {
                 let mut stream: cudaStream_t = self._get_stream();

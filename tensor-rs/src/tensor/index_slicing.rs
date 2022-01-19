@@ -68,8 +68,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
                 inner_size *= total_dim[i];
             }
         }
-        let mut data = Vec::with_capacity(cap);
-        unsafe{ data.set_len(cap); }
+        let mut data = vec![T::zero(); cap];
 
         let mut ret_range = Range{start: 0, end: total_dim[dim]*inner_size};
         for i in 0..outer_size {
@@ -190,7 +189,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
 
         let mut ret_dim = self.size().to_vec();
         ret_dim[dim] = index.numel();
-        let mut ret = GenTensor::empty(&ret_dim);
+        let mut ret = GenTensor::zeros(&ret_dim);
 
         for (row_index, i) in index.get_data().iter().enumerate() {
             let mut start = vec![0; self.size().len()];
@@ -247,7 +246,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
                     t_size.push(*j);
                 }
             }
-            let t = GenTensor::empty(&t_size);
+            let t = GenTensor::zeros(&t_size);
             ret.push(t);
         }
 
@@ -388,7 +387,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
             index[dim_len-1] += 1;
             let mut next_dim = dim_len-1;
             while index[next_dim] >= target_dim[next_dim] {
-                if next_dim <= 0 {
+                if next_dim == 0 {
                     break
                 } else {
                     index[next_dim] = 0;
@@ -440,7 +439,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         for (i, j) in self.size().iter().zip(sizes.iter()) {
             ret_dim.push(i*j);
         }
-        let mut ret = GenTensor::empty(&ret_dim);
+        let mut ret = GenTensor::zeros(&ret_dim);
 
         for i in 0..ret_dim.iter().product() {
             let index = ret.index2dimpos(i);

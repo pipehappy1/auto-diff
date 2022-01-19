@@ -17,6 +17,8 @@ pub trait LinearAlgbra {
     fn cholesky(&self) -> Option<Self::TensorType>;
     fn det(&self) -> Option<Self::ElementType>;
     fn svd(&self) -> Option<[Self::TensorType; 3]>;
+    fn inv(&self) -> Option<Self::TensorType>;
+    fn pinv(&self) -> Self::TensorType;
 }
 
 
@@ -261,6 +263,9 @@ where T: num_traits::Float {
         
         Some([u, s, v])
     }
+
+    fn inv(&self) -> Option<Self::TensorType> {unimplemented!();}
+    fn pinv(&self) -> Self::TensorType {unimplemented!();}
 }
 
 
@@ -337,7 +342,7 @@ mod tests {
     #[test]
     fn svd() {
         let m = GenTensor::<f64>::new_raw(&[4., 12., -16., 12., 37., -43., -16., -43., 98.], &[3,3]);
-        let [u, s, v] = m.svd().unwrap();
+        let [_u, s, _v] = m.svd().unwrap();
         //println!("{:?}, {:?}, {:?}", u, s, v);
         let es = GenTensor::<f64>::new_raw(&[123.47723179013161, 15.503963229407585, 0.018804980460810704], &[3]);
         assert!(es.sub(&s.get_diag()).norm().get_scale() < 1e-6);

@@ -100,7 +100,7 @@ impl TypedTensor {
     }
     typed_tensor_method_single_tensor_return!(ones_like);
     pub fn empty(shape: &[usize]) -> TypedTensor {
-        TypedTensor::Typef32(GenTensor::<f32>::empty(shape))
+        TypedTensor::Typef32(GenTensor::<f32>::zeros(shape))
     }
     pub fn fill(size: &[usize], fill_value: f32) -> TypedTensor {
         TypedTensor::Typef32(GenTensor::fill(fill_value, size))
