@@ -1,3 +1,10 @@
+pub mod compare_tensor;
+pub mod convolution;
+pub mod elemwise;
+pub mod index_slicing;
+pub mod linalg;
+pub mod reduction;
+
 
 // There are several rust library built around cuda:
 // 1. There are nightly rust support and ptx support to write cuda kernel in rust.

@@ -253,7 +253,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     ///
     /// All tensors need to be of the same size.
     /// ```
-    /// # use crate::tensor_rs::tensor::gen_tensor::*;
+    /// # use crate::tensor_rs::tensor_impl::gen_tensor::*;
     /// # use crate::tensor_rs::tensor_trait::index_slicing::IndexSlicing;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
     /// let m2 = GenTensor::<f64>::new_raw(&vec![2.,3.,4.,5.,6.,7.], &vec![3,2]);
@@ -322,7 +322,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     /// Permute the dimensions of this tensor.
     ///
     /// ```
-    /// # use tensor_rs::tensor::gen_tensor::*;
+    /// # use tensor_rs::tensor_impl::gen_tensor::*;
     /// # use crate::tensor_rs::tensor_trait::index_slicing::IndexSlicing;
     /// let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
     /// m1.permute(&vec![2, 0, 1]);
@@ -428,7 +428,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
 
 #[cfg(test)]
 mod tests {
-    use crate::tensor::gen_tensor::GenTensor;
+    use crate::tensor_impl::gen_tensor::GenTensor;
     use super::*;
 
     #[test]

@@ -445,7 +445,7 @@ impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
 
 #[cfg(test)]
 mod tests {
-    use crate::tensor::gen_tensor::GenTensor;
+    use crate::tensor_impl::gen_tensor::GenTensor;
     use crate::tensor_trait::index_slicing::IndexSlicing;
     use super::*;
 

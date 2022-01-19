@@ -1,16 +1,8 @@
-use std::collections::BTreeMap;
-use super::gen_tensor::*;
+use crate::tensor_impl::gen_tensor::GenTensor;
+use crate::tensor_trait::index_slicing::IndexSlicing;
 use crate::tensor::PaddingMode;
 #[cfg(feature = "use-blas")]
-use crate::tensor::index_slicing::IndexSlicing;
-#[cfg(feature = "use-blas")]
-use crate::tensor::blas::BlasAPI;
-#[cfg(feature = "use-cuda")]
-use crate::tensor::cuda_tensor::CudaTensor;
-use crate::tensor_trait::convolution::Convolution;
-
-
-
+use super::blas::BlasAPI;
 
 #[cfg(feature = "use-blas")]
 macro_rules! blas_conv {
@@ -82,12 +74,12 @@ macro_rules! blas_conv {
             for i in 0..sample_size {
                 left_upper.iter_mut().map(|x| *x = 0).count();
         
-                for k in 0..output_inner_size { // every possible data bl
+                for _k in 0..output_inner_size { // every possible data bl
                     // get_data_block
                     //let mut current_data_elem = left_upper.to_vec();
                     current_data_elem.clone_from_slice(&left_upper);
                     for in_channel_index in 0..in_channels {
-                        for inner_index in 0..conv_size/in_channels {
+                        for _inner_index in 0..conv_size/in_channels {
                     
                             // assign single scale to the tmp tensor.
                             push_value = 0.;
@@ -195,15 +187,11 @@ blas_conv!(f32, gemm_conv_f32);
 blas_conv!(f64, gemm_conv_f64);
 
 
-
 #[cfg(test)]
 mod tests {
-    use crate::tensor::gen_tensor::GenTensor;
-    use crate::tensor_trait::index_slicing::IndexSlicing;
+    use crate::tensor_impl::gen_tensor::GenTensor;
     use super::*;
 
-
-    
 
     // gemm_conv
     #[test]
@@ -336,51 +324,5 @@ mod tests {
             //println!("final output: {:?}", result.get_data());
             assert_eq!(result, GenTensor::<f64>::new_raw(&vec![420.0, 492.0, 564.0, 924.0, 996.0, 1068.0, 1428.0, 1500.0, 1572.0, 1068.0, 1302.0, 1536.0, 2706.0, 2940.0, 3174.0, 4344.0, 4578.0, 4812.0], &vec![1, 2, 3, 3]));
         }
-    }
-}
-
-
-//////////////
-// for cuda tensor
-/////////
-#[cfg(feature = "use-cuda")]
-impl Convolution for CudaTensor {
-
-    fn conv2d(&self, filter: &Self,
-                  stride: (usize, usize),
-                  padding: (usize, usize),
-                  dilation: (usize, usize),
-                  padding_mode: PaddingMode
-    ) -> Self {
-        todo!();
-    }
-
-    fn conv2d_grad(&self, filter: &Self,
-                       stride: (usize, usize),
-                       padding: (usize, usize),
-                       dilation: (usize, usize),
-                       padding_mode: PaddingMode,
-                       output_grad: &Self
-    ) -> (Self, Self) {
-        todo!();
-    }
-
-    fn conv_gen(&self, filter: &Self,
-                    stride: &[usize],
-                    padding: &[usize],
-                    dilation: &[usize],
-                    padding_mode: PaddingMode
-    ) -> Self {
-        todo!();
-    }
-
-    fn conv_grad_gen(&self, filter: &Self,
-                         stride: &[usize],
-                         padding: &[usize],
-                         dilation: &[usize],
-                         padding_mode: PaddingMode,
-                         output_grad: &Self,
-    ) -> (Self, Self) {
-        todo!();
     }
 }

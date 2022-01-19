@@ -2,9 +2,6 @@
 use std::fmt;
 use std::cmp;
 
-#[cfg(feature = "use-blas")]
-use crate::tensor::blas::BlasAPI;
-
 #[cfg(feature = "use-serde")]
 use serde::{Serialize, Deserialize};
 
@@ -176,7 +173,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// Create a tensor filled with the same value d
     ///
     /// ```
-    /// # use tensor_rs::tensor::gen_tensor::*;
+    /// # use tensor_rs::tensor_impl::gen_tensor::*;
     /// let m1 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
     /// ```
     pub fn fill(d: T, shape: &[usize]) -> GenTensor<T> {
@@ -201,7 +198,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// Right dimension has the stride 1.
     ///
     /// ```
-    /// # use tensor_rs::tensor::gen_tensor::*;
+    /// # use tensor_rs::tensor_impl::gen_tensor::*;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![0.; 3*5*2], &vec![3,5,2]);
     /// assert_eq!(m1.stride(), vec![10,2,1]);
     /// ```
@@ -221,7 +218,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// Return value at the index of the tensor.
     ///
     /// ```
-    /// # use tensor_rs::tensor::gen_tensor::*;
+    /// # use tensor_rs::tensor_impl::gen_tensor::*;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![2,3]);
     /// assert_eq!(m1.get(&vec![1,1]), 5.);
     /// ```
@@ -505,12 +502,11 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     where F: Fn(&[T]) -> T {
         // take the whole tensor as the patch.
         if dim.is_none() {
-            let ret_dim;
-            if keep_dim {
-                ret_dim = vec![1; self.size().len()];
+            let ret_dim = if keep_dim {
+                vec![1; self.size().len()]
             } else {
-                ret_dim = vec![1];
-            }
+                vec![1]
+            };
             return GenTensor::new_raw(&[closure(self.get_data())], &ret_dim)
         }
         let dim = dim.unwrap();
@@ -734,7 +730,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// element-wise add with right-hand broadcast.
     ///
     /// ```
-    /// # use tensor_rs::tensor::gen_tensor::*;
+    /// # use tensor_rs::tensor_impl::gen_tensor::*;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
     /// let m2 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
     /// let m3 = m1.add(&m2);
@@ -757,7 +753,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// matrix multiplication
     ///
     /// ```
-    /// # use tensor_rs::tensor::gen_tensor::*;
+    /// # use tensor_rs::tensor_impl::gen_tensor::*;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
     /// let m2 = GenTensor::<f64>::new_raw(&vec![2.,3.,4.,5.,6.,7.], &vec![2,3]);
     /// let mut result = m1.mm(&m2);
@@ -992,7 +988,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// use eq_t instead, as eq is reserved for == overloading.
     ///
     /// ```
-    /// # use tensor_rs::tensor::gen_tensor::*;
+    /// # use tensor_rs::tensor_impl::gen_tensor::*;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
     /// let m2 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
     /// assert_eq!(m1.eq_t(&m2).get(&vec![0,0]), 1.);
@@ -1016,7 +1012,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// true if two tensors have the same size and elements, false otherwise.
     ///
     /// ```
-    /// # use tensor_rs::tensor::gen_tensor::*;
+    /// # use tensor_rs::tensor_impl::gen_tensor::*;
     /// let m1 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
     /// let m2 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
     /// assert_eq!(m1.equal(&m2), true)
@@ -1162,7 +1158,7 @@ impl<T> Default for GenTensor<T> where T: num_traits::Float {
 
 
 /// ```
-/// # use tensor_rs::tensor::gen_tensor::*;
+/// # use tensor_rs::tensor_impl::gen_tensor::*;
 /// let m1 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
 /// let m2 = GenTensor::<f64>::fill(1., &vec![3,5,2]);
 /// assert_eq!(m1==m2, true)
@@ -1245,6 +1241,8 @@ impl<T> Clone for GenTensor<T> where T: num_traits::Float {
     }
 }
 
+#[cfg(feature = "use-blas")]
+use crate::tensor_impl::lapack_tensor::blas::BlasAPI;
 
 #[cfg(feature = "use-blas")]
 impl GenTensor<f32> {

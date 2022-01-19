@@ -197,12 +197,11 @@ impl Tensor {
     tensor_method_single_tensor_return!(ones_like);
     // range
     pub fn range(start: f32, end: f32, step: Option<f32>) -> Tensor {
-        let real_step;
-        if let Some(v) = step {
-            real_step = v;
+        let real_step = if let Some(v) = step {
+            v
         } else {
-            real_step = 1.;
-        }
+            1.
+        };
 
         let mut value = start;
         let mut index = 0;

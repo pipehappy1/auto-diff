@@ -15,7 +15,7 @@
 //! ------------
 //! The following example shows a dip to using the package.
 //!
-//!     use tensor_rs::tensor::gen_tensor::*;
+//!     use tensor_rs::tensor_impl::gen_tensor::*;
 //!     let m1 = GenTensor::<f64>::new_raw(&vec![0.; 3*5*2], &vec![3,5,2]);
 //!     assert_eq!(m1.stride(), vec![10,2,1]);
 //!

@@ -1,5 +1,5 @@
-use tensor_rs::tensor::*;
-use tensor_rs::tensor::blas::*;
+//use tensor_rs::tensor::*;
+//use tensor_rs::tensor::blas::*;
 //extern crate openblas_src;
 
 #[test]

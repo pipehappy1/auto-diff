@@ -13,7 +13,7 @@ use super::tensor_trait::elemwise::ElemwiseTensorOp;
 use super::tensor_trait::index_slicing::IndexSlicing;
 use super::tensor_trait::convolution::{Convolution};
 #[cfg(feature = "use-blas")]
-use super::tensor::tensor_impl::convolution::{gemm_conv_f32, gemm_conv_f64};
+use super::tensor_impl::lapack_tensor::convolution::{gemm_conv_f32, gemm_conv_f64};
 use super::tensor_trait::reduction::ReduceTensor;
 
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
@@ -196,12 +196,11 @@ impl TypedTensor {
                 let mut converted_tensor = Vec::new();
                 for i in tensors {
                     if discriminant(*i) == discriminant(&TypedTensor::Typef32(GenTensor::<f32>::new())) {
-                        let tmp_ref;
-                        match i {
-                            TypedTensor::Typef32(v1) => {tmp_ref = v1;},
+                        let tmp_ref = match i {
+                            TypedTensor::Typef32(v1) => {v1},
                             TypedTensor::Typef64(_v1) => {panic!("");},
                             //_ => panic!("Other case"),
-                        }
+                        };
                         converted_tensor.push(tmp_ref);
                     } else {
                         unimplemented!();
@@ -213,12 +212,11 @@ impl TypedTensor {
                 let mut converted_tensor = Vec::new();
                 for i in tensors {
                     if discriminant(*i) == discriminant(&TypedTensor::Typef64(GenTensor::<f64>::new())) {
-                        let tmp_ref;
-                        match i {
-                            TypedTensor::Typef64(v1) => {tmp_ref = v1;},
+                        let tmp_ref = match i {
+                            TypedTensor::Typef64(v1) => {v1},
                             TypedTensor::Typef32(_v1) => {panic!("");},
                             //_ => panic!("Other case"),
-                        }
+                        };
                         converted_tensor.push(tmp_ref);
                     } else {
                         unimplemented!();

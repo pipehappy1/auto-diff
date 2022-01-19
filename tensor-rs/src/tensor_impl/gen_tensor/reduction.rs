@@ -6,12 +6,11 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         if keep_dim {
             panic!("argmax cannot keep dim");
         }
-        let dim2aggregate;
-        if let Some(dim_val) = dim {
-            dim2aggregate = (0..self.size().len()).filter(|x| dim_val.contains(x)).collect();
+        let dim2aggregate = if let Some(dim_val) = dim {
+            (0..self.size().len()).filter(|x| dim_val.contains(x)).collect()
         } else {
-            dim2aggregate = self.size().to_vec();
-        }
+            self.size().to_vec()
+        };
         let dim = dim2aggregate;
         
         // build return tensor dimension.
@@ -176,7 +175,7 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     //fn sum(&self, dim: usize, keepdim: bool) -> Self::TensorType {}
     /// Returns the sum of all elements.
     /// ```
-    /// # use crate::tensor_rs::tensor::gen_tensor::*;
+    /// # use crate::tensor_rs::tensor_impl::gen_tensor::*;
     /// # use crate::tensor_rs::tensor_trait::reduction::ReduceTensor;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
     /// assert_eq!(m1.sum(None, false).get_scale(), 10.);
@@ -243,7 +242,7 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
 
 #[cfg(test)]
 mod tests {
-    use crate::tensor::gen_tensor::GenTensor;
+    use crate::tensor_impl::gen_tensor::GenTensor;
     use super::*;
 
     #[test]
