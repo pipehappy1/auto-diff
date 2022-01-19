@@ -30,3 +30,4 @@ pub mod tensor;
 pub mod quaternion;
 pub mod typed_tensor;
 pub mod tensor_trait;
+pub mod tensor_impl;

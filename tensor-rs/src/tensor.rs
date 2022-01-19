@@ -14,22 +14,11 @@ use serde::{Serialize, Deserialize};
 
 use std::fmt;
 
-pub mod gen_tensor;
-#[cfg(feature = "use-cuda")]
-pub mod cuda_tensor;
-#[cfg(feature = "use-cuda")]
-pub mod cuda_helper;
-pub mod blas;
-pub mod compare_tensor;
-pub mod elemwise;
-pub mod index_slicing;
-pub mod convolution;
-pub mod reduction;
-pub mod linalg;
+
 
 
 use super::typed_tensor::TypedTensor;
-use gen_tensor::GenTensor;
+use crate::tensor_impl::gen_tensor::GenTensor;
 //use quaternion::Quaternion;
 
 macro_rules! tensor_method {

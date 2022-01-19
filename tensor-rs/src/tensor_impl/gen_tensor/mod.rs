@@ -8,6 +8,13 @@ use crate::tensor::blas::BlasAPI;
 #[cfg(feature = "use-serde")]
 use serde::{Serialize, Deserialize};
 
+pub mod compare_tensor;
+pub mod convolution;
+pub mod elemwise;
+pub mod index_slicing;
+pub mod linalg;
+pub mod reduction;
+
 /// Naive tensor implementation, single thread
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct GenTensor<T> {

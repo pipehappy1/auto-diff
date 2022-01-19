@@ -1,10 +1,7 @@
 use std::ops::Range;
 use std::cmp;
-use super::gen_tensor::GenTensor;
-#[cfg(feature = "use-cuda")]
-use super::cuda_tensor::CudaTensor;
+use super::GenTensor;
 use crate::tensor_trait::index_slicing::IndexSlicing;
-
 
 impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
 
@@ -433,7 +430,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
 mod tests {
     use crate::tensor::gen_tensor::GenTensor;
     use super::*;
-    
+
     #[test]
     fn cat() {
         let a = GenTensor::<f32>::fill(1., &vec![5, 3, 3, 2]);
@@ -508,59 +505,6 @@ mod tests {
         println!("{:?}", b);
         assert_eq!(b, GenTensor::<f32>::new_raw(&[1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3. ], &[4, 6]));
     }
-}
-
-/****************/
-// Cuda tensor ops
-/****************/
-#[cfg(feature = "use-cuda")]
-impl IndexSlicing for CudaTensor {
-    fn cat(&self, tensors: &[&Self], dim: usize) -> Self {
-        todo!();
-    }
-    fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self> {
-        todo!();
-    }
-    fn gather(&self, dim: usize, index: &Self) -> Self {
-        todo!();
-    }
-    fn index_select(&self, dim: usize, index: &Self) -> Self
-    {
-        todo!();
-    }
-    // fn masked_select();
-    //pub fn narrow() {}
-    //pub fn nonzero() {}
-    fn reshape(&self, new_shape: &[usize]) -> Self {
-        todo!();
-    }
-    fn split(&self, sections: &[usize], dim: usize) -> Vec<Self> {
-        todo!();
-    }
-    fn squeeze(&self, dim: Option<usize>) -> Self {
-        todo!();
-    }
-    fn stack(tensors: &[&Self], dim: usize) -> Self {
-        todo!();
-    }
-    //pub fn t() {}
-    fn take(&self, index: &[usize]) -> Self {
-        todo!();
-    }
-    //pub fn transpose() {}
-    //pub fn unbind() {}
-    fn permute(&self, dims: &[usize]) -> Self {
-        todo!();
-    }
-    fn unsqueeze(&self, dim: usize) -> Self {
-        todo!();
-    }
-    //pub fn condition() {} // this is pytorch where
-    fn conditional_select(&self, x: &Self, y: &Self) -> Self {
-        todo!();
-    }
-    fn repeat(&self, sizes: &[usize]) -> Self {
-        todo!();
-    }
+    
 
 }

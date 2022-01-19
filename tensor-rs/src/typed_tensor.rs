@@ -4,7 +4,7 @@ use std::mem::discriminant;
 #[cfg(feature = "use-serde")]
 use serde::{Serialize, Deserialize};
 
-use super::tensor::gen_tensor::*;
+use super::tensor_impl::gen_tensor::*;
 #[cfg(feature = "use-cuda")]
 use super::tensor::cuda_tensor::*;
 use crate::tensor::PaddingMode;
@@ -13,7 +13,7 @@ use super::tensor_trait::elemwise::ElemwiseTensorOp;
 use super::tensor_trait::index_slicing::IndexSlicing;
 use super::tensor_trait::convolution::{Convolution};
 #[cfg(feature = "use-blas")]
-use super::tensor::convolution::{gemm_conv_f32, gemm_conv_f64};
+use super::tensor::tensor_impl::convolution::{gemm_conv_f32, gemm_conv_f64};
 use super::tensor_trait::reduction::ReduceTensor;
 
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]

@@ -1,8 +1,5 @@
-use crate::tensor::gen_tensor::GenTensor;
-#[cfg(feature = "use-cuda")]
-use crate::tensor::cuda_tensor::CudaTensor;
+use super::GenTensor;
 use crate::tensor_trait::reduction::ReduceTensor;
-
 
 impl<T> GenTensor<T> where T: num_traits::Float {
     fn _argmax_min(&self, dim: Option<&[usize]>, keep_dim: bool, max: bool) -> Self {
@@ -324,64 +321,3 @@ mod tests {
     }
 }
 
-
-//////////////
-// cuda tensor
-//////////////
-#[cfg(feature = "use-cuda")]
-impl ReduceTensor for CudaTensor {
-
-    fn argmax(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self {
-        todo!();
-    }
-    fn argmin(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self {
-        todo!();
-    }
-    fn dist() {
-        todo!();
-    }
-    fn logsumexp(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self {
-        todo!();
-    }
-    fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> Self {
-        todo!();
-    }
-    fn median() {
-        todo!();
-    }
-    fn mode() {
-        todo!();
-    }
-    fn prod(&self, dim: Option<&[usize]>, keepdim: bool) -> Self {
-        todo!();
-    }
-    fn std(&self, dim: Option<&[usize]>, keepdim: bool) -> Self {
-        todo!();
-    }
-    fn std_mean() {
-        todo!();
-    }
-    //fn sum(&self, dim: usize, keepdim: bool) -> Self::TensorType;
-    fn sum(&self, dim: Option<&[usize]>, keepdim: bool) -> Self {
-        todo!();
-    }
-    fn unique() {
-        todo!();
-    }
-    fn unique_consecutive() {
-        todo!();
-    }
-    fn var(&self, dim: Option<&[usize]>, keepdim: bool) -> Self {
-        todo!();
-    }
-    fn var_mean() {
-        todo!();
-    }
-
-    fn max(&self, dim: Option<&[usize]>, keepdim: bool) -> Self {
-        todo!();
-    }
-    fn min(&self, dim: Option<&[usize]>, keepdim: bool) -> Self {
-        todo!();
-    }
-}

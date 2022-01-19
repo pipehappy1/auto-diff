@@ -1,6 +1,6 @@
 #![allow(clippy::comparison_chain)]
 use std::cmp;
-use super::gen_tensor::GenTensor;
+use super::GenTensor;
 use crate::tensor_trait::reduction::ReduceTensor;
 use crate::tensor_trait::elemwise::ElemwiseTensorOp;
 use crate::tensor_trait::index_slicing::IndexSlicing;
