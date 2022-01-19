@@ -13,7 +13,7 @@ pub struct Net {
     ops: GenIndex<Op>,
     funcs: BTreeMap<NetIndex, Vec<NetIndex>>, // for func composition
     set_mark: BTreeSet<NetIndex>,
-    graph: Graph<NetIndex>,
+    graph: Graph<NetIndex, NetIndex>,
     data_grad: BTreeMap<NetIndex, Tensor>,
 }
 

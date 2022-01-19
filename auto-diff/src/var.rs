@@ -473,7 +473,7 @@ impl V {
     }
 
     pub fn det(&self) -> f64 {
-        1.0
+        unimplemented!();
     }
 }
 

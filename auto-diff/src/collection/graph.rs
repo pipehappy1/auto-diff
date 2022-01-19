@@ -4,18 +4,31 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 /// Graph
-pub struct Graph<T> {
-    data: BTreeSet<T>,
-    op: BTreeSet<T>,
-    forward_dt_op: BTreeMap<T, BTreeSet<T>>,
-    forward_op_dt: BTreeMap<T, BTreeSet<T>>,
-    backward_dt_op: BTreeMap<T, BTreeSet<T>>,
-    backward_op_dt: BTreeMap<T, BTreeSet<T>>,
+pub struct Graph<TData, TOp> {
+    data: BTreeSet<TData>,
+    op: BTreeSet<TOp>,
+    forward_dt_op: BTreeMap<TData, BTreeSet<TOp>>,
+    forward_op_dt: BTreeMap<TOp, BTreeSet<TData>>,
+    backward_dt_op: BTreeMap<TData, BTreeSet<TOp>>,
+    backward_op_dt: BTreeMap<TOp, BTreeSet<TData>>,
 }
 
-impl<T: Clone + Copy + Ord> Graph<T> {
+impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Default for Graph<TData, TOp> {
+    fn default() -> Graph<TData, TOp> {
+        Graph{
+            data: BTreeSet::new(),
+            op: BTreeSet::new(),
+            forward_dt_op: BTreeMap::new(),
+            forward_op_dt: BTreeMap::new(),
+            backward_dt_op: BTreeMap::new(),
+            backward_op_dt: BTreeMap::new(),
+        }
+    }
+}
+
+impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     /// Create a graph with defaults
-    pub fn new() -> Graph<T> {
+    pub fn new() -> Graph<TData, TOp> {
         Graph{
             data: BTreeSet::new(),
             op: BTreeSet::new(),
@@ -27,8 +40,8 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     }
 
     /// iterator over data node.
-    pub fn list_data(&self) -> Vec<T> {
-        let mut ret = Vec::<T>::new();
+    pub fn list_data(&self) -> Vec<TData> {
+        let mut ret = Vec::new();
 
         for i in &self.data {
             ret.push(i.clone());
@@ -36,7 +49,7 @@ impl<T: Clone + Copy + Ord> Graph<T> {
         ret
     }
     /// iterator over op node.
-    pub fn list_op(&self) -> Vec<T> {
+    pub fn list_op(&self) -> Vec<TOp> {
         let mut ret = Vec::new();
 
         for i in &self.op {
@@ -48,11 +61,11 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     ///
     /// Return the list of ops that the given variable is the input.
     ///
-    pub fn list_as_input(&self, var: &T) -> Result<Vec<T>, &str> {
+    pub fn list_as_input(&self, var: &TData) -> Result<Vec<TOp>, &str> {
         if !self.data.contains(var) {
             Err("Not a valid variable/data")
         } else {
-            let ret: Vec<T> = self.forward_dt_op.get(var).expect("")
+            let ret: Vec<TOp> = self.forward_dt_op.get(var).expect("")
                 .iter().map(|x| x.clone()).collect();
             Ok(ret)
         }
@@ -61,11 +74,11 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     ///
     /// Return the list of ops that the given variable is the output.
     ///
-    pub fn list_as_output(&self, var: &T) -> Result<Vec<T>, &str> {
+    pub fn list_as_output(&self, var: &TData) -> Result<Vec<TOp>, &str> {
         if !self.data.contains(var) {
             Err("Not a valid variable/data")
         } else {
-            let ret: Vec<T> = self.backward_dt_op.get(var).expect("")
+            let ret: Vec<TOp> = self.backward_dt_op.get(var).expect("")
                 .iter().map(|x| x.clone()).collect();
             Ok(ret)
         }
@@ -74,11 +87,11 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     ///
     /// Return the list of input given the func.
     ///
-    pub fn list_input(&self, func: &T) -> Result<Vec<T>, &str> {
+    pub fn list_input(&self, func: &TOp) -> Result<Vec<TData>, &str> {
         if !self.op.contains(func) {
             Err("Bad func id.")
         } else {
-            let ret: Vec<T> = self.backward_op_dt.get(func).expect("").
+            let ret: Vec<TData> = self.backward_op_dt.get(func).expect("").
                 iter().map(|x| x.clone()).collect();
             Ok(ret)
         }
@@ -87,11 +100,11 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     ///
     /// Return a list of data as the output of the op.
     ///
-    pub fn list_output(&self, func: &T) -> Result<Vec<T>, &str> {
+    pub fn list_output(&self, func: &TOp) -> Result<Vec<TData>, &str> {
         if !self.op.contains(func) {
             Err("Bad func id.")
         } else {
-            let ret: Vec<T> = self.forward_op_dt.get(func).expect("").
+            let ret: Vec<TData> = self.forward_op_dt.get(func).expect("").
                 iter().map(|x| x.clone()).collect();
             Ok(ret)
         }
@@ -101,13 +114,13 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     /// ```
     /// # use auto_diff::collection::graph::*;
     /// # use auto_diff::collection::generational_index::*;
-    /// let mut g = Graph::new();
-    /// let data1 = T::new(0,0);
-    /// let data2 = T::new(1,0);
+    /// let mut g = Graph::<NetIndex, NetIndex>::new();
+    /// let data1 = NetIndex::new(0,0);
+    /// let data2 = NetIndex::new(1,0);
     /// g.add_data(&data1);
     /// g.add_data(&data2);
     /// ```
-    pub fn add_data(&mut self, id: &T) -> Result<T, &str> {
+    pub fn add_data(&mut self, id: &TData) -> Result<TData, &str> {
         if !self.data.contains(id) {
             self.data.insert(*id);
             self.forward_dt_op.insert(id.clone(), BTreeSet::new());
@@ -119,7 +132,7 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     }
 
     /// Remove a data node, op node and downstream data/op node are removed.
-    pub fn del_data(&mut self, id: &T) -> Result<T, &str> {
+    pub fn del_data(&mut self, id: &TData) -> Result<TData, &str> {
         if self.data.contains(id) {
             self.data.remove(id);
             for i in self.forward_dt_op.get_mut(id).expect("").iter() {
@@ -138,7 +151,7 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     }
 
     /// Add a danglging op node.
-    pub fn add_op(&mut self, id: &T) -> Result<T, &str> {
+    pub fn add_op(&mut self, id: &TOp) -> Result<TOp, &str> {
         if !self.op.contains(id) {
             self.op.insert(*id);
             self.forward_op_dt.insert(id.clone(), BTreeSet::new());
@@ -150,7 +163,7 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     }
 
     /// Remvoe an op node, input data node and downstream data/op node are removed.
-    pub fn del_op(&mut self, id: &T) -> Result<T, &str> {
+    pub fn del_op(&mut self, id: &TOp) -> Result<TOp, &str> {
         if self.op.contains(id) {
             self.op.remove(id);
             for i in self.forward_op_dt.get_mut(id).expect("").iter() {
@@ -171,7 +184,7 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     ///
     /// Decouple input variable and op
     ///
-    pub fn decouple_data_func(&mut self, var: &T, func: &T) -> Result<(), ()> {
+    pub fn decouple_data_func(&mut self, var: &TData, func: &TOp) -> Result<(), ()> {
         if self.data.contains(var) && self.op.contains(func) {
             self.forward_dt_op.get_mut(var).expect("").remove(func);
             self.backward_op_dt.get_mut(func).expect("").remove(var);
@@ -184,7 +197,7 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     ///
     /// Decouple op and output variable
     ///
-    pub fn decouple_func_data(&mut self, func: &T, var: &T) -> Result<(), ()> {
+    pub fn decouple_func_data(&mut self, func: &TOp, var: &TData) -> Result<(), ()> {
         if self.data.contains(var) && self.op.contains(func) {
             self.forward_op_dt.get_mut(func).expect("").remove(var);
             self.backward_dt_op.get_mut(var).expect("").remove(func);
@@ -195,8 +208,8 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     }
 
     /// list data node without upstream op node in a set.
-    pub fn get_input_cache(&self) -> BTreeSet<T> {
-        let mut jobs = BTreeSet::<T>::new();
+    pub fn get_input_cache(&self) -> BTreeSet<TData> {
+        let mut jobs = BTreeSet::new();
         for i in &self.data {
             if self.backward_dt_op.get(i).expect("").len() <= 0 {
                 jobs.insert(i.clone());
@@ -206,8 +219,8 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     }
 
     /// list data node without downstream op node in a set.
-    pub fn get_output_cache(&self) -> BTreeSet<T> {
-        let mut jobs = BTreeSet::<T>::new();
+    pub fn get_output_cache(&self) -> BTreeSet<TData> {
+        let mut jobs = BTreeSet::new();
         for i in &self.data {
             if self.forward_dt_op.get(i).expect("").len() <= 0 {
                 jobs.insert(i.clone());
@@ -217,9 +230,9 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     }
 
     /// Connect input data, output data and operation
-    pub fn connect(&mut self, dti: &[T],
-                   dto: &[T],
-                   op: &T) -> Result<T, &str> {
+    pub fn connect(&mut self, dti: &[TData],
+                   dto: &[TData],
+                   op: &TOp) -> Result<TOp, &str> {
         let mut valid_ids = true;
 
         // make sure pre-exist
@@ -258,10 +271,10 @@ impl<T: Clone + Copy + Ord> Graph<T> {
     /// Walk through the graph with a starting set of data nodes.
     /// Go through backwards if forward is false.
     ///
-    pub fn walk<F>(&self, start_set: &[T],
+    pub fn walk<F>(&self, start_set: &[TData],
                    forward: bool,
-                   closure: F) -> Result<(), BTreeSet<T>>
-    where F: Fn(&[T], &[T], &T)  {
+                   closure: F) -> Result<(), BTreeSet<TData>>
+    where F: Fn(&[TData], &[TData], &TOp)  {
         let mut fdo = &self.forward_dt_op;
         let mut fod = &self.forward_op_dt;
         //let mut bdo = &self.backward_dt_op;
@@ -274,9 +287,9 @@ impl<T: Clone + Copy + Ord> Graph<T> {
         }
 
         // data id has a value
-        let mut jobs = BTreeSet::<T>::new();
+        let mut jobs = BTreeSet::<TData>::new();
         // op is done.
-        let mut done = BTreeSet::<T>::new(); // ops done.
+        let mut done = BTreeSet::<TOp>::new(); // ops done.
 
         for index in start_set {
             jobs.insert(*index);
@@ -286,7 +299,7 @@ impl<T: Clone + Copy + Ord> Graph<T> {
             let mut made_progress = false;
 
             // collect ops needs to do given the data in jobs.
-            let mut edge_op = BTreeSet::<T>::new();
+            let mut edge_op = BTreeSet::<TOp>::new();
             for dt in &jobs {
                 for op_candidate in &fdo[dt] {
                     edge_op.insert(op_candidate.clone());
@@ -300,12 +313,12 @@ impl<T: Clone + Copy + Ord> Graph<T> {
                     .all(|dt| jobs.contains(dt)) {
 
                         // collect input ids.
-                        let mut inputs = Vec::<T>::new();
+                        let mut inputs = Vec::<TData>::new();
                         for input in bod[&op_candidate].iter() {
                             inputs.push(input.clone());
                         }
                         // collect output ids.
-                        let mut outputs = Vec::<T>::new();
+                        let mut outputs = Vec::<TData>::new();
                         for output in fod[&op_candidate].iter() {
                             outputs.push(output.clone());
                         }
@@ -358,7 +371,7 @@ mod tests {
     
     #[test]
     fn new() {
-        let _g = Graph::<NetIndex>::new();
+        let _g = Graph::<NetIndex, NetIndex>::new();
     }
 
     // A   B
@@ -366,7 +379,7 @@ mod tests {
     //   Op
     //   |
     //   C
-    fn setup_y(g: &mut Graph<NetIndex>) {
+    fn setup_y(g: &mut Graph<NetIndex, NetIndex>) {
         let data_a = NetIndex::new(0,0);
         let data_b = NetIndex::new(1,0);
         let data_c = NetIndex::new(2,0);
@@ -389,7 +402,7 @@ mod tests {
     //     Op2
     //     |
     //     E
-    fn setup_yy(g: &mut Graph<NetIndex>) {
+    fn setup_yy(g: &mut Graph<NetIndex, NetIndex>) {
         let data_a = NetIndex::new(0,0);
         let data_b = NetIndex::new(1,0);
         let data_c = NetIndex::new(2,0);
@@ -416,7 +429,7 @@ mod tests {
         setup_y(&mut g);
         assert_eq!(g.get_input_cache().len(), 2);
 
-        let mut g = Graph::<NetIndex>::new();
+        let mut g = Graph::<NetIndex, NetIndex>::new();
         setup_yy(&mut g);
         assert_eq!(g.get_input_cache().len(), 3);
     }
@@ -427,7 +440,7 @@ mod tests {
         setup_y(&mut g);
         assert_eq!(g.get_output_cache().len(), 1);
 
-        let mut g = Graph::<NetIndex>::new();
+        let mut g = Graph::<NetIndex, NetIndex>::new();
         setup_yy(&mut g);
         assert_eq!(g.get_output_cache().len(), 1);
     }
