@@ -69,6 +69,11 @@ macro_rules! typed_tensor_method {
     }
 }
 
+impl Default for TypedTensor {
+    fn default() -> TypedTensor {
+        TypedTensor::Typef64(GenTensor::new())
+    }
+}
 
 impl TypedTensor {
     pub fn new() -> TypedTensor {
@@ -105,7 +110,7 @@ impl TypedTensor {
     pub fn fill(size: &[usize], fill_value: f32) -> TypedTensor {
         TypedTensor::Typef32(GenTensor::fill(fill_value, size))
     }
-    pub fn from_record(&mut self, row: usize, record: &[f32]) -> Result<(), ()>{
+    pub fn from_record(&mut self, row: usize, record: &[f32]) -> Result<(), &'static str>{
         match self {
             TypedTensor::Typef32(v1) => {v1.from_record(row, record)},
             TypedTensor::Typef64(v1) => {v1.from_record(row, record)},

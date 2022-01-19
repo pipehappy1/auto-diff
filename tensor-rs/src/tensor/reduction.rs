@@ -88,11 +88,9 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                         max_value = *i;
                         max_index = elem_index;
                     }
-                } else {
-                    if max_value > *i {
-                        max_value = *i;
-                        max_index = elem_index;
-                    }
+                } else if max_value > *i {
+                    max_value = *i;
+                    max_index = elem_index;
                 }
             }
             let dimpos_elem = the_patch.index2dimpos(max_index);

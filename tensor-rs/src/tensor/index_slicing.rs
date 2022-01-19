@@ -49,12 +49,12 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         let mut new_dim = Vec::new();
         let mut outer_size = 1;
         let mut inner_size = 1;
-        for i in 0..total_dim.len() {
+        for (i, item) in total_dim.iter().enumerate() {
             if i != dim {
-                cap *= total_dim[i];
-                new_dim.push(total_dim[i]);                
+                cap *= *item;
+                new_dim.push(*item);
             } else {
-                let mut dim_total = total_dim[i];
+                let mut dim_total = *item;
                 for j in tensors {
                     dim_total += j.size()[i];
                 }
@@ -62,10 +62,10 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
                 new_dim.push(dim_total);
             }
             if i < dim {
-                outer_size *= total_dim[i];
+                outer_size *= *item;
             }
             if i > dim {
-                inner_size *= total_dim[i];
+                inner_size *= *item;
             }
         }
         let mut data = vec![T::zero(); cap];
@@ -215,7 +215,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         if self.size().iter().product::<usize>() != new_shape.iter().product::<usize>() {
             panic!("reshape expects the same number of elements {:?}, {:?}", self.size(), new_shape);
         }
-        GenTensor::new_raw(&self.get_data(), new_shape)
+        GenTensor::new_raw(self.get_data(), new_shape)
     }
     
     /// Splits the tensor into chunks. Each chunk is a view of the original tensor.

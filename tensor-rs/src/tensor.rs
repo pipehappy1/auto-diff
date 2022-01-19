@@ -162,7 +162,7 @@ impl Tensor {
     }
 
     
-    pub fn from_record(&self, row: usize, record: &[f32]) -> Result<(), ()> {
+    pub fn from_record(&self, row: usize, record: &[f32]) -> Result<(), &'static str> {
         self.v.borrow_mut().from_record(row, record)
     }
     pub fn get_f32(&self, o: &[usize]) -> f32 {
@@ -254,7 +254,7 @@ impl Tensor {
     pub fn empty(shape: &[usize]) -> Tensor {
         for i in shape {
             if *i == 0 {
-                println!("");
+                println!("empty: shape with zeros in it.");
             }
         }
         Tensor {

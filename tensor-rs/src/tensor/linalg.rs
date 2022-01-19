@@ -264,6 +264,8 @@ where T: num_traits::Float {
         Some([u, s, v])
     }
 
+    // may ref to
+    // https://stackoverflow.com/questions/32114054/matrix-inversion-without-numpy
     fn inv(&self) -> Option<Self::TensorType> {unimplemented!();}
     fn pinv(&self) -> Self::TensorType {unimplemented!();}
 }

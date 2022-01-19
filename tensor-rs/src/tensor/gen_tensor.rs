@@ -1,3 +1,4 @@
+#![allow(clippy::comparison_chain)]
 use std::fmt;
 use std::cmp;
 
@@ -112,7 +113,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
     // arange
     pub fn arange(end: usize) -> GenTensor<T> {
-        let mut ret = GenTensor::<T>::zeros(&vec![end]);
+        let mut ret = GenTensor::<T>::zeros(&[end]);
         for i in 0..end {
             ret.d[i] = T::from(i).expect("");
         }
@@ -125,7 +126,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         let cap = n*m;
         let d = vec![T::zero(); cap];
         let mut ret = GenTensor {
-            d: d,
+            d,
             dim: [n, m].to_vec(),
         };
         for i in 0..cmp::min(n, m) {
@@ -182,7 +183,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     /// assign a row.
-    pub fn from_record(&mut self, row: usize, record: &[f32]) -> Result<(), ()> {
+    pub fn from_record(&mut self, row: usize, record: &[f32]) -> Result<(), &'static str> {
         for (i, index) in record.iter().zip(0..self.dim[self.dim.len()-1]) {
             self.d[row*self.dim[self.dim.len()-1] + index] = T::from(*i).expect("");
         }
@@ -395,8 +396,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             panic!("Expect range covers all dimension range: {:?}, dim: {:?}", range, self.dim);
         }
         let mut step_dim = vec![1; self.dim.len()];
-        if step.is_some() {
-            step_dim = step.expect("").to_vec();
+        if let Some(step_val) = step {
+            step_dim = step_val.to_vec();
         }
 
         // index store the the index needs visit at each dim.
@@ -449,8 +450,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
 
         let mut step_dim = vec![1; self.dim.len()];
-        if step.is_some() {
-            step_dim = step.expect("").to_vec();
+        if let Some(step_val) = step {
+            step_dim = step_val.to_vec();
         }
 
         // index store the the index needs visit at each dim.
@@ -503,7 +504,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             } else {
                 ret_dim = vec![1];
             }
-            return GenTensor::new_raw(&vec![closure(self.get_data())], &ret_dim)
+            return GenTensor::new_raw(&[closure(self.get_data())], &ret_dim)
         }
         let dim = dim.unwrap();
 
@@ -521,7 +522,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         let mut ret = Self::zeros(&ret_dim);
 
          
-        let kept_dim: Vec<usize> = (0..self.size().len()).filter(|x| !dim.contains(&x)).collect();
+        let kept_dim: Vec<usize> = (0..self.size().len()).filter(|x| !dim.contains(x)).collect();
         let mut index = vec![0; kept_dim.len()];
         loop {
             let mut patch_index: Vec::<(usize, usize)> = Vec::new();
@@ -891,12 +892,12 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                     data[i] = data[i] + new_data[i];
                 }
             }
-            for i in 0..data.len() {
-                data[i] = data[i] / T::from(outer_size).expect("");
+            for i in &mut data {
+                *i = *i / T::from(outer_size).expect("");
             }
             GenTensor {
                 d: data,
-                dim: dim,
+                dim,
             }
         } else {
             for k in 0..outer_size {
@@ -908,7 +909,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             }
             GenTensor {
                 d: data,
-                dim: dim,
+                dim,
             }
         }
         
@@ -975,7 +976,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
 
         GenTensor {
-            d: d,
+            d,
             dim: self.dim.to_vec()
         }
     }
@@ -1146,6 +1147,12 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     
 }
 
+impl<T> Default for GenTensor<T> where T: num_traits::Float {
+    fn default() -> GenTensor<T> {
+        GenTensor { d: Vec::<T>::new(), dim: Vec::new() }
+    }
+}
+
 
 /// ```
 /// # use tensor_rs::tensor::gen_tensor::*;
@@ -1155,11 +1162,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 /// ```
 impl<T> PartialEq for GenTensor<T> where T: num_traits::Float {
     fn eq(&self, other: &Self) -> bool {
-        if self.equal(other) {
-            true
-        } else {
-            false
-        }
+        self.equal(other)
     }
 }
 impl<T> Eq for GenTensor<T> where T: num_traits::Float {}
@@ -1171,13 +1174,13 @@ impl fmt::Display for GenTensor<f32> {
             for i in 0..self.dim[0] {
                 write!(f, "[")?;
                 for j in 0..self.dim[1] {
-                    write!(f, "{}, ", self.get(&vec![i, j]))?;
+                    write!(f, "{}, ", self.get(&[i, j]))?;
                 }
-                write!(f, "]\n")?;
+                writeln!(f, "]")?;
             }
-            write!(f, "]\n")
+            writeln!(f, "]")
         } else {
-            write!(f, "{:?}\n", self.dim)?;
+            writeln!(f, "{:?}", self.dim)?;
             write!(f, "{:?}", self.d)            
         }
     }
@@ -1185,7 +1188,7 @@ impl fmt::Display for GenTensor<f32> {
 impl fmt::Display for GenTensor<f64> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.dim)?;
-        write!(f, "{:?}\n", self.d)
+        writeln!(f, "{:?}", self.d)
     }
 }
 
@@ -1196,13 +1199,13 @@ impl fmt::Debug for GenTensor<f32> {
             for i in 0..self.dim[0] {
                 write!(f, "[")?;
                 for j in 0..self.dim[1] {
-                    write!(f, "{}, ", self.get(&vec![i, j]))?;
+                    write!(f, "{}, ", self.get(&[i, j]))?;
                 }
-                write!(f, "]\n")?;
+                writeln!(f, "]")?;
             }
-            write!(f, "]\n")
+            writeln!(f, "]")
         } else {
-            write!(f, "size: {:?}\n", self.dim)?;
+            writeln!(f, "size: {:?}", self.dim)?;
             write!(f, "data: {:?}", self.d)            
         }
     }
@@ -1214,13 +1217,13 @@ impl fmt::Debug for GenTensor<f64> {
             for i in 0..self.dim[0] {
                 write!(f, "[")?;
                 for j in 0..self.dim[1] {
-                    write!(f, "{}, ", self.get(&vec![i, j]))?;
+                    write!(f, "{}, ", self.get(&[i, j]))?;
                 }
-                write!(f, "]\n")?;
+                writeln!(f, "]")?;
             }
-            write!(f, "]\n")
+            writeln!(f, "]")
         } else {
-            write!(f, "{:?}\n", self.dim)?;
+            writeln!(f, "{:?}", self.dim)?;
             write!(f, "{:?}", self.d)            
         }
     }
