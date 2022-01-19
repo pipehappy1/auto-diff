@@ -1,27 +1,10 @@
 #![allow(clippy::comparison_chain)]
 use std::cmp;
 use super::gen_tensor::GenTensor;
-use super::reduction::ReduceTensor;
-use super::elemwise::ElemwiseTensorOp;
-use super::index_slicing::IndexSlicing;
-
-pub trait LinearAlgbra {
-    type TensorType;
-    type ElementType;
-
-    fn norm(&self) -> Self::TensorType;
-    fn normalize_unit(&self) -> Self::TensorType;
-    fn lu(&self) -> Option<[Self::TensorType; 2]>;
-    fn lu_solve(&self, y: &Self::TensorType) -> Option<Self::TensorType>;
-    fn qr(&self) -> Option<[Self::TensorType; 2]>;
-    fn eigen(&self) -> Option<[Self::TensorType; 2]>;
-    fn cholesky(&self) -> Option<Self::TensorType>;
-    fn det(&self) -> Option<Self::ElementType>;
-    fn svd(&self) -> Option<[Self::TensorType; 3]>;
-    fn inv(&self) -> Option<Self::TensorType>;
-    fn pinv(&self) -> Self::TensorType;
-}
-
+use crate::tensor_trait::reduction::ReduceTensor;
+use crate::tensor_trait::elemwise::ElemwiseTensorOp;
+use crate::tensor_trait::index_slicing::IndexSlicing;
+use crate::tensor_trait::linalg::LinearAlgbra;
 
 impl<T> LinearAlgbra for GenTensor<T>
 where T: num_traits::Float {

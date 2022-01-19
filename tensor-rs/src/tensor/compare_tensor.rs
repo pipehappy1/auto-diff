@@ -1,14 +1,8 @@
 use crate::tensor::gen_tensor::GenTensor;
 #[cfg(feature = "use-cuda")]
 use crate::tensor::cuda_tensor::CudaTensor;
+use crate::tensor_trait::compare_tensor::CompareTensor;
 
-pub trait CompareTensor {
-    type TensorType;
-
-    fn max_pair(&self, o: &Self::TensorType) -> Self::TensorType;
-    fn min_pair(&self, o: &Self::TensorType) -> Self::TensorType;
-    
-}
 
 impl<T> CompareTensor for GenTensor<T> where T: num_traits::Float {
     type TensorType = GenTensor<T>;

@@ -7,39 +7,8 @@ use crate::tensor::index_slicing::IndexSlicing;
 use crate::tensor::blas::BlasAPI;
 #[cfg(feature = "use-cuda")]
 use crate::tensor::cuda_tensor::CudaTensor;
+use crate::tensor_trait::convolution::Convolution;
 
-pub trait Convolution where Self: std::marker::Sized {
-
-    fn conv2d(&self, filter: &Self,
-                  stride: (usize, usize),
-                  padding: (usize, usize),
-                  dilation: (usize, usize),
-                  padding_mode: PaddingMode
-    ) -> Self;
-
-    fn conv2d_grad(&self, filter: &Self,
-                       stride: (usize, usize),
-                       padding: (usize, usize),
-                       dilation: (usize, usize),
-                       padding_mode: PaddingMode,
-                       output_grad: &Self
-    ) -> (Self, Self);
-
-    fn conv_gen(&self, filter: &Self,
-                    stride: &[usize],
-                    padding: &[usize],
-                    dilation: &[usize],
-                    padding_mode: PaddingMode
-    ) -> Self;
-
-    fn conv_grad_gen(&self, filter: &Self,
-                         stride: &[usize],
-                         padding: &[usize],
-                         dilation: &[usize],
-                         padding_mode: PaddingMode,
-                         output_grad: &Self,
-    ) -> (Self, Self);
-}
 
 impl<T> Convolution for GenTensor<T> where T: num_traits::Float {
 
@@ -668,7 +637,7 @@ blas_conv!(f64, gemm_conv_f64);
 #[cfg(test)]
 mod tests {
     use crate::tensor::gen_tensor::GenTensor;
-    use crate::tensor::index_slicing::IndexSlicing;
+    use crate::tensor_trait::index_slicing::IndexSlicing;
     use super::*;
 
 

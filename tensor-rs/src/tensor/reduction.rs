@@ -1,29 +1,8 @@
 use crate::tensor::gen_tensor::GenTensor;
 #[cfg(feature = "use-cuda")]
 use crate::tensor::cuda_tensor::CudaTensor;
+use crate::tensor_trait::reduction::ReduceTensor;
 
-pub trait ReduceTensor where Self: std::marker::Sized {
-
-    fn argmax(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self;
-    fn argmin(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self;
-    fn dist();
-    fn logsumexp(&self, dim: Option<&[usize]>, keep_dim: bool) -> Self;
-    fn mean(&self, dim: Option<&[usize]>, keepdim: bool) -> Self;
-    fn median();
-    fn mode();
-    fn prod(&self, dim: Option<&[usize]>, keepdim: bool) -> Self;
-    fn std(&self, dim: Option<&[usize]>, keepdim: bool) -> Self;
-    fn std_mean();
-    //fn sum(&self, dim: usize, keepdim: bool) -> Self::TensorType;
-    fn sum(&self, dim: Option<&[usize]>, keepdim: bool) -> Self;
-    fn unique();
-    fn unique_consecutive();
-    fn var(&self, dim: Option<&[usize]>, keepdim: bool) -> Self;
-    fn var_mean();
-
-    fn max(&self, dim: Option<&[usize]>, keepdim: bool) -> Self;
-    fn min(&self, dim: Option<&[usize]>, keepdim: bool) -> Self;
-}
 
 impl<T> GenTensor<T> where T: num_traits::Float {
     fn _argmax_min(&self, dim: Option<&[usize]>, keep_dim: bool, max: bool) -> Self {
@@ -201,7 +180,7 @@ impl<T> ReduceTensor for GenTensor<T> where T: num_traits::Float {
     /// Returns the sum of all elements.
     /// ```
     /// # use crate::tensor_rs::tensor::gen_tensor::*;
-    /// # use crate::tensor_rs::tensor::reduction::ReduceTensor;
+    /// # use crate::tensor_rs::tensor_trait::reduction::ReduceTensor;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,], &vec![2,2]);
     /// assert_eq!(m1.sum(None, false).get_scale(), 10.);
     /// ```

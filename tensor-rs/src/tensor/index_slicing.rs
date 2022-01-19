@@ -3,31 +3,8 @@ use std::cmp;
 use super::gen_tensor::GenTensor;
 #[cfg(feature = "use-cuda")]
 use super::cuda_tensor::CudaTensor;
+use crate::tensor_trait::index_slicing::IndexSlicing;
 
-pub trait IndexSlicing where Self: std::marker::Sized {
-
-    fn cat(&self, tensors: &[&Self], dim: usize) -> Self;
-    fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self>;
-    fn gather(&self, dim: usize, index: &Self) -> Self;
-    fn index_select(&self, dim: usize, index: &Self) -> Self;
-    // fn masked_select();
-    //pub fn narrow() {}
-    //pub fn nonzero() {}
-    fn reshape(&self, new_shape: &[usize]) -> Self;
-    fn split(&self, sections: &[usize], dim: usize) -> Vec<Self>;
-    fn squeeze(&self, dim: Option<usize>) -> Self;
-    fn stack(tensors: &[&Self], dim: usize) -> Self;
-    fn t(&self) -> Self;
-    fn take(&self, index: &[usize]) -> Self;
-    //pub fn transpose() {}
-    //pub fn unbind() {}
-    fn permute(&self, dims: &[usize]) -> Self;
-    fn unsqueeze(&self, dim: usize) -> Self;
-    //pub fn condition() {} // this is pytorch where
-    fn conditional_select(&self, x: &Self, y: &Self) -> Self;
-
-    fn repeat(&self, sizes: &[usize]) -> Self;
-}
 
 impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
 
@@ -280,7 +257,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     /// All tensors need to be of the same size.
     /// ```
     /// # use crate::tensor_rs::tensor::gen_tensor::*;
-    /// # use crate::tensor_rs::tensor::index_slicing::IndexSlicing;
+    /// # use crate::tensor_rs::tensor_trait::index_slicing::IndexSlicing;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
     /// let m2 = GenTensor::<f64>::new_raw(&vec![2.,3.,4.,5.,6.,7.], &vec![3,2]);
     /// let result = GenTensor::<f64>::stack(&vec![&m1, &m2], 1);
@@ -349,7 +326,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     ///
     /// ```
     /// # use tensor_rs::tensor::gen_tensor::*;
-    /// # use crate::tensor_rs::tensor::index_slicing::IndexSlicing;
+    /// # use crate::tensor_rs::tensor_trait::index_slicing::IndexSlicing;
     /// let mut m1 = GenTensor::<f64>::fill(1., &vec![2, 3, 5]);
     /// m1.permute(&vec![2, 0, 1]);
     /// ```

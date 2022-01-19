@@ -1351,7 +1351,7 @@ mod tests {
     }
 
     // Pointwise Ops
-    use crate::tensor::elemwise::ElemwiseTensorOp;
+    use crate::tensor_trait::elemwise::ElemwiseTensorOp;
     #[test]
     fn ceil() {
         let a = GenTensor::<f32>::new_raw(&vec![0.9213,  1.0887, -0.8858, -1.7683],

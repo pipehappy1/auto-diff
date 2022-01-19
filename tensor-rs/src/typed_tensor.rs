@@ -8,13 +8,13 @@ use super::tensor::gen_tensor::*;
 #[cfg(feature = "use-cuda")]
 use super::tensor::cuda_tensor::*;
 use crate::tensor::PaddingMode;
-use super::tensor::compare_tensor::CompareTensor;
-use super::tensor::elemwise::ElemwiseTensorOp;
-use super::tensor::index_slicing::IndexSlicing;
-use super::tensor::convolution::{Convolution};
+use super::tensor_trait::compare_tensor::CompareTensor;
+use super::tensor_trait::elemwise::ElemwiseTensorOp;
+use super::tensor_trait::index_slicing::IndexSlicing;
+use super::tensor_trait::convolution::{Convolution};
 #[cfg(feature = "use-blas")]
 use super::tensor::convolution::{gemm_conv_f32, gemm_conv_f64};
-use super::tensor::reduction::ReduceTensor;
+use super::tensor_trait::reduction::ReduceTensor;
 
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub enum TypedTensor {
