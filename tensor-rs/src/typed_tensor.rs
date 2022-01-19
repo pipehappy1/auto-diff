@@ -4,17 +4,17 @@ use std::mem::discriminant;
 #[cfg(feature = "use-serde")]
 use serde::{Serialize, Deserialize};
 
-use super::gen_tensor::*;
+use super::tensor::gen_tensor::*;
 #[cfg(feature = "use-cuda")]
-use super::cuda_tensor::*;
+use super::tensor::cuda_tensor::*;
 use crate::tensor::PaddingMode;
-use super::compare_tensor::CompareTensor;
-use super::elemwise::ElemwiseTensorOp;
-use super::index_slicing::IndexSlicing;
-use super::convolution::{Convolution};
+use super::tensor::compare_tensor::CompareTensor;
+use super::tensor::elemwise::ElemwiseTensorOp;
+use super::tensor::index_slicing::IndexSlicing;
+use super::tensor::convolution::{Convolution};
 #[cfg(feature = "use-blas")]
-use super::convolution::{gemm_conv_f32, gemm_conv_f64};
-use super::reduction::ReduceTensor;
+use super::tensor::convolution::{gemm_conv_f32, gemm_conv_f64};
+use super::tensor::reduction::ReduceTensor;
 
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub enum TypedTensor {

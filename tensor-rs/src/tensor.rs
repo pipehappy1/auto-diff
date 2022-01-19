@@ -20,7 +20,6 @@ pub mod cuda_tensor;
 #[cfg(feature = "use-cuda")]
 pub mod cuda_helper;
 pub mod blas;
-pub mod typed_tensor;
 pub mod compare_tensor;
 pub mod elemwise;
 pub mod index_slicing;
@@ -29,7 +28,7 @@ pub mod reduction;
 pub mod linalg;
 
 
-use typed_tensor::TypedTensor;
+use super::typed_tensor::TypedTensor;
 use gen_tensor::GenTensor;
 //use quaternion::Quaternion;
 
