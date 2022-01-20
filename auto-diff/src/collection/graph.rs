@@ -40,47 +40,41 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 
     /// iterator over data node.
-    pub fn list_data(&self) -> Vec<TData> {
-        let mut ret = Vec::new();
-
-        for i in &self.data {
-            ret.push(*i);
+    pub fn iter_data(&self) -> NodeIterator<TData> {
+        NodeIterator {
+            iter: self.data.iter()
         }
-        ret
     }
     /// iterator over op node.
-    pub fn list_op(&self) -> Vec<TOp> {
-        let mut ret = Vec::new();
-
-        for i in &self.op {
-            ret.push(*i);
+    pub fn iter_op(&self) -> NodeIterator<TOp> {
+        NodeIterator {
+            iter: self.op.iter()
         }
-        ret
     }
 
     ///
     /// Return the list of ops that the given variable is the input.
     ///
-    pub fn list_as_input(&self, var: &TData) -> Result<Vec<TOp>, &str> {
+    pub fn iter_op_given_input(&self, var: &TData) -> Result<NodeIterator<TOp>, &str> {
         if !self.data.contains(var) {
             Err("Not a valid variable/data")
         } else {
-            let ret: Vec<TOp> = self.forward_dt_op.get(var).expect("")
-                .iter().map(|x| x.clone()).collect();
-            Ok(ret)
+            Ok(NodeIterator {
+                iter: self.forward_dt_op.get(var).expect("").iter()
+            })
         }
     }
 
     ///
     /// Return the list of ops that the given variable is the output.
     ///
-    pub fn list_as_output(&self, var: &TData) -> Result<Vec<TOp>, &str> {
+    pub fn iter_op_given_output(&self, var: &TData) -> Result<NodeIterator<TOp>, &str> {
         if !self.data.contains(var) {
             Err("Not a valid variable/data")
         } else {
-            let ret: Vec<TOp> = self.backward_dt_op.get(var).expect("")
-                .iter().map(|x| x.clone()).collect();
-            Ok(ret)
+            Ok(NodeIterator {
+                iter: self.backward_dt_op.get(var).expect("").iter()
+            })
         }
     }
 
@@ -97,6 +91,16 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         }
     }
 
+    pub fn iter_input_given_op(&self, func: &TOp) -> Result<NodeIterator<TData>, &str> {
+        if !self.op.contains(func) {
+            Err("Bad func id.")
+        } else {
+            Ok(NodeIterator {
+                iter: self.backward_op_dt.get(func).expect("").iter()
+            })
+        }
+    }
+
     ///
     /// Return a list of data as the output of the op.
     ///
@@ -107,6 +111,16 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             let ret: Vec<TData> = self.forward_op_dt.get(func).expect("").
                 iter().map(|x| x.clone()).collect();
             Ok(ret)
+        }
+    }
+
+    pub fn iter_output_given_op(&self, func: &TOp) -> Result<NodeIterator<TData>, &str> {
+        if !self.op.contains(func) {
+            Err("Bad func id.")
+        } else {
+            Ok(NodeIterator {
+                iter: self.forward_op_dt.get(func).expect("").iter()
+            })
         }
     }
 
@@ -363,6 +377,18 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 }
 
+// iterator
+pub struct NodeIterator<'a, TNode> {
+    iter: std::collections::btree_set::Iter<'a, TNode>,
+}
+impl<'a, TNode> Iterator for NodeIterator<'a, TNode> {
+    type Item = &'a TNode;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+
 
 #[cfg(test)]
 mod tests {
@@ -421,6 +447,20 @@ mod tests {
 
         g.connect(&[data_a, data_b], &[data_c,], &op1).expect("");
         g.connect(&[data_c, data_d], &[data_e,], &op2).expect("");
+    }
+
+    #[test]
+    fn iter() {
+        let mut g = Graph::new();
+        setup_yy(&mut g);
+        
+        for i in g.iter_data() {
+            println!("{:?}", i);
+        }
+
+        for i in g.iter_op() {
+            println!("{:?}", i);
+        }
     }
 
     #[test]

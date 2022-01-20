@@ -45,8 +45,8 @@ impl Net {
     pub fn is_dangling_var(&self, var: &Var) -> Result<bool, ()> {
         if !self.data.contains(var.get_id()) {
             Err(())
-        } else if self.graph.list_as_input(var.get_id()).expect("").is_empty() &&
-            self.graph.list_as_output(var.get_id()).expect("").is_empty() {
+        } else if self.graph.iter_op_given_input(var.get_id()).expect("").count() == 0 &&
+            self.graph.iter_op_given_output(var.get_id()).expect("").count() == 0{
                 Ok(true)
             } else {
                 Ok(false)
@@ -273,8 +273,8 @@ impl Net {
             self.data_grad.insert(*k, v.clone());
         }
 
-        for i in self.graph.list_data() {
-            self.data_grad.entry(i).or_insert_with(|| Tensor::new());
+        for i in self.graph.iter_data() {
+            self.data_grad.entry(*i).or_insert(Tensor::new());
         }
         
         self.graph
@@ -330,19 +330,19 @@ impl Net {
         let allow_list = if let Some(val) = allow { val } else {Vec::new()};
         let skip_list = if let Some(val) = skip {val} else {Vec::new()};
         
-        for i in self.graph.list_op() {
+        for i in self.graph.iter_op() {
             if (allow_list.is_empty() && skip_list.is_empty()) ||
-                (!allow_list.is_empty() && allow_list.contains(&i)) ||
-                (!skip_list.is_empty() && !skip_list.contains(&i) ) {
-                    closure(self.ops.get(&i).expect(""));
+                (!allow_list.is_empty() && allow_list.contains(i)) ||
+                (!skip_list.is_empty() && !skip_list.contains(i) ) {
+                    closure(self.ops.get(i).expect(""));
             }
         }
     }
 
     pub fn visit_data<F>(&mut self, closure: F)
     where F: Fn(NetIndex, &Tensor) {
-        for i in self.graph.list_data() {
-            closure(i, self.data.get(&i).expect(""));
+        for i in self.graph.iter_data() {
+            closure(*i, self.data.get(i).expect(""));
         }
     }
 }
