@@ -382,20 +382,18 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
 
     /// Move all the graph/network structure to this graph,
     /// with the boundary for both the this and other graph are specified.
-    /// Return the map between other and self ids if the remap is true.
-    /// remap is useful if the two set of ids are not from the same id generator.
     pub fn append(&self, other: &mut Self,
                   boundary: &[TData], other_boundary: &[TData],
-                  remap: bool
-    ) -> Result<(BTreeMap<TData, TData>, BTreeMap<TOp, TOp>), &str> {
+    ) -> Result<(), &str> {
         if boundary.len() != other_boundary.len() {
             return Err("The boundary size should be equal for append two network.");
         }
+        if other.iter_op().any(|x| self.op.contains(x)) {
+            return Err("The op id cannot be overlap.");
+        }
+        if other.iter_data().any(|x| self.data.contains(x) && self.iter)
         
-        let data_map = BTreeMap::new();
-        let op_map = BTreeMap::new();
-
-        Ok((data_map, op_map))
+        Ok(())
     }
 }
 
