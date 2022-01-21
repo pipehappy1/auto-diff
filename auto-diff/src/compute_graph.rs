@@ -345,5 +345,9 @@ impl Net {
             closure(*i, self.data.get(i).expect(""));
         }
     }
+
+    pub fn append(&mut self, other: &mut Self) {
+        self.data.append(&mut other.data);
+    }
 }
 

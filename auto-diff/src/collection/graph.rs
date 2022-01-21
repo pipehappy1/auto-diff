@@ -391,7 +391,10 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         if other.iter_op().any(|x| self.op.contains(x)) {
             return Err("The op id cannot be overlap.");
         }
-        if other.iter_data().any(|x| self.data.contains(x) && self.iter)
+        if other.iter_data().any(|x| self.data.contains(x)
+                                 && self.get_output_edge_data().contains(x) ) {
+            return Err("The data id cannot be overlap.");
+        }
         
         Ok(())
     }

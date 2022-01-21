@@ -119,12 +119,49 @@ impl<T> GenIndex<T> {
             Err(())
         }
     }
+
+    pub fn append(&mut self, other: &mut GenIndex<T>) {
+        
+    }
 }
 
-impl<T> Iterator for GenIndex<T> {
+
+pub struct GenIndexIter<'a, T> {
+    index: usize,
+    gen_index_ref: &'a GenIndex<T>,
+}
+impl<'a, T> GenIndexIter<'a, T> {
+    pub fn new(index_ref: &GenIndex<T>) -> GenIndexIter<T> {
+        if index_ref.available.is_empty() {
+            GenIndexIter {
+                index: 0,
+                gen_index_ref: index_ref,
+            }
+        } else {
+            
+            GenIndexIter {
+                index: index_ref.available[0],
+                gen_index_ref: index_ref,
+            }
+        }
+        
+    }
+}
+impl<'a, T> Iterator for GenIndexIter<'a, T> {
     type Item = NetIndex;
     
     fn next(&mut self) -> Option<NetIndex> {
+        if self.gen_index_ref.available.is_empty() {
+            if self.data.len() == self.index {
+                return None
+            } else {
+                let ret = NetIndex::new(self.index, self.generation[self.index]);
+                self.index += 1;
+                return ret;
+            }
+        } else {
+            
+        }
         Some(NetIndex::new(0,0))
     }
 }
