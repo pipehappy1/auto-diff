@@ -58,7 +58,7 @@ impl Module {
     }
     
     pub fn rm_var(&mut self, var: &Var) {
-        self.net.borrow_mut().del_var(var);
+        self.net.borrow_mut().drop_var(var);
     }
 
     /// Try best evaluation of the computation graph.
@@ -274,7 +274,7 @@ impl Drop for Var {
     fn drop(&mut self) {
         let result = self.net.borrow().is_dangling_var(self);
         if result.ok().is_some() && result.ok().unwrap() {
-            self.net.borrow_mut().del_var(self);
+            self.net.borrow_mut().drop_var(self);
         }
     }
 }
@@ -365,7 +365,7 @@ impl Func {
                 let the_input = Var::_new(input_id, self.net.clone());
                 let result = self.net.borrow().is_dangling_var(&the_input);
                 if result.ok().is_some() && result.ok().unwrap() {
-                    self.net.borrow_mut().del_var(&the_input);
+                    self.net.borrow_mut().drop_var(&the_input);
                 }
             }
 

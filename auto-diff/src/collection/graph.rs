@@ -81,16 +81,6 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     ///
     /// Return the list of input given the func.
     ///
-    pub fn list_input(&self, func: &TOp) -> Result<Vec<TData>, &str> {
-        if !self.op.contains(func) {
-            Err("Bad func id.")
-        } else {
-            let ret: Vec<TData> = self.backward_op_dt.get(func).expect("").
-                iter().map(|x| x.clone()).collect();
-            Ok(ret)
-        }
-    }
-
     pub fn iter_input_given_op(&self, func: &TOp) -> Result<NodeIterator<TData>, &str> {
         if !self.op.contains(func) {
             Err("Bad func id.")
@@ -104,16 +94,6 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     ///
     /// Return a list of data as the output of the op.
     ///
-    pub fn list_output(&self, func: &TOp) -> Result<Vec<TData>, &str> {
-        if !self.op.contains(func) {
-            Err("Bad func id.")
-        } else {
-            let ret: Vec<TData> = self.forward_op_dt.get(func).expect("").
-                iter().map(|x| x.clone()).collect();
-            Ok(ret)
-        }
-    }
-
     pub fn iter_output_given_op(&self, func: &TOp) -> Result<NodeIterator<TData>, &str> {
         if !self.op.contains(func) {
             Err("Bad func id.")
@@ -146,7 +126,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 
     /// Remove a data node, op node and downstream data/op node are removed.
-    pub fn del_data(&mut self, id: &TData) -> Result<TData, &str> {
+    pub fn drop_data(&mut self, id: &TData) -> Result<TData, &str> {
         if self.data.contains(id) {
             self.data.remove(id);
             for i in self.forward_dt_op.get_mut(id).expect("").iter() {
@@ -177,7 +157,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 
     /// Remvoe an op node, input data node and downstream data/op node are removed.
-    pub fn del_op(&mut self, id: &TOp) -> Result<TOp, &str> {
+    pub fn drop_op(&mut self, id: &TOp) -> Result<TOp, &str> {
         if self.op.contains(id) {
             self.op.remove(id);
             for i in self.forward_op_dt.get_mut(id).expect("").iter() {
@@ -222,7 +202,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 
     /// list data node without upstream op node in a set.
-    pub fn get_input_cache(&self) -> BTreeSet<TData> {
+    pub fn get_input_edge_data(&self) -> BTreeSet<TData> {
         let mut jobs = BTreeSet::new();
         for i in &self.data {
             if self.backward_dt_op.get(i).expect("").is_empty() {
@@ -233,7 +213,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 
     /// list data node without downstream op node in a set.
-    pub fn get_output_cache(&self) -> BTreeSet<TData> {
+    pub fn get_output_edge_data(&self) -> BTreeSet<TData> {
         let mut jobs = BTreeSet::new();
         for i in &self.data {
             if self.forward_dt_op.get(i).expect("").is_empty() {
@@ -467,21 +447,21 @@ mod tests {
     fn test_get_input_cache() {
         let mut g = Graph::new();
         setup_y(&mut g);
-        assert_eq!(g.get_input_cache().len(), 2);
+        assert_eq!(g.get_input_edge_data().len(), 2);
 
         let mut g = Graph::<NetIndex, NetIndex>::new();
         setup_yy(&mut g);
-        assert_eq!(g.get_input_cache().len(), 3);
+        assert_eq!(g.get_input_edge_data().len(), 3);
     }
 
     #[test]
     fn test_get_output_cache() {
         let mut g = Graph::new();
         setup_y(&mut g);
-        assert_eq!(g.get_output_cache().len(), 1);
+        assert_eq!(g.get_output_edge_data().len(), 1);
 
         let mut g = Graph::<NetIndex, NetIndex>::new();
         setup_yy(&mut g);
-        assert_eq!(g.get_output_cache().len(), 1);
+        assert_eq!(g.get_output_edge_data().len(), 1);
     }
 }

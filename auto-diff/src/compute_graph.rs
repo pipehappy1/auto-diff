@@ -62,12 +62,10 @@ impl Net {
     /// Return one output variable id if there is one.
     ///
     pub fn get_func_output(&self, func: &Func) -> Option<NetIndex> {
-        let outputs = self.graph.list_output(func.get_id()).ok()?;
-        if !outputs.is_empty() {
-            Some(outputs[0])            
-        } else {
-            None
+        for i in self.graph.iter_output_given_op(func.get_id()).ok()? {
+            return Some(*i)
         }
+        None
     }
 
     /// Insert an empty var into the network.
@@ -77,9 +75,9 @@ impl Net {
         id
     }
 
-    pub fn del_var(&mut self, var: &Var) {
+    pub fn drop_var(&mut self, var: &Var) {
         self.data.remove(var.get_id()).expect("");
-        self.graph.del_data(var.get_id()).expect("");
+        self.graph.drop_data(var.get_id()).expect("");
     }
 
     /// Insert operator into the network.
@@ -105,7 +103,7 @@ impl Net {
     ///
     pub fn del_func_or_op(&mut self, func: &Func) {
         let _ = self.ops.remove(func.get_id());
-        let _ = self.graph.del_op(func.get_id());
+        let _ = self.graph.drop_op(func.get_id());
 
         // ignore the result as to allow duplicate delete
 
@@ -128,9 +126,11 @@ impl Net {
     ///
     pub fn decouple_input(&mut self, func: &Func) -> Vec<NetIndex> {
         let mut decoupled_inputs = Vec::new();
-        for i in &self.graph.list_input(func.get_id()).expect("") {
-            self.graph.decouple_data_func(i, func.get_id()).expect("");
-            decoupled_inputs.push(*i);
+        let inputs: Vec<NetIndex> = self.graph.iter_input_given_op(func.get_id())
+            .expect("").map(|x| x.clone()).collect();
+        for i in inputs {
+            self.graph.decouple_data_func(&i, func.get_id()).expect("");
+            decoupled_inputs.push(i);
         }
         decoupled_inputs
     }
@@ -255,7 +255,7 @@ impl Net {
     }
 
     pub fn bptt_scale(&mut self, r: f32) {
-        let output = self.graph.get_output_cache();
+        let output = self.graph.get_output_edge_data();
         let mut output_grad = BTreeMap::new();
         for i in &output {
             output_grad.insert(*i,
