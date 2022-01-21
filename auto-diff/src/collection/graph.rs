@@ -53,7 +53,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 
     ///
-    /// Return the list of ops that the given variable is the input.
+    /// Return the list of ops that the given variable is the input of the func.
     ///
     pub fn iter_op_given_input(&self, var: &TData) -> Result<NodeIterator<TOp>, &str> {
         if !self.data.contains(var) {
@@ -261,9 +261,23 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         }
     }
 
+    /// Auxilary connect, This allows the graph to support loop.
+    pub fn connect_aux(&mut self, input_data: &[TData],
+                       output_data: &[TData],
+                       op: &TOp) -> Result<TOp, &str> {
+        if !self.op.contains(op) ||
+            input_data.iter().any(|x| !self.data.contains(x)) ||
+            output_data.iter().any(|x| !self.data.contains(x)) {
+                return Err("Invalid id!");
+            }
+        unimplemented!();
+        //return Ok(*op);
+    }
+
     ///
     /// Walk through the graph with a starting set of data nodes.
     /// Go through backwards if forward is false.
+    /// The closure call provides the side-effect.
     ///
     pub fn walk<F>(&self, start_set: &[TData],
                    forward: bool,
@@ -355,6 +369,34 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             Ok(())
         }
     }
+
+    /////
+    ///// Walk through the graph with a starting set of data nodes.
+    ///// Go through backwards if forward is false.
+    /////
+    //pub fn walk_dyn(&self, start_set: &[TData],
+    //               forward: bool,
+    //                closure: dyn Calling) -> Result<(), BTreeSet<TData>> {
+    //    Ok(())
+    //}
+
+    /// Move all the graph/network structure to this graph,
+    /// with the boundary for both the this and other graph are specified.
+    /// Return the map between other and self ids if the remap is true.
+    /// remap is useful if the two set of ids are not from the same id generator.
+    pub fn append(&self, other: &mut Self,
+                  boundary: &[TData], other_boundary: &[TData],
+                  remap: bool
+    ) -> Result<(BTreeMap<TData, TData>, BTreeMap<TOp, TOp>), &str> {
+        if boundary.len() != other_boundary.len() {
+            return Err("The boundary size should be equal for append two network.");
+        }
+        
+        let data_map = BTreeMap::new();
+        let op_map = BTreeMap::new();
+
+        Ok((data_map, op_map))
+    }
 }
 
 // iterator
@@ -367,6 +409,11 @@ impl<'a, TNode> Iterator for NodeIterator<'a, TNode> {
         self.iter.next()
     }
 }
+
+/////
+//pub trait Calling {
+//    fn calling<TData, TOp>(self, input: &[TData], output: &[TData], op: &TOp);
+//}
 
 
 
