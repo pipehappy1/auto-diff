@@ -185,6 +185,27 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         ret
     }
 
+    fn index_exclude(&self, dim: usize, index: &Self) -> Self {
+        if dim >= self.size().len() {
+            panic!("index_exclude needs better dim: {:?}, {:?}", self.size(), dim);
+        }
+        if index.size().len() > 1 {
+            panic!("index_exclude needs 1-D index, get: {:?}", index.size());
+        }
+        for i in index.get_data() {
+            if *i >= T::from(self.size()[dim]).expect("") {
+                panic!("index_select gets out of range number at dim {:?}, given {:?}", self.size()[dim], i.to_usize());
+            }
+        }
+        let mut index: Vec<usize> = index.get_data().iter().map(|x| T::to_usize(x).expect("index_exclude needs usize.")).collect();
+        index.sort_unstable();
+        index.dedup();
+        let select_index: Vec<T> = (0..self.size()[dim]).filter(|x| !index.contains(x)).map(|x| T::from(x).unwrap()).collect();
+        let select_index = GenTensor::new_raw(&select_index, &[1]);
+
+        self.index_select(dim, &select_index)
+    }
+
     fn reshape(&self, new_shape: &[usize]) -> Self {
         if self.size().iter().product::<usize>() != new_shape.iter().product::<usize>() {
             panic!("reshape expects the same number of elements {:?}, {:?}", self.size(), new_shape);

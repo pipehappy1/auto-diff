@@ -251,7 +251,33 @@ where T: num_traits::Float {
 
     // may ref to
     // https://stackoverflow.com/questions/32114054/matrix-inversion-without-numpy
-    fn inv(&self) -> Option<Self::TensorType> {unimplemented!();}
+    fn inv(&self) -> Option<Self::TensorType> {
+        if self.size().len() != 2 {
+            return None;
+        }
+        if self.size()[self.size().len()-2] != self.size()[self.size().len()-1] {
+            return None;
+        }
+
+        let mut ret = GenTensor::zeros_like(self);
+        for i in 0..self.numel() {
+            let index = self.index2dimpos(i);
+            let minor = self.index_exclude(0, &GenTensor::new_raw(&[T::from(index[0]).unwrap()], &[1]))
+                .index_exclude(1, &GenTensor::new_raw(&[T::from(index[1]).unwrap()], &[1])).det().unwrap();
+            println!("{:?}", minor.get_scale().to_f64().unwrap());
+            if (index[0] + index[1]) %2 == 0{
+                ret.set(&index, minor.get_scale());
+            } else {
+                ret.set(&index, minor.get_scale().neg());
+            }
+        }
+
+        let ret = ret.t();
+
+        let det = if let Some(det_val) = self.det() { det_val} else {return None;};
+
+        Some(ret.div(&det))
+    }
     fn pinv(&self) -> Self::TensorType {unimplemented!();}
 }
 
@@ -335,5 +361,12 @@ mod tests {
         let es = GenTensor::<f64>::new_raw(&[123.47723179013161, 15.503963229407585, 0.018804980460810704], &[3]);
         assert!(es.sub(&s.get_diag()).norm().get_scale() < 1e-6);
 
+    }
+
+    #[test]
+    fn inv() {
+        let m = GenTensor::<f64>::new_raw(&[3., 0., 2., 2., 0., -2., 0., 1., 1.], &[3,3]);
+        let inv_m = m.inv().unwrap();
+        println!("{:?}", inv_m);
     }
 }
