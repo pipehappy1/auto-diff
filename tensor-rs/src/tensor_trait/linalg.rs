@@ -9,7 +9,7 @@ pub trait LinearAlgbra {
     fn qr(&self) -> Option<[Self::TensorType; 2]>;
     fn eigen(&self) -> Option<[Self::TensorType; 2]>;
     fn cholesky(&self) -> Option<Self::TensorType>;
-    fn det(&self) -> Option<Self::ElementType>;
+    fn det(&self) -> Option<Self::TensorType>;
     fn svd(&self) -> Option<[Self::TensorType; 3]>;
     fn inv(&self) -> Option<Self::TensorType>;
     fn pinv(&self) -> Self::TensorType;

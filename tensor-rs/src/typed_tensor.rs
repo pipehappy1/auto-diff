@@ -15,6 +15,7 @@ use super::tensor_trait::convolution::{Convolution};
 #[cfg(feature = "use-blas")]
 use super::tensor_impl::lapack_tensor::convolution::{gemm_conv_f32, gemm_conv_f64};
 use super::tensor_trait::reduction::ReduceTensor;
+use super::tensor_trait::linalg::LinearAlgbra;
 
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub enum TypedTensor {
@@ -24,7 +25,10 @@ pub enum TypedTensor {
     Cudaf32(CudaTensor),
 }
 
-// used for size alike ops
+/// Micro for creating TypedTensor method with no additional argument and one return value.
+/// 0-v
+/// * `a` - The method name.
+/// * `b` - The type of return value.
 macro_rules! typed_tensor_method_single_same_return {
     ($a:ident, $b:ty) => {
         pub fn $a(&self) -> $b {
@@ -39,7 +43,9 @@ macro_rules! typed_tensor_method_single_same_return {
     }
 }
 
-// used for log alike ops
+/// Micro for creating TypedTensor method with no additional argument and return a TypedTensor as well.
+/// 0-s
+/// * `a` - The method name.
 macro_rules! typed_tensor_method_single_tensor_return {
     ($a:ident) => {
         pub fn $a(&self) -> TypedTensor {
@@ -68,6 +74,122 @@ macro_rules! typed_tensor_method {
         }
     }
 }
+
+macro_rules! typed_tensor_method_single_same_option_1_return {
+    ($a:ident) => {
+        pub fn $a(&self) -> Option<TypedTensor> {
+            match &self {
+                TypedTensor::Typef32(v1) => {
+                    match v1.$a() {
+                        Some(r1) => {
+                            Some(TypedTensor::Typef32(r1))
+                        },
+                        None => None
+                    }
+                },
+                TypedTensor::Typef64(v1) => {
+                    match v1.$a() {
+                        Some(r1) => {
+                            Some(TypedTensor::Typef64(r1))
+                        },
+                        None => None
+                    }
+                },
+                #[cfg(feature = "use-cuda")]
+                TypedTensor::Cudaf32(v1) => {
+                    match v1.$a() {
+                        Some(r1) => {
+                            Some(TypedTensor::Cudaf32(r1))
+                        },
+                        None => None
+                    }
+                },
+                //_ => {panic!("should have same tensor type!");},
+            }
+        }
+    }
+}
+
+macro_rules! typed_tensor_method_single_same_option_2_return {
+    ($a:ident) => {
+        pub fn $a(&self) -> Option<[TypedTensor; 2]> {
+            match &self {
+                TypedTensor::Typef32(v1) => {
+                    match v1.$a() {
+                        Some([r1, r2]) => {
+                            Some([TypedTensor::Typef32(r1),
+                                  TypedTensor::Typef32(r2),])
+                        },
+                        None => None
+                    }
+                },
+                TypedTensor::Typef64(v1) => {
+                    match v1.$a() {
+                        Some([r1, r2]) => {
+                            Some([TypedTensor::Typef64(r1),
+                                  TypedTensor::Typef64(r2),])
+                        },
+                        None => None
+                    }
+                },
+                #[cfg(feature = "use-cuda")]
+                TypedTensor::Cudaf32(v1) => {
+                    match v1.$a() {
+                        Some([r1, r2]) => {
+                            Some([TypedTensor::Cudaf32(r1),
+                                  TypedTensor::Cudaf32(r2),])
+                        },
+                        None => None
+                    }
+                },
+                //_ => {panic!("should have same tensor type!");},
+            }
+        }
+    }
+}
+
+macro_rules! typed_tensor_method_single_same_option_3_return {
+    ($a:ident) => {
+        pub fn $a(&self) -> Option<[TypedTensor; 3]> {
+            match &self {
+                TypedTensor::Typef32(v1) => {
+                    match v1.$a() {
+                        Some([r1, r2, r3]) => {
+                            Some([TypedTensor::Typef32(r1),
+                                  TypedTensor::Typef32(r2),
+                                  TypedTensor::Typef32(r3),])
+                        },
+                        None => None
+                    }
+                },
+                TypedTensor::Typef64(v1) => {
+                    match v1.$a() {
+                        Some([r1, r2, r3]) => {
+                            Some([TypedTensor::Typef64(r1),
+                                  TypedTensor::Typef64(r2),
+                                  TypedTensor::Typef64(r3),])
+                        },
+                        None => None
+                    }
+                },
+                #[cfg(feature = "use-cuda")]
+                TypedTensor::Cudaf32(v1) => {
+                    match v1.$a() {
+                        Some([r1, r2, r3]) => {
+                            Some([TypedTensor::Cudaf32(r1),
+                                  TypedTensor::Cudaf32(r2),
+                                  TypedTensor::Cudaf32(r3),])
+                        },
+                        None => None
+                    }
+                },
+                //_ => {panic!("should have same tensor type!");},
+            }
+        }
+    }
+}
+
+
 
 impl Default for TypedTensor {
     fn default() -> TypedTensor {
@@ -464,8 +586,37 @@ impl TypedTensor {
     }
 
     // linalg
-    
-
+    typed_tensor_method_single_tensor_return!(norm);
+    typed_tensor_method_single_tensor_return!(normalize_unit);
+    typed_tensor_method_single_same_option_2_return!(lu);
+    pub fn lu_solve(&self, b: &TypedTensor) -> Option<TypedTensor> {
+        match (&self, b) {
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(b1)) => {
+                match v1.lu_solve(b1) {
+                    Some(r) => {
+                        Some(TypedTensor::Typef32(r))
+                    },
+                    None => None
+                }
+            },
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(b1)) => {
+                match v1.lu_solve(b1) {
+                    Some(r) => {
+                        Some(TypedTensor::Typef64(r))
+                    },
+                    None => None
+                }
+            },
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
+    typed_tensor_method_single_same_option_2_return!(qr);
+    typed_tensor_method_single_same_option_2_return!(eigen);
+    typed_tensor_method_single_same_option_1_return!(cholesky);
+    typed_tensor_method_single_same_option_1_return!(det);
+    typed_tensor_method_single_same_option_3_return!(svd);
+    typed_tensor_method_single_same_option_1_return!(inv);
+    typed_tensor_method_single_tensor_return!(pinv);
     
     // Comparison Ops
     typed_tensor_method!(all_close);

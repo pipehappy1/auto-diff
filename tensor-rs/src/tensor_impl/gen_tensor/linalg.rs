@@ -179,10 +179,11 @@ where T: num_traits::Float {
         Some(ret)
     }
     
-    fn det(&self) -> Option<Self::ElementType> {
+    fn det(&self) -> Option<Self::TensorType> {
         if let Some(v) = self.lu() {
             let [_l, u] = v;
             let ret = u.get_diag().prod(None, false).get(&[0]);
+            let ret = GenTensor::new_raw(&[ret], &[1]);
             Some(ret)
         } else {
             None
@@ -291,7 +292,8 @@ mod tests {
     #[test]
     fn det() {
         let m = GenTensor::<f64>::new_raw(&[1., 1., 1., 4., 3., -1., 3., 5., 3.], &[3,3]);
-        assert_eq!(m.det(), Some(10.));
+        let r = m.det().unwrap().get_scale();
+        assert_eq!(r, 10.);
     }
 
     #[test]
