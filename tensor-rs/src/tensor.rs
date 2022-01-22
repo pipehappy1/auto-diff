@@ -19,8 +19,8 @@ use std::fmt;
 
 use super::typed_tensor::TypedTensor;
 use crate::tensor_impl::gen_tensor::GenTensor;
-//use quaternion::Quaternion;
 
+/// 2-to-1
 macro_rules! tensor_method {
     ($a:ident) => {
         pub fn $a(&self, o: &Tensor) -> Tensor {
@@ -31,6 +31,22 @@ macro_rules! tensor_method {
     }
 }
 
+/// 2-to-1option
+macro_rules! tensor_method_2_to_1option {
+    ($a:ident) => {
+        pub fn $a(&self, o: &Tensor) -> Option<Tensor> {
+            match self.v.borrow().$a(&o.v.borrow()) {
+                Some(v) => {
+                    Some(Tensor {
+                    v: Rc::new(RefCell::new(v))})
+                },
+                None => None
+            }
+        }
+    }
+}
+
+/// 1-to-other
 macro_rules! tensor_method_single_same_return {
     ($a:ident, $b:ty) => {
         pub fn $a(&self) -> $b {
@@ -39,11 +55,70 @@ macro_rules! tensor_method_single_same_return {
     }
 }
 
+/// 1-to-1
 macro_rules! tensor_method_single_tensor_return {
     ($a:ident) => {
         pub fn $a(&self) -> Tensor {
             Tensor {
                 v: Rc::new(RefCell::new(self.v.borrow().$a())),
+            }
+        }
+    }
+}
+
+/// 1-to-1option
+macro_rules! tensor_method_1_option_tensor_return {
+    ($a:ident) => {
+        pub fn $a(&self) -> Option<Tensor> {
+            let r = self.v.borrow().$a();
+            match r {
+                Some(r1) => {
+                    Some(Tensor {
+                        v: Rc::new(RefCell::new(r1)),
+                    })
+                },
+                None => None
+            }
+        }
+    }
+}
+
+/// 1-to-2option
+macro_rules! tensor_method_2_option_tensor_return {
+    ($a:ident) => {
+        pub fn $a(&self) -> Option<[Tensor; 2]> {
+            let r = self.v.borrow().$a();
+            match r {
+                Some([r1, r2]) => {
+                    Some([Tensor {
+                        v: Rc::new(RefCell::new(r1)),},
+                          Tensor {
+                              v: Rc::new(RefCell::new(r2)),
+                          }])
+                },
+                None => None
+            }
+        }
+    }
+}
+
+/// 1-to-3option
+macro_rules! tensor_method_3_option_tensor_return {
+    ($a:ident) => {
+        pub fn $a(&self) -> Option<[Tensor; 3]> {
+            let r = self.v.borrow().$a();
+            match r {
+                Some([r1, r2, r3]) => {
+                    Some([Tensor {
+                        v: Rc::new(RefCell::new(r1)),},
+                          Tensor {
+                              v: Rc::new(RefCell::new(r2)),
+                          },
+                          Tensor {
+                              v: Rc::new(RefCell::new(r3)),
+                          }])
+                },
+                None => None
             }
         }
     }
@@ -477,6 +552,7 @@ impl Tensor {
         }
     }
 
+    // linalg
     pub fn normalize(&self, mean: &[f32], std: &[f32]) -> Tensor {
         if self.size().len() != 2 {
             panic!("fn normalize is for two-dimensional data.");
@@ -504,6 +580,16 @@ impl Tensor {
         self.normalize(&vec![0. ; self.size()[self.size().len()-1]],
                        &vec![1. ; self.size()[self.size().len()-1]])
     }
+
+    tensor_method_2_option_tensor_return!(lu);
+    tensor_method_2_to_1option!(lu_solve);
+    tensor_method_2_option_tensor_return!(qr);
+    tensor_method_2_option_tensor_return!(eigen);
+    tensor_method_1_option_tensor_return!(cholesky);
+    tensor_method_1_option_tensor_return!(det);
+    tensor_method_3_option_tensor_return!(svd);
+    tensor_method_1_option_tensor_return!(inv);
+    tensor_method_single_tensor_return!(pinv);
 
 
     // Comparison Ops
