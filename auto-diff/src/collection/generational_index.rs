@@ -120,6 +120,10 @@ impl<T> GenIndex<T> {
         }
     }
 
+    pub fn iter_key(&self) -> GenIndexIter<T> {
+        GenIndexIter::<T>::new(self)
+    }
+
     pub fn append(&mut self, other: &mut GenIndex<T>) {
         
     }
@@ -132,37 +136,44 @@ pub struct GenIndexIter<'a, T> {
 }
 impl<'a, T> GenIndexIter<'a, T> {
     pub fn new(index_ref: &GenIndex<T>) -> GenIndexIter<T> {
-        if index_ref.available.is_empty() {
-            GenIndexIter {
-                index: 0,
-                gen_index_ref: index_ref,
-            }
-        } else {
-            
-            GenIndexIter {
-                index: index_ref.available[0],
-                gen_index_ref: index_ref,
-            }
+        GenIndexIter {
+            index: 0,
+            gen_index_ref: index_ref,
         }
-        
     }
 }
 impl<'a, T> Iterator for GenIndexIter<'a, T> {
     type Item = NetIndex;
     
     fn next(&mut self) -> Option<NetIndex> {
-        if self.gen_index_ref.available.is_empty() {
-            if self.data.len() == self.index {
-                return None
-            } else {
-                let ret = NetIndex::new(self.index, self.generation[self.index]);
-                self.index += 1;
-                return ret;
-            }
-        } else {
-            
+        let ret: NetIndex;
+        if self.gen_index_ref.data.is_empty() {
+            return None;
         }
-        Some(NetIndex::new(0,0))
+        if self.gen_index_ref.data.len() == self.index {
+            return None;
+        } else {
+            if self.gen_index_ref.available.is_empty() {
+                ret = NetIndex::new(self.index,
+                                    self.gen_index_ref.generation[self.index]);
+            } else {
+                loop {
+                    if self.gen_index_ref.data.len() == self.index {
+                        return None;
+                    }
+                    if self.gen_index_ref.available.contains(&self.index) {
+                        self.index += 1;
+                    } else {
+                        ret = NetIndex::new(self.index,
+                                            self.gen_index_ref.generation[self.index]);
+                        break;
+                    }
+                }
+            }
+            
+            self.index += 1;
+            return Some(ret);
+        }
     }
 }
 
@@ -215,5 +226,33 @@ mod tests {
     
         let index3 = a.insert(A { v: 30 });
         assert_eq!(index3, NetIndex::new(1, 1));
+    }
+
+    #[test]
+    fn iter() {
+        #[derive(Debug, Copy, Clone)]
+        struct A {
+            v: u32,
+        }
+        let mut a = GenIndex::<A>::new();
+
+        let index1 = a.insert(A { v: 10 });
+        let index2 = a.insert(A { v: 20 });
+        let index3 = a.insert(A { v: 30 });
+
+        let keys: Vec<NetIndex> = a.iter_key().collect();
+        assert_eq!(keys, vec![NetIndex::new(0, 0), NetIndex::new(1, 0), NetIndex::new(2, 0)]);
+
+        a.remove(&index2).expect("");
+        let keys: Vec<NetIndex> = a.iter_key().collect();
+        assert_eq!(keys, vec![NetIndex::new(0, 0), NetIndex::new(2, 0)]);
+
+        a.remove(&index3).expect("");
+        let keys: Vec<NetIndex> = a.iter_key().collect();
+        assert_eq!(keys, vec![NetIndex::new(0, 0)]);
+
+        a.remove(&index1).expect("");
+        let keys: Vec<NetIndex> = a.iter_key().collect();
+        assert_eq!(keys, vec![]);
     }
 }
