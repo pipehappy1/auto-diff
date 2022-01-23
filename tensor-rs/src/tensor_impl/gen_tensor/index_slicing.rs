@@ -480,8 +480,22 @@ mod tests {
     fn index_select() {
         let a = GenTensor::new_raw(&GenTensor::<f32>::arange(30).get_data(), &[2, 3, 5]);
         let b = a.index_select(0, &GenTensor::new_raw(&[0., 0., 1., 0., 0.], &[5]));
-        println!("{:?}", b);
+        //println!("{:?}", b);
         assert_eq!(b, GenTensor::new_raw(&[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0], &[5, 3, 5]));
+
+        let m = GenTensor::<f64>::new_raw(&[3., 0., 2., 2., 0., -2., 0., 1., 1.], &[3,3]);
+        let s = m.index_select(0, &GenTensor::new_raw(&[1., 2.], &[2]));
+        let s = s.index_select(1, &GenTensor::new_raw(&[1., 2.], &[2]));
+        println!("{:?}", s);
+    }
+
+    #[test]
+    fn index_exclude() {
+        let m = GenTensor::<f64>::new_raw(&[3., 0., 2., 2., 0., -2., 0., 1., 1.], &[3,3]);
+        let s = m.index_exclude(0, &GenTensor::new_raw(&[0.], &[1]));
+        println!("{:?}", s);
+        let s = s.index_exclude(1, &GenTensor::new_raw(&[0.], &[1]));
+        println!("{:?}", s);
     }
 
     #[test]

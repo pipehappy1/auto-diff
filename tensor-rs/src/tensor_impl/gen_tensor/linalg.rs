@@ -180,9 +180,43 @@ where T: num_traits::Float {
     }
     
     fn det(&self) -> Option<Self::TensorType> {
-        if let Some(v) = self.lu() {
+        if self.size().len() != 2 {
+            return None
+        }
+        if self.size()[0] != self.size()[1] {
+            return None
+        }
+        let n = self.size()[0];
+        let mut sign_pos = true;
+        let mut self_data = self.clone();
+
+        for i in 0..n {
+            if self_data.get(&[i, i]) == T::zero() {
+                let mut row_counter = 1;
+
+                loop {
+                    if i+row_counter == n {
+                        return Some(GenTensor::zeros(&[1])); // invalid
+                    }
+                    if self_data.get(&[i+row_counter, i]) == T::zero() {
+                        row_counter += 1;
+                    } else {
+                        sign_pos ^= true;
+                        let tmp_row = self.get_row(i);
+                        self_data.set_row(&self_data.get_row(i+row_counter), i);
+                        self_data.set_row(&tmp_row, i+row_counter);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        if let Some(v) = self_data.lu() {
             let [_l, u] = v;
-            let ret = u.get_diag().prod(None, false).get(&[0]);
+            let mut ret = u.get_diag().prod(None, false).get(&[0]);
+            if !sign_pos {
+                ret = ret.neg();
+            }
             let ret = GenTensor::new_raw(&[ret], &[1]);
             Some(ret)
         } else {
@@ -263,9 +297,10 @@ where T: num_traits::Float {
         for i in 0..self.numel() {
             let index = self.index2dimpos(i);
             let minor = self.index_exclude(0, &GenTensor::new_raw(&[T::from(index[0]).unwrap()], &[1]))
-                .index_exclude(1, &GenTensor::new_raw(&[T::from(index[1]).unwrap()], &[1])).det().unwrap();
-            println!("{:?}", minor.get_scale().to_f64().unwrap());
-            if (index[0] + index[1]) %2 == 0{
+                .index_exclude(1, &GenTensor::new_raw(&[T::from(index[1]).unwrap()], &[1]));
+            let minor = minor.det().unwrap();
+            
+            if (index[0] + index[1]) %2 == 0 {
                 ret.set(&index, minor.get_scale());
             } else {
                 ret.set(&index, minor.get_scale().neg());
@@ -320,6 +355,10 @@ mod tests {
         let m = GenTensor::<f64>::new_raw(&[1., 1., 1., 4., 3., -1., 3., 5., 3.], &[3,3]);
         let r = m.det().unwrap().get_scale();
         assert_eq!(r, 10.);
+
+        let m = GenTensor::<f64>::new_raw(&[0., -2., 1., 1.], &[2,2]);
+        let r = m.det().unwrap().get_scale();
+        assert_eq!(r, 2.);
     }
 
     #[test]
@@ -367,6 +406,7 @@ mod tests {
     fn inv() {
         let m = GenTensor::<f64>::new_raw(&[3., 0., 2., 2., 0., -2., 0., 1., 1.], &[3,3]);
         let inv_m = m.inv().unwrap();
-        println!("{:?}", inv_m);
+        let e_inv = GenTensor::<f64>::new_raw(&[0.2, 0.2, 0., -0.2, 0.3, 1., 0.2, -0.3, 0.], &[3,3]);
+        assert_eq!(inv_m, e_inv);
     }
 }
