@@ -283,8 +283,6 @@ where T: num_traits::Float {
         Some([u, s, v])
     }
 
-    // may ref to
-    // https://stackoverflow.com/questions/32114054/matrix-inversion-without-numpy
     fn inv(&self) -> Option<Self::TensorType> {
         if self.size().len() != 2 {
             return None;
@@ -313,7 +311,23 @@ where T: num_traits::Float {
 
         Some(ret.div(&det))
     }
-    fn pinv(&self) -> Self::TensorType {unimplemented!();}
+    
+    fn pinv(&self) -> Self::TensorType {
+        let [u, s, v] = self.svd().unwrap();
+        let m = s.size()[self.size().len()-2];
+        let n = s.size()[self.size().len()-1];
+        let mut diag_v = Vec::new();
+        for i in 0..cmp::min(m, n) {
+            if s.get(&[i, i]) != T::zero() {
+                diag_v.push(s.get(&[i, i]));
+            } else {
+                break;
+            }
+        }
+        let mut s = GenTensor::zeros(&[diag_v.len(), diag_v.len()]);
+        s.set_diag(&GenTensor::new_raw(&diag_v, &[diag_v.len()]));
+        v.matmul(&s).matmul(&u.t())
+    }
 }
 
 
@@ -396,10 +410,13 @@ mod tests {
     fn svd() {
         let m = GenTensor::<f64>::new_raw(&[4., 12., -16., 12., 37., -43., -16., -43., 98.], &[3,3]);
         let [_u, s, _v] = m.svd().unwrap();
-        //println!("{:?}, {:?}, {:?}", u, s, v);
+        println!("{:?}, {:?}, {:?}", _u, s, _v);
         let es = GenTensor::<f64>::new_raw(&[123.47723179013161, 15.503963229407585, 0.018804980460810704], &[3]);
         assert!(es.sub(&s.get_diag()).norm().get_scale() < 1e-6);
 
+        println!("{:?}", _u.matmul(&s).matmul(&_v.t()));
+        println!("{:?}", _u.matmul(&_u.t()));
+        println!("{:?}", _v.matmul(&_v.t()));
     }
 
     #[test]
@@ -408,5 +425,12 @@ mod tests {
         let inv_m = m.inv().unwrap();
         let e_inv = GenTensor::<f64>::new_raw(&[0.2, 0.2, 0., -0.2, 0.3, 1., 0.2, -0.3, 0.], &[3,3]);
         assert_eq!(inv_m, e_inv);
+    }
+
+    #[test]
+    fn pinv() {
+        let m = GenTensor::<f64>::new_raw(&[2., -1., 1., 4., 3., -2., 4., 5., -2.], &[3, 3]);
+        let pinv_m = m.pinv();
+        println!("{:?}", pinv_m.matmul(&m));
     }
 }
