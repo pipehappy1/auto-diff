@@ -1,7 +1,7 @@
 #![allow(clippy::redundant_closure)]
 use std::collections::{BTreeSet, BTreeMap};
 
-use crate::collection::generational_index::{GenIndex, NetIndex};
+use crate::collection::generational_index::{GenIndex, GenKey};
 use crate::collection::graph::Graph;
 use tensor_rs::tensor::Tensor;
 use crate::op::*;
@@ -12,10 +12,10 @@ use crate::var::*;
 pub struct Net {
     data: GenIndex<Tensor>,
     ops: GenIndex<Op>,
-    funcs: BTreeMap<NetIndex, Vec<NetIndex>>, // for func composition
-    set_mark: BTreeSet<NetIndex>,
-    graph: Graph<NetIndex, NetIndex>,
-    data_grad: BTreeMap<NetIndex, Tensor>,
+    funcs: BTreeMap<GenKey, Vec<GenKey>>, // for func composition
+    set_mark: BTreeSet<GenKey>,
+    graph: Graph<GenKey, GenKey>,
+    data_grad: BTreeMap<GenKey, Tensor>,
 }
 
 impl Net {
@@ -54,14 +54,14 @@ impl Net {
 
     }
 
-    pub fn get_grad(&self)  -> &BTreeMap<NetIndex, Tensor> {
+    pub fn get_grad(&self)  -> &BTreeMap<GenKey, Tensor> {
         &self.data_grad
     }
 
     ///
     /// Return one output variable id if there is one.
     ///
-    pub fn get_func_output(&self, func: &Func) -> Option<NetIndex> {
+    pub fn get_func_output(&self, func: &Func) -> Option<GenKey> {
         for i in self.graph.iter_output_given_op(func.get_id()).ok()? {
             return Some(*i)
         }
@@ -69,7 +69,7 @@ impl Net {
     }
 
     /// Insert an empty var into the network.
-    pub fn init_var(&mut self) -> NetIndex {
+    pub fn init_var(&mut self) -> GenKey {
         let id = self.data.insert(Tensor::new());
         self.graph.add_data(&id).expect("");
         id
@@ -81,7 +81,7 @@ impl Net {
     }
 
     /// Insert operator into the network.
-    pub fn init_op(&mut self, op: Op) -> NetIndex {
+    pub fn init_op(&mut self, op: Op) -> GenKey {
         let id = self.ops.insert(op);
         self.graph.add_op(&id).expect("");
         self.funcs.insert(id, Vec::new());
@@ -91,7 +91,7 @@ impl Net {
     ///
     /// For Module::func, insert a new composed func.
     ///
-    pub fn init_func(&mut self, funcs: &[NetIndex]) -> NetIndex {
+    pub fn init_func(&mut self, funcs: &[GenKey]) -> GenKey {
         let id = self.ops.insert(Op::nop());
         self.graph.add_op(&id).expect("");
         self.funcs.insert(id, funcs.to_vec());
@@ -124,9 +124,9 @@ impl Net {
     /// Disconnect the variable and the function the variable is the input.
     /// Delete the variable if it becomes the dangling variable.
     ///
-    pub fn decouple_input(&mut self, func: &Func) -> Vec<NetIndex> {
+    pub fn decouple_input(&mut self, func: &Func) -> Vec<GenKey> {
         let mut decoupled_inputs = Vec::new();
-        let inputs: Vec<NetIndex> = self.graph.iter_input_given_op(func.get_id())
+        let inputs: Vec<GenKey> = self.graph.iter_input_given_op(func.get_id())
             .expect("").map(|x| x.clone()).collect();
         for i in inputs {
             self.graph.decouple_data_func(&i, func.get_id()).expect("");
@@ -139,7 +139,7 @@ impl Net {
     /// Return a vec of sub ops for the given op.
     /// Empty should be returned if the input is a concrete op.
     ///
-    pub fn get_sub_func(&self, func: NetIndex) -> Vec<NetIndex> {
+    pub fn get_sub_func(&self, func: GenKey) -> Vec<GenKey> {
         self.funcs.get(&func).expect("").to_vec()
     }
 
@@ -161,7 +161,7 @@ impl Net {
     ///
     /// Build input-operator-output relation, with given components.
     ///
-    pub fn connect(&mut self, input: &[NetIndex], op: Op, output: &[NetIndex]) {
+    pub fn connect(&mut self, input: &[GenKey], op: Op, output: &[GenKey]) {
         println!("Deprecated! Graph::connect");
         let opid = self.init_op(op);
         self.graph.connect(input, output, &opid).expect("");
@@ -183,10 +183,10 @@ impl Net {
     }
 
     /// set the set_mark, set_mark is used to label var with input value with it.
-    pub fn set_mark(&mut self, did: &NetIndex) {
+    pub fn set_mark(&mut self, did: &GenKey) {
         self.set_mark.insert(*did);
     }
-    pub fn unset_mark(&mut self, did: &NetIndex) {
+    pub fn unset_mark(&mut self, did: &GenKey) {
         self.set_mark.remove(did);
     }
 
@@ -196,7 +196,7 @@ impl Net {
     //}
 
     /// Forward evaluate the computaiton graph.
-    pub fn eval(&mut self) -> Result<(), BTreeSet<NetIndex>> {
+    pub fn eval(&mut self) -> Result<(), BTreeSet<GenKey>> {
         println!("Deprecated! no more whole network forward pass.");
         let mut all_input = Vec::new();
         for i in &self.set_mark {
@@ -265,7 +265,7 @@ impl Net {
         self.bptt(&output_grad);
     }
 
-    pub fn bptt(&mut self, output_grad: &BTreeMap<NetIndex, Tensor>) {
+    pub fn bptt(&mut self, output_grad: &BTreeMap<GenKey, Tensor>) {
         let mut output = Vec::new();
         self.data_grad.clear();
         for (k, v) in output_grad {
@@ -324,8 +324,8 @@ impl Net {
 
     /// Iterate over all ops, no order guarantee
     pub fn visit_op<F>(&mut self, closure: F,
-                       allow: Option<Vec<NetIndex>>,
-                       skip: Option<Vec<NetIndex>>)
+                       allow: Option<Vec<GenKey>>,
+                       skip: Option<Vec<GenKey>>)
     where F: Fn(&Op) {
         let allow_list = if let Some(val) = allow { val } else {Vec::new()};
         let skip_list = if let Some(val) = skip {val} else {Vec::new()};
@@ -340,7 +340,7 @@ impl Net {
     }
 
     pub fn visit_data<F>(&mut self, closure: F)
-    where F: Fn(NetIndex, &Tensor) {
+    where F: Fn(GenKey, &Tensor) {
         for i in self.graph.iter_data() {
             closure(*i, self.data.get(i).expect(""));
         }

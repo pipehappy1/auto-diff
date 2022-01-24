@@ -108,9 +108,9 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     /// ```
     /// # use auto_diff::collection::graph::*;
     /// # use auto_diff::collection::generational_index::*;
-    /// let mut g = Graph::<NetIndex, NetIndex>::new();
-    /// let data1 = NetIndex::new(0,0);
-    /// let data2 = NetIndex::new(1,0);
+    /// let mut g = Graph::<GenKey, GenKey>::new();
+    /// let data1 = GenKey::new(0,0);
+    /// let data2 = GenKey::new(1,0);
     /// g.add_data(&data1);
     /// g.add_data(&data2);
     /// ```
@@ -421,11 +421,11 @@ impl<'a, TNode> Iterator for NodeIterator<'a, TNode> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::collection::generational_index::{NetIndex};
+    use crate::collection::generational_index::{GenKey};
     
     #[test]
     fn new() {
-        let _g = Graph::<NetIndex, NetIndex>::new();
+        let _g = Graph::<GenKey, GenKey>::new();
     }
 
     // A   B
@@ -433,15 +433,15 @@ mod tests {
     //   Op
     //   |
     //   C
-    fn setup_y(g: &mut Graph<NetIndex, NetIndex>) {
-        let data_a = NetIndex::new(0,0);
-        let data_b = NetIndex::new(1,0);
-        let data_c = NetIndex::new(2,0);
+    fn setup_y(g: &mut Graph<GenKey, GenKey>) {
+        let data_a = GenKey::new(0,0);
+        let data_b = GenKey::new(1,0);
+        let data_c = GenKey::new(2,0);
         g.add_data(&data_a).expect("");
         g.add_data(&data_b).expect("");
         g.add_data(&data_c).expect("");
         
-        let op_a = NetIndex::new(0,0);
+        let op_a = GenKey::new(0,0);
         g.add_op(&op_a).expect("");
 
         g.connect(&[data_a, data_b], &[data_c,], &op_a).expect("");
@@ -456,21 +456,21 @@ mod tests {
     //     Op2
     //     |
     //     E
-    fn setup_yy(g: &mut Graph<NetIndex, NetIndex>) {
-        let data_a = NetIndex::new(0,0);
-        let data_b = NetIndex::new(1,0);
-        let data_c = NetIndex::new(2,0);
-        let data_d = NetIndex::new(3,0);
-        let data_e = NetIndex::new(4,0);
+    fn setup_yy(g: &mut Graph<GenKey, GenKey>) {
+        let data_a = GenKey::new(0,0);
+        let data_b = GenKey::new(1,0);
+        let data_c = GenKey::new(2,0);
+        let data_d = GenKey::new(3,0);
+        let data_e = GenKey::new(4,0);
         g.add_data(&data_a).expect("");
         g.add_data(&data_b).expect("");
         g.add_data(&data_c).expect("");
         g.add_data(&data_d).expect("");
         g.add_data(&data_e).expect("");
         
-        let op1 = NetIndex::new(0,0);
+        let op1 = GenKey::new(0,0);
         g.add_op(&op1).expect("");
-        let op2 = NetIndex::new(1,0);
+        let op2 = GenKey::new(1,0);
         g.add_op(&op2).expect("");
 
         g.connect(&[data_a, data_b], &[data_c,], &op1).expect("");
@@ -497,7 +497,7 @@ mod tests {
         setup_y(&mut g);
         assert_eq!(g.get_input_edge_data().len(), 2);
 
-        let mut g = Graph::<NetIndex, NetIndex>::new();
+        let mut g = Graph::<GenKey, GenKey>::new();
         setup_yy(&mut g);
         assert_eq!(g.get_input_edge_data().len(), 3);
     }
@@ -508,7 +508,7 @@ mod tests {
         setup_y(&mut g);
         assert_eq!(g.get_output_edge_data().len(), 1);
 
-        let mut g = Graph::<NetIndex, NetIndex>::new();
+        let mut g = Graph::<GenKey, GenKey>::new();
         setup_yy(&mut g);
         assert_eq!(g.get_output_edge_data().len(), 1);
     }

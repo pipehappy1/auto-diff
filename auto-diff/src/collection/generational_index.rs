@@ -4,20 +4,20 @@
 /// even the container itself don't have the access to that index/key.
 use std::fmt;
 
-/// NetIndex index used for generational index.
+/// GenKey index used for generational index.
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Copy, Clone)]
-pub struct NetIndex {
+pub struct GenKey {
     id: usize,
     gen: usize,
 }
 
-impl NetIndex {
-    pub fn new(id: usize, gen: usize) -> NetIndex {
-        NetIndex { id, gen }
+impl GenKey {
+    pub fn new(id: usize, gen: usize) -> GenKey {
+        GenKey { id, gen }
     }
 }
 
-impl fmt::Display for NetIndex {
+impl fmt::Display for GenKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({}, {})", self.id, self.gen)
     }
@@ -53,12 +53,12 @@ impl<T> GenIndex<T> {
     ///
     /// Check if a key is in the collection
     ///
-    pub fn contains(&self, index: &NetIndex) -> bool {
+    pub fn contains(&self, index: &GenKey) -> bool {
         index.id < self.generation.len() && self.generation[index.id] == index.gen
     }
 
     /// Return the registered item
-    pub fn get(&self, index: &NetIndex) -> Option<&T> {
+    pub fn get(&self, index: &GenKey) -> Option<&T> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             Option::Some(&self.data[index.id])
         } else {
@@ -67,7 +67,7 @@ impl<T> GenIndex<T> {
     }
 
     /// Return a mut reference.
-    pub fn get_mut(&mut self, index: &NetIndex) -> Option<&mut T> {
+    pub fn get_mut(&mut self, index: &GenKey) -> Option<&mut T> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             Option::Some(&mut self.data[index.id])
         } else {
@@ -84,8 +84,8 @@ impl<T> GenIndex<T> {
     }
 
     /// Add a new item to the list.
-    pub fn insert(&mut self, val: T) -> NetIndex {
-        let mut ret = NetIndex::new(0, 0);
+    pub fn insert(&mut self, val: T) -> GenKey {
+        let mut ret = GenKey::new(0, 0);
         if self.available.is_empty() {
             ret.id = self.data.len();
             self.data.push(val);
@@ -100,7 +100,7 @@ impl<T> GenIndex<T> {
     }
 
     /// Remove an item from the list.
-    pub fn remove(&mut self, index: &NetIndex) -> Result<(), ()> {
+    pub fn remove(&mut self, index: &GenKey) -> Result<(), ()> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             self.generation[index.id] += 1;
             self.available.push(index.id);
@@ -111,7 +111,7 @@ impl<T> GenIndex<T> {
     }
 
     /// Replace the item of the index with a new one.
-    pub fn replace(&mut self, index: &NetIndex, val: T) -> Result<(), ()> {
+    pub fn replace(&mut self, index: &GenKey, val: T) -> Result<(), ()> {
         if index.id < self.data.len() && self.generation[index.id] == index.gen {
             self.data[index.id] = val;
             Ok(())
@@ -143,10 +143,10 @@ impl<'a, T> GenIndexIter<'a, T> {
     }
 }
 impl<'a, T> Iterator for GenIndexIter<'a, T> {
-    type Item = NetIndex;
+    type Item = GenKey;
     
-    fn next(&mut self) -> Option<NetIndex> {
-        let ret: NetIndex;
+    fn next(&mut self) -> Option<GenKey> {
+        let ret: GenKey;
         if self.gen_index_ref.data.is_empty() {
             return None;
         }
@@ -154,7 +154,7 @@ impl<'a, T> Iterator for GenIndexIter<'a, T> {
             return None;
         } else {
             if self.gen_index_ref.available.is_empty() {
-                ret = NetIndex::new(self.index,
+                ret = GenKey::new(self.index,
                                     self.gen_index_ref.generation[self.index]);
             } else {
                 loop {
@@ -164,7 +164,7 @@ impl<'a, T> Iterator for GenIndexIter<'a, T> {
                     if self.gen_index_ref.available.contains(&self.index) {
                         self.index += 1;
                     } else {
-                        ret = NetIndex::new(self.index,
+                        ret = GenKey::new(self.index,
                                             self.gen_index_ref.generation[self.index]);
                         break;
                     }
@@ -208,15 +208,15 @@ mod tests {
         let mut a = GenIndex::<A>::new();
     
         let index1 = a.insert(A { v: 10 });
-        assert_eq!(index1, NetIndex::new(0, 0));
+        assert_eq!(index1, GenKey::new(0, 0));
         let index2 = a.insert(A { v: 20 });
-        assert_eq!(index2, NetIndex::new(1, 0));
+        assert_eq!(index2, GenKey::new(1, 0));
     
         let tv1 = a.get(&index1).unwrap().v;
         assert_eq!(tv1, 10);
         let tv2 = a.get(&index2).unwrap().v;
         assert_eq!(tv2, 20);
-        let tv_none = a.get(&NetIndex::new(0, 1));
+        let tv_none = a.get(&GenKey::new(0, 1));
         assert_eq!(tv_none.is_none(), true);
     
         let a2 = a.remove(&index2);
@@ -225,7 +225,7 @@ mod tests {
         assert_eq!(a2.expect(""), ());
     
         let index3 = a.insert(A { v: 30 });
-        assert_eq!(index3, NetIndex::new(1, 1));
+        assert_eq!(index3, GenKey::new(1, 1));
     }
 
     #[test]
@@ -240,19 +240,19 @@ mod tests {
         let index2 = a.insert(A { v: 20 });
         let index3 = a.insert(A { v: 30 });
 
-        let keys: Vec<NetIndex> = a.iter_key().collect();
-        assert_eq!(keys, vec![NetIndex::new(0, 0), NetIndex::new(1, 0), NetIndex::new(2, 0)]);
+        let keys: Vec<GenKey> = a.iter_key().collect();
+        assert_eq!(keys, vec![GenKey::new(0, 0), GenKey::new(1, 0), GenKey::new(2, 0)]);
 
         a.remove(&index2).expect("");
-        let keys: Vec<NetIndex> = a.iter_key().collect();
-        assert_eq!(keys, vec![NetIndex::new(0, 0), NetIndex::new(2, 0)]);
+        let keys: Vec<GenKey> = a.iter_key().collect();
+        assert_eq!(keys, vec![GenKey::new(0, 0), GenKey::new(2, 0)]);
 
         a.remove(&index3).expect("");
-        let keys: Vec<NetIndex> = a.iter_key().collect();
-        assert_eq!(keys, vec![NetIndex::new(0, 0)]);
+        let keys: Vec<GenKey> = a.iter_key().collect();
+        assert_eq!(keys, vec![GenKey::new(0, 0)]);
 
         a.remove(&index1).expect("");
-        let keys: Vec<NetIndex> = a.iter_key().collect();
+        let keys: Vec<GenKey> = a.iter_key().collect();
         assert_eq!(keys, vec![]);
     }
 }

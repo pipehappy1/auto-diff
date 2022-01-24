@@ -75,7 +75,7 @@ impl Module {
     }
 
     /// Back propagation
-    pub fn backward_vector(&self, og: &BTreeMap<NetIndex, Tensor>) {
+    pub fn backward_vector(&self, og: &BTreeMap<GenKey, Tensor>) {
         self.net.borrow_mut().bptt(og);
     }
 
@@ -86,7 +86,7 @@ impl Module {
 
     /// iterator over all data node.
     pub fn _visit_data<F>(&self, closure: F)
-    where F: Fn(NetIndex, &Tensor) {
+    where F: Fn(GenKey, &Tensor) {
         self.net.borrow_mut().visit_data(closure);
     }
     /// iterator over all op node.
@@ -135,7 +135,7 @@ pub enum VarCmd{
 
 /// Introduce variable to the system by creating Var
 pub struct Var {
-    id: NetIndex,
+    id: GenKey,
     net: Rc<RefCell<Net>>,
     cmd: VarCmd,
 }
@@ -157,13 +157,13 @@ impl Var {
     pub fn _default() -> Var {
         println!("Var::new() create a unattached variable, This is usually not what we want.");
         Var {
-            id: NetIndex::new(0, 0),
+            id: GenKey::new(0, 0),
             net: Rc::new(RefCell::new(Net::new())),
             cmd: VarCmd::Nop,
         }
     }
 
-    pub fn _new(id: NetIndex, net: Rc<RefCell<Net>>) -> Var {
+    pub fn _new(id: GenKey, net: Rc<RefCell<Net>>) -> Var {
         Var {
             id: id,
             net: net,
@@ -191,14 +191,14 @@ impl Var {
     ///
     /// Getter for the id member.
     ///
-    pub fn get_id(&self) -> &NetIndex {
+    pub fn get_id(&self) -> &GenKey {
         &self.id
     }
 
     ///
     /// Setter for the id member.
     ///
-    pub fn set_id(&mut self, new_id: NetIndex) {
+    pub fn set_id(&mut self, new_id: GenKey) {
         self.id = new_id;
     }
 
@@ -301,7 +301,7 @@ pub fn crossentropyloss(predict: &Var, label: &Var) -> Var {
 /// User facing struct representing concrete ops and composed functions.
 ///
 pub struct Func {
-    id: NetIndex,
+    id: GenKey,
     net: Rc<RefCell<Net>>,
     closure: Option<Rc<Box<dyn Fn(&[&Var]) -> Var>>>,
 }
@@ -311,7 +311,7 @@ impl Func {
     /// This sould never be called? As func should always be valid?
     pub fn _default() -> Func {
         Func {
-            id: NetIndex::new(0, 0),
+            id: GenKey::new(0, 0),
             net: Rc::new(RefCell::new(Net::new())),
             closure: None,
         }
@@ -320,7 +320,7 @@ impl Func {
     /// _new should be used for create a new Func in module.
     /// The implementation is the Module::func() method for composed function
     /// and 
-    pub fn _new(id: NetIndex,
+    pub fn _new(id: GenKey,
                 net: Rc<RefCell<Net>>,
                 closure: Option<Rc<Box<dyn Fn(&[&Var]) -> Var>>>) -> Func {
         Func {
@@ -330,7 +330,7 @@ impl Func {
         }
     }
 
-    pub fn get_id(&self) -> &NetIndex {
+    pub fn get_id(&self) -> &GenKey {
         &self.id
     }
 
@@ -397,7 +397,7 @@ impl Func {
     pub fn _visit_op<F>(&self, closure: F)
     where F: Fn(&Op) {
         //let mut todo_funcs = vec![self.id];
-        //let mut all_ops: Vec<NetIndex> = Vec::new();
+        //let mut all_ops: Vec<GenKey> = Vec::new();
         //while todo_funcs.len() > 0 {
         //    let todo_func = todo_funcs.pop().expect("");
         //    let sub_funcs = self.net.borrow().get_sub_func(todo_func);
