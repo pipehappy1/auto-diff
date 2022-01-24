@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::collections::{BTreeMap};
 use std::fmt;
 use std::rc::Rc;
+use std::ops;
 
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use crate::op::*;
@@ -471,6 +472,18 @@ impl V {
 
     pub fn det(&self) -> f64 {
         unimplemented!();
+    }
+
+    pub fn add(self, rhs: &V) -> V {
+        unimplemented!();
+    }
+}
+
+impl ops::Add<V> for V {
+    type Output = V;
+
+    fn add(self, rhs: V) -> V {
+        self.add(&rhs)
     }
 }
 
