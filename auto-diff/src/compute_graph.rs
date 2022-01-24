@@ -42,6 +42,10 @@ impl Net {
         self.ops.get(func.get_id())
     }
 
+    pub fn get_grad(&self)  -> &BTreeMap<GenKey, Tensor> {
+        &self.data_grad
+    }
+
     pub fn is_dangling_var(&self, var: &Var) -> Result<bool, ()> {
         if !self.data.contains(var.get_id()) {
             Err(())
@@ -52,10 +56,6 @@ impl Net {
                 Ok(false)
             }
 
-    }
-
-    pub fn get_grad(&self)  -> &BTreeMap<GenKey, Tensor> {
-        &self.data_grad
     }
 
     ///
