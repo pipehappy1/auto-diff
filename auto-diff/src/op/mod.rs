@@ -6,16 +6,24 @@ use tensor_rs::tensor::Tensor;
 
 /// All op is OpTrait
 pub trait OpTrait {
-    
+
+    /// A conventional name for the op
     fn get_name(&self) -> String;
+
+    /// The number of input needs by this op.
     fn get_input_size(&self) -> usize;
+
+    /// The number of output produced by this op.
     fn get_output_size(&self) -> usize;
 
     /// Forward pass
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
-    fn call(&mut self, input: &[&Tensor]) -> Vec<Tensor> {
-        if input.len() < self.get_input_size() {
-            panic!("{} expect {} input, get {}", self.get_name(), self.get_input_size(), input.len());
+
+    
+    fn call(&mut self, input: &[&Tensor]) -> Result<Vec<Tensor>, &str> {
+        if input.len() != self.get_input_size() {
+            //return Err("{} expect {} input, get {}", self.get_name(), self.get_input_size(), input.len());
+            return Err("Op expect correct number of inputs.");
         }
         let ret = vec![Tensor::new(); self.get_output_size()];
         let mut ret_ref = Vec::new();
@@ -23,7 +31,7 @@ pub trait OpTrait {
             ret_ref.push(i);
         }
         self.apply(input, &ret_ref[..]);
-        ret
+        Ok(ret)
     }
     
     /// Given the forward input value and backward output_grad,
@@ -153,7 +161,7 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
 
 
     // system output
-    let output = op.call(one_input);
+    let output = op.call(one_input).unwrap();
     if output.len() > 1 || output[0].numel() > 1 {
         panic!("gradient checker only handle scale output case. {:?}, {:?}", output.len(), output[0].size());
     }
@@ -190,7 +198,7 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
 
             let mut right_input = one_input.to_vec();
             right_input[index] = &right_tensor;
-            let right_output = op.call(&right_input)[0].get_scale_f32();
+            let right_output = op.call(&right_input).unwrap()[0].get_scale_f32();
 
             let scale_gradient = (right_output - output)/delta;
             numeric_gradient[index].set_f32(&dimpos, scale_gradient);

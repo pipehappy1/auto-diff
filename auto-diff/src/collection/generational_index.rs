@@ -58,11 +58,11 @@ impl<T> GenIndex<T> {
     }
 
     /// Return the registered item
-    pub fn get(&self, index: &GenKey) -> Option<&T> {
+    pub fn get(&self, index: &GenKey) -> Result<&T, &str> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
-            Option::Some(&self.data[index.id])
+            Ok(&self.data[index.id])
         } else {
-            Option::None
+            Err("GenIndex cannot find the item by key!")
         }
     }
 

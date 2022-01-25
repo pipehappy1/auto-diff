@@ -4,9 +4,9 @@ use std::fmt;
 use std::ops;
 
 use tensor_rs::tensor::{Tensor, PaddingMode};
-
 use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
+use crate::op::{OpTrait, Mul};
 
 
 pub struct Var {
@@ -41,7 +41,20 @@ impl Var {
         }
     }
 
-    pub fn matmul(&self, other: &Var) -> Var {
+    pub fn mul(&self, other: &Var) -> Result<Var, &str> {
+
+        let other_key = self.net.borrow_mut().append(
+            &mut other.net.borrow_mut(), &[other.id])[0];
+
+        let mut op = Mul::new();
+        let t1 = self.net.borrow().get_tensor(self.id).unwrap();
+        //let t2 = self.net.borrow().get_tensor(other_key)?;
+        //let result = op.call(&[&self.net.borrow().get_tensor(self.id)?,
+        //                       &self.net.borrow().get_tensor(other_key)?])?;
+
+
+        // update computation graph
+
         unimplemented!();
     }
 
@@ -76,7 +89,7 @@ mod tests {
     fn add() {
         let a = Var::eye(2, 2);
         let b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
-        let c = a.matmul(&b);
+        let c = a.mul(&b);
         c.bp();
         assert_eq!(a.grad(), Var::new(&[1., 0., 0., 1.], &[2, 2]));
         assert_eq!(b.grad(), Var::new(&[1., 2., 3., 4.], &[2, 2]));

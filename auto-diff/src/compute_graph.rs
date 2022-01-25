@@ -5,7 +5,6 @@ use crate::collection::generational_index::{GenIndex, GenKey};
 use crate::collection::graph::Graph;
 use tensor_rs::tensor::Tensor;
 use crate::op::*;
-use crate::var::*;
 
 /// The computation network.
 /// Connection has duplication.
@@ -36,6 +35,13 @@ impl Net {
 
     pub fn get_data_mut(&mut self) -> &mut GenIndex<Tensor> {
         &mut self.data
+    }
+
+    pub fn get_tensor(&self, id: GenKey) -> Result<Tensor, &str> {
+        match self.data.get(&id) {
+            Ok(v) => {Ok(v.clone())},
+            Err(v) => {Err("bad tensor id")}
+        }
     }
 
 //    pub fn get_op(&self, func: &Func) -> Option<&Op> {
@@ -352,7 +358,8 @@ impl Net {
         }
     }
 
-    pub fn append(&mut self, other: &mut Self) {
+    pub fn append(&mut self, other: &mut Self,
+                  original_keys: &[GenKey]) -> Vec<GenKey> {
         let data_map = self.data.append(&mut other.data);
         let op_map = self.ops.append(&mut other.ops);
 
