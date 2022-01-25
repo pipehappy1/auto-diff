@@ -15,15 +15,40 @@ pub struct Var {
 }
 
 impl Var {
+
+    pub fn grad() -> Var {
+        unimplemented!();
+    }
+
+    #[cfg(feature = "use-f64")]
+    pub fn new(input: &[f64], dim: &[usize]) -> Var {
+        let mut net = Net::new();
+        let tensor = Tensor::from_vec_f64(input, dim);
+        let id = net.add_tensor(tensor);
+        Var {
+            id,
+            net: Rc::new(RefCell::new(net)),
+        }
+    }
+    
     pub fn eye(n: usize, m: usize) -> Var {
         let mut net = Net::new();
         let tensor = Tensor::eye(n, m);
-
-        
+        let id = net.add_tensor(tensor);
         Var {
-            
+            id,
+            net: Rc::new(RefCell::new(net)),
         }
     }
+
+    pub fn matmul(&self, other: &Var) -> Var {
+        unimplemented!();
+    }
+
+    pub fn bp(&self) -> Result<(), &str> {
+        unimplemented!();
+    }
+
 }
 
 

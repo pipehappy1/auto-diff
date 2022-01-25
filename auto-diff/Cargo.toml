@@ -42,3 +42,9 @@ tensorboard-rs = "0.2.2"
 
 [features]
 
+default = ["use-f64"]
+
+use-f32 = []
+use-f64 = []
+use-usize = []
+use-u8 = []
