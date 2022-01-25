@@ -347,7 +347,10 @@ impl Net {
     }
 
     pub fn append(&mut self, other: &mut Self) {
-        self.data.append(&mut other.data);
+        let data_map = self.data.append(&mut other.data);
+        let op_map = self.ops.append(&mut other.ops);
+
+        unimplemented!();
     }
 }
 

@@ -279,6 +279,9 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     /// Go through backwards if forward is false.
     /// The closure call provides the side-effect.
     ///
+    /// This Walk() guarantee the input of visiting op is already visited
+    /// or it's an input.
+    ///
     pub fn walk<F>(&self, start_set: &[TData],
                    forward: bool,
                    closure: F) -> Result<(), BTreeSet<TData>>
@@ -388,12 +391,8 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         if boundary.len() != other_boundary.len() {
             return Err("The boundary size should be equal for append two network.");
         }
-        if other.iter_op().any(|x| self.op.contains(x)) {
-            return Err("The op id cannot be overlap.");
-        }
-        if other.iter_data().any(|x| self.data.contains(x)
-                                 && self.get_output_edge_data().contains(x) ) {
-            return Err("The data id cannot be overlap.");
+        for i in boundary {
+            
         }
         
         Ok(())
