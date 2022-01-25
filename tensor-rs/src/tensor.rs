@@ -145,6 +145,10 @@ impl Tensor {
         }
     }
 
+    pub fn swap(&self, o: Tensor) {
+        self.v.swap(&o.v);
+    }
+
     /// Right most is the continous indexing,
     /// This method convert continuous index to index along each dimension.
     pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {
@@ -244,9 +248,7 @@ impl Tensor {
         self.v.borrow_mut().set_f32(o, v);
     }
 
-    pub fn swap(&self, o: Tensor) {
-        self.v.swap(&o.v);
-    }
+
     
     /// Returns a tensor of size size filled with fill_value.
     pub fn fill(size: &[usize], fill_value: f32) -> Tensor {
