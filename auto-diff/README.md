@@ -9,7 +9,7 @@ This is an auto-difference based learning library.
 
 ## Features
 
-- A type less tensor.
+- A type-less tensor.
 - Variable over tensor with support for back propagation.
 - Support for common operators, including convolution.
 
