@@ -25,5 +25,6 @@ pub mod op;
 pub mod collection;
 pub mod rand;
 pub mod optim;
+pub mod err;
 
 //pub use var1::{Module, Var};

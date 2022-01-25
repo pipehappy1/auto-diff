@@ -1,0 +1,46 @@
+use std::error::Error;
+use std::fmt;
+
+
+#[derive(Debug)]
+struct AutoDiffError {
+    details: String
+}
+
+impl AutoDiffError {
+    fn new(msg: &str) -> AutoDiffError {
+        AutoDiffError{
+            details: msg.to_string()
+        }
+    }
+}
+
+impl fmt::Display for AutoDiffError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,"{}",self.details)
+    }
+}
+
+impl Error for AutoDiffError {
+    fn description(&self) -> &str {
+        &self.details
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test() {
+
+        fn return_err() -> Result<(), AutoDiffError> {
+            Err(AutoDiffError::new(&format!("{:?}", 12)))
+        }
+
+        let e = return_err();
+        assert!(e.is_err());
+
+    }
+}

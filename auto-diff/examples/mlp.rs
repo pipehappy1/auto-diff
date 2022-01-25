@@ -6,8 +6,8 @@
 use tensor_rs::tensor::Tensor;
 use auto_diff::rand::RNG;
 use auto_diff::op::{Linear, Op, Sigmoid};
-use auto_diff::var::{Module, bcewithlogitsloss};
-use auto_diff::optim::{SGD, Optimizer};
+//use auto_diff::var::{Module, bcewithlogitsloss};
+//use auto_diff::optim::{SGD, Optimizer};
 use csv;
 use std::collections::{BTreeSet};
 
@@ -81,56 +81,56 @@ fn main() {
 
     
     // build the model
-    let mut m = Module::new();
-    let mut rng = RNG::new();
-    rng.set_seed(123);
-
-    let op1 = m.linear(Some(30), Some(10), true);
-    let weights = op1.get_values().unwrap();
-    rng.normal_(&weights[0], 0., 1.);
-    rng.normal_(&weights[1], 0., 1.);
-    op1.set_values(&weights);
-
-    let op2 = m.linear(Some(10), Some(1), true);
-    let weights = op2.get_values().unwrap();
-    rng.normal_(&weights[0], 0., 1.);
-    rng.normal_(&weights[1], 0., 1.);
-    op2.set_values(&weights);
-
-
-    let act = m.sigmoid();
-
-    let linear1 = op1.clone();
-    let linear2 = op2.clone();
-    let block = m.func(
-        move |x| {
-            let x1 = act.call(&[&linear1.call(x)]);
-            linear2.call(&[&x1])
-        }
-    );
-
-    let loss = m.bce_with_logits_loss();
-    
-    let mut opt = SGD::new(0.2);
-
-    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
-
-    for i in 0..500 {
-        let input = m.var_value(train_data.clone());
-        
-        let y = block.call(&[&input]);
-        
-        let loss = loss.call(&[&y, &m.var_value(train_label.clone())]);
-        println!("index: {}, loss: {}", i, loss.get().get_scale_f32());
-        
-        loss.backward(-1.);
-        opt.step2(&block);
-
-        let test_input = m.var_value(test_data.clone());
-        let y = block.call(&[&test_input]);
-        let tsum = y.get().sigmoid().sub(&test_label).sum(None, false);
-        writer.add_scalar("run1/loss", loss.get().get_scale_f32(), i);
-        writer.add_scalar("run1/accuracy", 1.-tsum.get_scale_f32()/(test_size as f32), i);
-        writer.flush();
-    }
+//    let mut m = Module::new();
+//    let mut rng = RNG::new();
+//    rng.set_seed(123);
+//
+//    let op1 = m.linear(Some(30), Some(10), true);
+//    let weights = op1.get_values().unwrap();
+//    rng.normal_(&weights[0], 0., 1.);
+//    rng.normal_(&weights[1], 0., 1.);
+//    op1.set_values(&weights);
+//
+//    let op2 = m.linear(Some(10), Some(1), true);
+//    let weights = op2.get_values().unwrap();
+//    rng.normal_(&weights[0], 0., 1.);
+//    rng.normal_(&weights[1], 0., 1.);
+//    op2.set_values(&weights);
+//
+//
+//    let act = m.sigmoid();
+//
+//    let linear1 = op1.clone();
+//    let linear2 = op2.clone();
+//    let block = m.func(
+//        move |x| {
+//            let x1 = act.call(&[&linear1.call(x)]);
+//            linear2.call(&[&x1])
+//        }
+//    );
+//
+//    let loss = m.bce_with_logits_loss();
+//    
+//    let mut opt = SGD::new(0.2);
+//
+//    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
+//
+//    for i in 0..500 {
+//        let input = m.var_value(train_data.clone());
+//        
+//        let y = block.call(&[&input]);
+//        
+//        let loss = loss.call(&[&y, &m.var_value(train_label.clone())]);
+//        println!("index: {}, loss: {}", i, loss.get().get_scale_f32());
+//        
+//        loss.backward(-1.);
+//        opt.step2(&block);
+//
+//        let test_input = m.var_value(test_data.clone());
+//        let y = block.call(&[&test_input]);
+//        let tsum = y.get().sigmoid().sub(&test_label).sum(None, false);
+//        writer.add_scalar("run1/loss", loss.get().get_scale_f32(), i);
+//        writer.add_scalar("run1/accuracy", 1.-tsum.get_scale_f32()/(test_size as f32), i);
+//        writer.flush();
+//    }
 }

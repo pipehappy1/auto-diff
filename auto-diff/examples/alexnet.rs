@@ -1,7 +1,7 @@
-use tensor_rs::tensor::Tensor;
-use auto_diff::var::{Module, Var, bcewithlogitsloss};
+//use tensor_rs::tensor::Tensor;
+//use auto_diff::var::{Module, Var, bcewithlogitsloss};
 
-fn alexnet(x: Var) {
+//fn alexnet(x: Var) {
 //      def __init__(self, num_classes=1000):
 //        super(AlexNet, self).__init__()
 //        self.features = nn.Sequential(
@@ -36,7 +36,7 @@ fn alexnet(x: Var) {
 //        x = torch.flatten(x, 1)
 //        x = self.classifier(x)
 //        return x
-}
+//}
 
 fn main() {
 }

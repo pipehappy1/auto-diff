@@ -149,6 +149,12 @@ impl Tensor {
         self.v.swap(&o.v);
     }
 
+    pub fn ref_copy(&self) -> Tensor {
+        Tensor {
+            v: self.v.clone(),
+        }
+    }
+
     /// Right most is the continous indexing,
     /// This method convert continuous index to index along each dimension.
     pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {

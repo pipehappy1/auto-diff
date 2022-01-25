@@ -39,7 +39,7 @@ impl Net {
 
     pub fn get_tensor(&self, id: GenKey) -> Result<Tensor, &str> {
         match self.data.get(&id) {
-            Ok(v) => {Ok(v.clone())},
+            Ok(v) => {Ok(v.ref_copy())},
             Err(v) => {Err("bad tensor id")}
         }
     }
