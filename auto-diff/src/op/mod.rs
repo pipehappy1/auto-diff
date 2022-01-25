@@ -4,81 +4,7 @@ use std::rc::Rc;
 
 use tensor_rs::tensor::Tensor;
 
-/// All op is OpTrait
-pub trait OpTrait {
-
-    /// A conventional name for the op
-    fn get_name(&self) -> String;
-
-    /// The number of input needs by this op.
-    fn get_input_size(&self) -> usize;
-
-    /// The number of output produced by this op.
-    fn get_output_size(&self) -> usize;
-
-    /// Forward pass
-    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
-
-    
-    fn call(&mut self, input: &[&Tensor]) -> Result<Vec<Tensor>, &str> {
-        if input.len() != self.get_input_size() {
-            //return Err("{} expect {} input, get {}", self.get_name(), self.get_input_size(), input.len());
-            return Err("Op expect correct number of inputs.");
-        }
-        let ret = vec![Tensor::new(); self.get_output_size()];
-        let mut ret_ref = Vec::new();
-        for i in &ret {
-            ret_ref.push(i);
-        }
-        self.apply(input, &ret_ref[..]);
-        Ok(ret)
-    }
-    
-    /// Given the forward input value and backward output_grad,
-    /// Update weight gradient.
-    /// return backward input gradeint.
-    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]);
-
-    /// access weight values
-    fn get_values(&self) -> Vec<&Tensor>;
-    fn set_values(&self, v: &[Tensor]);
-    /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor>;
-}
-
-pub struct Nop {
-}
-impl OpTrait for Nop {
-    fn get_name(&self) -> String {
-        "Nop".to_string()
-    }
-    fn get_input_size(&self) -> usize {
-        0
-    }
-    fn get_output_size(&self) -> usize {
-        0
-    }
-
-    /// Forward pass
-    fn apply(&mut self, _input: &[&Tensor], _output: &[&Tensor]) {
-        
-    }
-    fn grad(&self, _input: &[&Tensor], _output_grad: &[&Tensor], _input_grad: &[&Tensor]) {
-        
-    }
-
-    /// access weight values
-    fn get_values(&self) -> Vec<&Tensor> {
-        Vec::new()
-    }
-    fn set_values(&self, _v: &[Tensor]) {
-        
-    }
-    /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
-        Vec::new()
-    }
-}
+use crate::err::AutoDiffError;
 
 ///
 /// Op is the Rc wrapper of typed op trait
@@ -147,6 +73,85 @@ impl Clone for Op {
         }
     }
 }
+
+/// All op is OpTrait
+pub trait OpTrait {
+
+    /// A conventional name for the op
+    fn get_name(&self) -> String;
+
+    /// The number of input needs by this op.
+    fn get_input_size(&self) -> usize;
+
+    /// The number of output produced by this op.
+    fn get_output_size(&self) -> usize;
+
+    /// Forward pass
+    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
+
+    
+    fn call(&mut self, input: &[&Tensor]) -> Result<Vec<Tensor>, AutoDiffError> {
+        if input.len() != self.get_input_size() {
+            return Err(AutoDiffError::new(
+                &format!("{} expect {} input, get {}",
+                         self.get_name(), self.get_input_size(), input.len())));
+        }
+        let ret = vec![Tensor::new(); self.get_output_size()];
+        let mut ret_ref = Vec::new();
+        for i in &ret {
+            ret_ref.push(i);
+        }
+        self.apply(input, &ret_ref[..]);
+        Ok(ret)
+    }
+    
+    /// Given the forward input value and backward output_grad,
+    /// Update weight gradient.
+    /// return backward input gradeint.
+    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]);
+
+    /// access weight values
+    fn get_values(&self) -> Vec<&Tensor>;
+    fn set_values(&self, v: &[Tensor]);
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor>;
+}
+
+pub struct Nop {
+}
+impl OpTrait for Nop {
+    fn get_name(&self) -> String {
+        "Nop".to_string()
+    }
+    fn get_input_size(&self) -> usize {
+        0
+    }
+    fn get_output_size(&self) -> usize {
+        0
+    }
+
+    /// Forward pass
+    fn apply(&mut self, _input: &[&Tensor], _output: &[&Tensor]) {
+        
+    }
+    fn grad(&self, _input: &[&Tensor], _output_grad: &[&Tensor], _input_grad: &[&Tensor]) {
+        
+    }
+
+    /// access weight values
+    fn get_values(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+    fn set_values(&self, _v: &[Tensor]) {
+        
+    }
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+}
+
+
 
 ///
 /// Verify the gradient implementation is right.

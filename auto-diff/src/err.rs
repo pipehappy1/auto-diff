@@ -3,12 +3,12 @@ use std::fmt;
 
 
 #[derive(Debug)]
-struct AutoDiffError {
+pub struct AutoDiffError {
     details: String
 }
 
 impl AutoDiffError {
-    fn new(msg: &str) -> AutoDiffError {
+    pub fn new(msg: &str) -> AutoDiffError {
         AutoDiffError{
             details: msg.to_string()
         }

@@ -383,20 +383,6 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     //    Ok(())
     //}
 
-    /// Move all the graph/network structure to this graph,
-    /// with the boundary for both the this and other graph are specified.
-    pub fn append(&self, other: &mut Self,
-                  boundary: &[TData], other_boundary: &[TData],
-    ) -> Result<(), &str> {
-        if boundary.len() != other_boundary.len() {
-            return Err("The boundary size should be equal for append two network.");
-        }
-        for i in boundary {
-            
-        }
-        
-        Ok(())
-    }
 }
 
 // iterator

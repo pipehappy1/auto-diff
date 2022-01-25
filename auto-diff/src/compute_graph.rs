@@ -5,6 +5,7 @@ use crate::collection::generational_index::{GenIndex, GenKey};
 use crate::collection::graph::Graph;
 use tensor_rs::tensor::Tensor;
 use crate::op::*;
+use crate::err::AutoDiffError;
 
 /// The computation network.
 /// Connection has duplication.
@@ -37,11 +38,15 @@ impl Net {
         &mut self.data
     }
 
-    pub fn get_tensor(&self, id: GenKey) -> Result<Tensor, &str> {
+    pub fn get_tensor(&self, id: GenKey) -> Result<Tensor, AutoDiffError> {
         match self.data.get(&id) {
-            Ok(v) => {Ok(v.ref_copy())},
-            Err(v) => {Err("bad tensor id")}
+            Ok(v) => {Ok(v.ref_copy())}, // shallow copy a tensor.
+            Err(v) => {Err(v)}
         }
+    }
+    pub fn set_tensor(&mut self, id: GenKey, val: Tensor) -> Result<(), ()> {
+        self.data.replace(&id, val)?;
+        Ok(())
     }
 
 //    pub fn get_op(&self, func: &Func) -> Option<&Op> {
@@ -173,10 +178,9 @@ impl Net {
     ///
     /// Build input-operator-output relation, with given components.
     ///
-    pub fn connect(&mut self, input: &[GenKey], op: Op, output: &[GenKey]) {
-        println!("Deprecated! Graph::connect");
-        let opid = self.init_op(op);
-        self.graph.connect(input, output, &opid).expect("");
+    pub fn connect(&mut self, input: &[GenKey], op: GenKey, output: &[GenKey]) {
+
+        self.graph.connect(input, output, &op).expect("");
     }
 
 //    pub fn connect2(&mut self, input: &[&Var], func: &Func, output: &[&Var]) {
@@ -360,8 +364,8 @@ impl Net {
 
     pub fn append(&mut self, other: &mut Self,
                   original_keys: &[GenKey]) -> Vec<GenKey> {
-        let data_map = self.data.append(&mut other.data);
-        let op_map = self.ops.append(&mut other.ops);
+
+
 
         unimplemented!();
     }

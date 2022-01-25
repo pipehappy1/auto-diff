@@ -4,6 +4,8 @@
 /// even the container itself don't have the access to that index/key.
 use std::fmt;
 
+use crate::err::AutoDiffError;
+
 /// GenKey index used for generational index.
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Copy, Clone)]
 pub struct GenKey {
@@ -58,11 +60,11 @@ impl<T> GenIndex<T> {
     }
 
     /// Return the registered item
-    pub fn get(&self, index: &GenKey) -> Result<&T, &str> {
+    pub fn get(&self, index: &GenKey) -> Result<&T, AutoDiffError> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             Ok(&self.data[index.id])
         } else {
-            Err("GenIndex cannot find the item by key!")
+            Err(AutoDiffError::new(&format!("GenIndex cannot find the item by key {:?}!", index)))
         }
     }
 
@@ -125,7 +127,7 @@ impl<T> GenIndex<T> {
     }
 
     pub fn append(&mut self, other: &mut GenIndex<T>) {
-        
+        unimplemented!();
     }
 }
 
