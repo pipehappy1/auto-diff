@@ -401,13 +401,13 @@ impl Net {
 
 impl fmt::Debug for Net {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Dumping Net");
+        writeln!(f, "Dumping Net")?;
         for i in self.data.iter_key() {
-            write!(f, "id: {:?} data: {:?}", i, self.data.get(&i));
+            write!(f, "id: {:?} data: {:?}", i, self.data.get(&i))?;
         }
-        writeln!(f, "data_grad");
+        writeln!(f, "data_grad")?;
         for (k, v) in self.data_grad.iter() {
-            write!(f, "id: {:?} data: {:?}", k, v);
+            write!(f, "id: {:?} data: {:?}", k, v)?;
         }
         write!(f, "graph: {:?}", self.graph)
     }

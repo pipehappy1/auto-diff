@@ -11,19 +11,19 @@ use crate::op::{Op, OpTrait, Mul};
 use crate::err::AutoDiffError;
 
 
-pub struct Var1 {
-    var: Rc<RefCell<Var>>
+pub struct Var {
+    var: Rc<RefCell<VarInner>>
 }
-impl Var1 {
+impl Var {
     #[cfg(feature = "use-f64")]
-    pub fn new(input: &[f64], dim: &[usize]) -> Var1 {
-        Var1 {
-            var: Rc::new(RefCell::new(Var::new(input, dim)))
+    pub fn new(input: &[f64], dim: &[usize]) -> Var {
+        Var {
+            var: Rc::new(RefCell::new(VarInner::new(input, dim)))
         }
     }
 
-    pub fn grad(&self) -> Result<Var1, AutoDiffError> {
-        Ok(Var1 {
+    pub fn grad(&self) -> Result<Var, AutoDiffError> {
+        Ok(Var {
             var: Rc::new(RefCell::new(self.var.borrow().grad()?))
         })
     }
@@ -34,57 +34,57 @@ impl Var1 {
         Ok(())
     }
 
-    pub fn mul(&self, other: &Var1) -> Result<Var1, AutoDiffError> {
-        Ok(Var1 {
+    pub fn mul(&self, other: &Var) -> Result<Var, AutoDiffError> {
+        Ok(Var {
             var: Rc::new(RefCell::new(self.var.borrow().mul(&mut other.var.borrow_mut())?))})
     }
 }
 
-impl PartialEq for Var1 {
+impl PartialEq for Var {
     fn eq(&self, other: &Self) -> bool {
         self.var.borrow().val().eq(&other.var.borrow().val())
     }
 }
 
-impl Eq for Var1 {}
+impl Eq for Var {}
 
-impl fmt::Display for Var1 {
+impl fmt::Display for Var {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 //        write!(f, "id: {}", self.id)?;
         write!(f, "tensor: {}", self.var.borrow().val())
     }
 }
 
-impl fmt::Debug for Var1 {
+impl fmt::Debug for Var {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 //        write!(f, "id: {}", self.id)?;
         write!(f, "tensor: {}", self.var.borrow().val())
     }
 }
 
-impl Clone for Var1 {
+impl Clone for Var {
     fn clone(&self) -> Self {
-        Var1 {
+        Var {
             var: Rc::new(RefCell::new(self.var.borrow().clone()))
         }
     }
 }
 
 
-pub struct Var {
+pub struct VarInner {
     id: GenKey,    
     net: Rc<RefCell<Net>>,
 }
 
-impl Var {
+impl VarInner {
 
     // create functions.
     #[cfg(feature = "use-f64")]
-    pub fn new(input: &[f64], dim: &[usize]) -> Var {
+    pub fn new(input: &[f64], dim: &[usize]) -> VarInner {
         let mut net = Net::new();
         let tensor = Tensor::from_vec_f64(input, dim);
         let id = net.add_tensor(tensor);
-        Var {
+        VarInner {
             id,
             net: Rc::new(RefCell::new(net)),
         }
@@ -92,28 +92,28 @@ impl Var {
 
     /// Create a new var with an existing net and value.
     pub(crate) fn new_net_tensor(net: Rc<RefCell<Net>>,
-                                 tensor: Tensor) -> Var {
+                                 tensor: Tensor) -> VarInner {
         let id = net.borrow_mut().add_tensor(tensor);
-        Var {
+        VarInner {
             id,
             net
         }
     }
 
-    pub(crate) fn new_tensor(tensor: Tensor) -> Var {
+    pub(crate) fn new_tensor(tensor: Tensor) -> VarInner {
         let mut net = Net::new();
         let id = net.add_tensor(tensor);
-        Var {
+        VarInner {
             id,
             net: Rc::new(RefCell::new(net)),
         }
     }
 
-    pub fn eye(n: usize, m: usize) -> Var {
+    pub fn eye(n: usize, m: usize) -> VarInner {
         let mut net = Net::new();
         let tensor = Tensor::eye(n, m);
         let id = net.add_tensor(tensor);
-        Var {
+        VarInner {
             id,
             net: Rc::new(RefCell::new(net)),
         }
@@ -128,8 +128,8 @@ impl Var {
         self.net.borrow_mut().set_tensor(self.id, val).expect("");
     }
 
-    pub fn grad(&self) -> Result<Var, AutoDiffError> {
-        Ok(Var::new_tensor(self.net.borrow().get_grad(self.id)?))
+    pub fn grad(&self) -> Result<VarInner, AutoDiffError> {
+        Ok(VarInner::new_tensor(self.net.borrow().get_grad(self.id)?))
     }
 
     /// backward pass.
@@ -141,7 +141,7 @@ impl Var {
         Ok(())
     }
 
-    pub fn mul(&self, other: &mut Var) -> Result<Var, AutoDiffError> {
+    pub fn mul(&self, other: &mut VarInner) -> Result<VarInner, AutoDiffError> {
 
         let other_key = self.net.borrow_mut().append(
             &mut other.net.borrow_mut(), &[other.id])?[0];
@@ -155,7 +155,7 @@ impl Var {
         let op = Op::new(Box::new(op));
         let opid = self.net.borrow_mut().add_op(op);
         
-        let ret = Var::new_net_tensor(self.net.clone(), result);
+        let ret = VarInner::new_net_tensor(self.net.clone(), result);
 
         self.net.borrow_mut().connect(&[self.id, other_key],
                                       opid, &[ret.id]);
@@ -164,32 +164,32 @@ impl Var {
     }
 }
 
-impl PartialEq for Var {
+impl PartialEq for VarInner {
     fn eq(&self, other: &Self) -> bool {
         self.val().eq(&other.val())
     }
 }
 
-impl Eq for Var {}
+impl Eq for VarInner {}
 
-impl fmt::Display for Var {
+impl fmt::Display for VarInner {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "id: {}", self.id)?;
         write!(f, "tensor: {}", self.val())
     }
 }
 
-impl fmt::Debug for Var {
+impl fmt::Debug for VarInner {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "id: {}", self.id)?;
         write!(f, "tensor: {}", self.val())
     }
 }
 
-impl Clone for Var {
+impl Clone for VarInner {
     fn clone(&self) -> Self {
         let val = self.val().clone();
-        let mut ret = Var::new(&[], &[]);
+        let mut ret = VarInner::new(&[], &[]);
         ret.set_val(val);
         ret
     }
@@ -216,12 +216,12 @@ mod tests {
 
     #[test]
     fn mul() {
-        let a = Var1::new(&[2., 3., 4., 5.], &[2, 2]);
-        let mut b = Var1::new(&[1., 2., 3., 4.], &[2, 2]);
+        let a = Var::new(&[2., 3., 4., 5.], &[2, 2]);
+        let mut b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
         let c = a.mul(&mut b).unwrap();
-        assert_eq!(c, Var1::new(&[2., 6., 12., 20.], &[2, 2]));
+        assert_eq!(c, Var::new(&[2., 6., 12., 20.], &[2, 2]));
         c.bp().unwrap();
-        assert_eq!(a.grad().unwrap(), Var1::new(&[1., 2., 3., 4.], &[2, 2]));
-        assert_eq!(b.grad().unwrap(), Var1::new(&[2., 3., 4., 5.], &[2, 2]));
+        assert_eq!(a.grad().unwrap(), Var::new(&[1., 2., 3., 4.], &[2, 2]));
+        assert_eq!(b.grad().unwrap(), Var::new(&[2., 3., 4., 5.], &[2, 2]));
     }
 }
