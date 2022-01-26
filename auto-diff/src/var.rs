@@ -7,7 +7,8 @@ use std::collections::BTreeMap;
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
-use crate::op::{Op, OpTrait, Mul};
+use crate::op::{Op, OpTrait, Add, Sub, Mul, Div, Linear,
+ELU, ReLU, Sigmoid};
 use crate::err::AutoDiffError;
 
 
@@ -70,6 +71,34 @@ impl Clone for Var {
     }
 }
 
+
+
+macro_rules! var_2_to_1 {
+    ($a:ident, $b:ident) => {
+        pub fn $a(&self, other: &mut VarInner) -> Result<VarInner, AutoDiffError> {
+            if !Rc::ptr_eq(&self.net, &other.net) {
+                let other_key = self.net.borrow_mut().append(
+                    &mut other.net.borrow_mut(), &[other.id])?[0];
+
+                other.net = self.net.clone();
+                other.id = other_key;
+            }
+
+            let mut op = $b::new();
+            let result = op.call(&[&self.net.borrow().get_tensor(self.id)?,
+                                   &self.net.borrow().get_tensor(other.id)?])?[0].clone();
+            let op = Op::new(Box::new(op));
+            let opid = self.net.borrow_mut().add_op(op);
+        
+            let ret = VarInner::new_net_tensor(self.net.clone(), result);
+
+            self.net.borrow_mut().connect(&[self.id, other.id],
+                                          opid, &[ret.id]);
+
+            Ok(ret)
+        }
+    }
+}
 
 pub struct VarInner {
     id: GenKey,    
@@ -141,28 +170,11 @@ impl VarInner {
         Ok(())
     }
 
-    pub fn mul(&self, other: &mut VarInner) -> Result<VarInner, AutoDiffError> {
-        if !Rc::ptr_eq(&self.net, &other.net) {
-            let other_key = self.net.borrow_mut().append(
-                &mut other.net.borrow_mut(), &[other.id])?[0];
-
-            other.net = self.net.clone();
-            other.id = other_key;
-        }
-
-        let mut op = Mul::new();
-        let result = op.call(&[&self.net.borrow().get_tensor(self.id)?,
-                               &self.net.borrow().get_tensor(other.id)?])?[0].clone();
-        let op = Op::new(Box::new(op));
-        let opid = self.net.borrow_mut().add_op(op);
-        
-        let ret = VarInner::new_net_tensor(self.net.clone(), result);
-
-        self.net.borrow_mut().connect(&[self.id, other.id],
-                                      opid, &[ret.id]);
-
-        Ok(ret)
-    }
+    var_2_to_1!(add, Add);
+    var_2_to_1!(sub, Sub);
+    var_2_to_1!(mul, Mul);
+    var_2_to_1!(div, Div);
+    //var_2_to_1!(linear, Linear);
 }
 
 impl PartialEq for VarInner {
@@ -210,19 +222,7 @@ impl Clone for VarInner {
 //    }
 //}
 
-//macro_rules! typed_tensor_method_single_same_return {
-//    ($a:ident, $b:ty) => {
-//        pub fn $a(&self) -> $b {
-//            match &self {
-//                TypedTensor::Typef32(v1) => {v1.$a()},
-//                TypedTensor::Typef64(v1) => {v1.$a()},
-//                #[cfg(feature = "use-cuda")]
-//                TypedTensor::Cudaf32(v1) => {v1.$a()},
-//                //_ => {panic!("should have same tensor type!");},
-//            }
-//        }
-//    }
-//}
+
 
 
 #[cfg(test)]

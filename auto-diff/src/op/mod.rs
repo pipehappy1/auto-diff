@@ -282,14 +282,14 @@ impl OpTrait for View {
 pub mod local;
 pub use local::{Add, Sub, Mul, Div};
 
-pub mod convolution;
-pub use convolution::{ Conv2d};
-
 pub mod linear;
 pub use linear::Linear;
 
 pub mod nonlinear;
 pub use nonlinear::{ELU, ReLU, Sigmoid};
+
+pub mod convolution;
+pub use convolution::{ Conv2d};
 
 pub mod loss;
 pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};
