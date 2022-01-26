@@ -1,5 +1,6 @@
 #![allow(clippy::redundant_closure)]
 use std::collections::{BTreeSet, BTreeMap};
+use std::fmt;
 
 use crate::collection::generational_index::{GenIndex, GenKey};
 use crate::collection::graph::Graph;
@@ -219,12 +220,8 @@ impl Net {
         self.set_mark.remove(did);
     }
 
-    /// Merge two computation graph
-    //fn merge(&self, o: &Net) -> Net {
-    //    Net::new()
-    //}
-
     /// Forward evaluate the computaiton graph.
+    /// This is for static graph run.
     pub fn eval(&mut self) -> Result<(), BTreeSet<GenKey>> {
         println!("Deprecated! no more whole network forward pass.");
         let mut all_input = Vec::new();
@@ -305,7 +302,7 @@ impl Net {
         for i in self.graph.iter_data() {
             self.data_grad.entry(*i).or_insert(Tensor::new());
         }
-        
+
         self.graph
             .walk(
                 &output[..],
@@ -399,6 +396,20 @@ impl Net {
         self.graph.append(&other.graph, data_key_map, op_key_map)?;
 
         Ok(ret_keys)
+    }
+}
+
+impl fmt::Debug for Net {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Dumping Net");
+        for i in self.data.iter_key() {
+            write!(f, "id: {:?} data: {:?}", i, self.data.get(&i));
+        }
+        writeln!(f, "data_grad");
+        for (k, v) in self.data_grad.iter() {
+            write!(f, "id: {:?} data: {:?}", k, v);
+        }
+        write!(f, "graph: {:?}", self.graph)
     }
 }
 

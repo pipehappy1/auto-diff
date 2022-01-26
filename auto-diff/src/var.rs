@@ -67,15 +67,21 @@ impl Var {
     pub(crate) fn set_val(&mut self, val: Tensor) {
         self.net.borrow_mut().set_tensor(self.id, val).expect("");
     }
+    pub(crate) fn id(&self) -> GenKey {
+        self.id
+    }
 
     pub fn grad(&self) -> Result<Var, AutoDiffError> {
         Ok(Var::new_tensor(self.net.borrow().get_grad(self.id)?))
     }
 
-    pub fn mul(&self, other: &Var) -> Result<Var, AutoDiffError> {
+    pub fn mul(&self, other: &mut Var) -> Result<Var, AutoDiffError> {
 
         let other_key = self.net.borrow_mut().append(
             &mut other.net.borrow_mut(), &[other.id])?[0];
+
+        other.net = self.net.clone();
+        other.id = other_key;
 
         let mut op = Mul::new();
         let result = op.call(&[&self.net.borrow().get_tensor(self.id)?,
@@ -155,12 +161,13 @@ mod tests {
     #[test]
     fn mul() {
         let a = Var::new(&[2., 3., 4., 5.], &[2, 2]);
-        let b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
-        let c = a.mul(&b).unwrap();
+        let mut b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
+        let c = a.mul(&mut b).unwrap();
         assert_eq!(c, Var::new(&[2., 6., 12., 20.], &[2, 2]));
         c.bp().unwrap();
-        println!("{:?}", a.grad());
-        println!("{:?}", b.grad());
+        println!("---");
+        println!("{:?}, {:?}", a.id(), a.grad());
+        println!("{:?}, {:?}", b.id(), b.grad());
         //assert_eq!(a.grad(), Var::new(&[1., 2., 3., 4.], &[2, 2]));
         //assert_eq!(b.grad(), Var::new(&[2., 3., 4., 5.], &[2, 2]));
     }
