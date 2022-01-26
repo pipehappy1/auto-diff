@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::fmt;
 use std::ops;
+use std::collections::BTreeMap;
 
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use crate::compute_graph::{Net};
@@ -30,12 +31,21 @@ impl Var {
     }
 
     /// Create a new var with an existing net and value.
-    pub(crate) fn new_tensor_net(net: Rc<RefCell<Net>>,
+    pub(crate) fn new_net_tensor(net: Rc<RefCell<Net>>,
                                  tensor: Tensor) -> Var {
         let id = net.borrow_mut().add_tensor(tensor);
         Var {
             id,
             net
+        }
+    }
+
+    pub(crate) fn new_tensor(tensor: Tensor) -> Var {
+        let mut net = Net::new();
+        let id = net.add_tensor(tensor);
+        Var {
+            id,
+            net: Rc::new(RefCell::new(net)),
         }
     }
 
@@ -58,8 +68,8 @@ impl Var {
         self.net.borrow_mut().set_tensor(self.id, val).expect("");
     }
 
-    pub fn grad(&self) -> Var {
-        unimplemented!();
+    pub fn grad(&self) -> Result<Var, AutoDiffError> {
+        Ok(Var::new_tensor(self.net.borrow().get_grad(self.id)?))
     }
 
     pub fn mul(&self, other: &Var) -> Result<Var, AutoDiffError> {
@@ -73,7 +83,7 @@ impl Var {
         let op = Op::new(Box::new(op));
         let opid = self.net.borrow_mut().add_op(op);
         
-        let ret = Var::new_tensor_net(self.net.clone(), result);
+        let ret = Var::new_net_tensor(self.net.clone(), result);
 
         self.net.borrow_mut().connect(&[self.id, other_key],
                                       opid, &[ret.id]);
@@ -81,7 +91,12 @@ impl Var {
         Ok(ret)
     }
 
+    /// backward pass.
     pub fn bp(&self) -> Result<(), AutoDiffError> {
+        let mut job = BTreeMap::new();
+        job.insert(self.id, Tensor::ones_like(&self.val()));
+        self.net.borrow_mut().bptt(&job);
+        
         Ok(())
     }
 
@@ -138,12 +153,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn add() {
+    fn mul() {
         let a = Var::new(&[2., 3., 4., 5.], &[2, 2]);
         let b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
         let c = a.mul(&b).unwrap();
         assert_eq!(c, Var::new(&[2., 6., 12., 20.], &[2, 2]));
-        //c.bp().unwrap();
+        c.bp().unwrap();
+        println!("{:?}", a.grad());
+        println!("{:?}", b.grad());
         //assert_eq!(a.grad(), Var::new(&[1., 2., 3., 4.], &[2, 2]));
         //assert_eq!(b.grad(), Var::new(&[2., 3., 4., 5.], &[2, 2]));
     }

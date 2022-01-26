@@ -70,15 +70,15 @@ impl Net {
     pub fn get_op(&self, id: GenKey) -> Result<Op, AutoDiffError> {
         Ok(self.ops.get(&id)?.ref_copy())
     }
+
+    pub fn get_grad(&self, id: GenKey) -> Result<Tensor, AutoDiffError> {
+        match self.data_grad.get(&id) {
+            Some(v) => {Ok(v.ref_copy())},
+            None => {Err(AutoDiffError::new(&format!("Data {:?} doesn't ahave gradient yet.", id)))}
+        }
+    }
     
 
-//    pub fn get_op(&self, func: &Func) -> Option<&Op> {
-//        self.ops.get(func.get_id())
-//    }
-
-    pub fn get_grad(&self)  -> &BTreeMap<GenKey, Tensor> {
-        &self.data_grad
-    }
 
 //    pub fn is_dangling_var(&self, var: &Var) -> Result<bool, ()> {
 //        if !self.data.contains(var.get_id()) {
