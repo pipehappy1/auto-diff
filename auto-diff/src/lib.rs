@@ -19,12 +19,14 @@ extern crate ndarray;
 extern crate ndarray_linalg;
 
 pub mod var;
-//pub mod var1;
-pub mod compute_graph;
 pub mod op;
-pub mod collection;
 pub mod rand;
 pub mod optim;
 pub mod err;
 
-//pub use var1::{Module, Var};
+pub use var::{Var};
+
+pub(crate) mod compute_graph;
+pub(crate) mod collection;
+
+

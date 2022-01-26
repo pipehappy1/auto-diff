@@ -1,49 +1,49 @@
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use super::OpTrait;
 
-//pub struct Conv1d {
-//    alpha: f32,
-//}
-//impl Conv1d {
-//    pub fn new(alpha: f32) -> Conv1d {
-//        Conv1d {
-//            alpha: alpha,
-//        }
-//    }
-//}
-//impl OpTrait for Conv1d {
-//    fn get_name(&self) -> String {
-//        "Conv1d".to_string()
-//    }
-//    fn get_input_size(&self) -> usize {
-//        2
-//    }
-//    fn get_output_size(&self) -> usize {
-//        1
-//    }
-//    /// Forward pass
-//    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-//        unimplemented!();
-//    }
-//    
-//    /// Given the forward input value and backward output_grad,
-//    /// Update weight gradient.
-//    /// return backward input gradeint.
-//    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-//        unimplemented!();
-//    }
-//
-//    /// access weight values
-//    fn get_values(&self) -> Vec<&Tensor> {
-//        Vec::new()
-//    }
-//    fn set_values(&self, v: &[Tensor]) {
-//    }
-//    /// access gradient values
-//    fn get_grads(&self) -> Vec<&Tensor> {
-//        Vec::new()
-//    }
-//}
+pub struct Conv1d {
+    alpha: f32,
+}
+impl Conv1d {
+    pub fn new(alpha: f32) -> Conv1d {
+        Conv1d {
+            alpha: alpha,
+        }
+    }
+}
+impl OpTrait for Conv1d {
+    fn get_name(&self) -> String {
+        "Conv1d".to_string()
+    }
+    fn get_input_size(&self) -> usize {
+        2
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
+    /// Forward pass
+    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+        unimplemented!();
+    }
+    
+    /// Given the forward input value and backward output_grad,
+    /// Update weight gradient.
+    /// return backward input gradeint.
+    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+        unimplemented!();
+    }
+
+    /// access weight values
+    fn get_values(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+    fn set_values(&self, v: &[Tensor]) {
+    }
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+}
 
 // Conv2d
 

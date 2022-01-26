@@ -13,7 +13,6 @@ use crate::err::AutoDiffError;
 pub struct Net {
     data: GenIndex<Tensor>,
     ops: GenIndex<Op>,
-    funcs: BTreeMap<GenKey, Vec<GenKey>>, // for func composition
     set_mark: BTreeSet<GenKey>,
     graph: Graph<GenKey, GenKey>,
     data_grad: BTreeMap<GenKey, Tensor>,
@@ -24,7 +23,6 @@ impl Net {
         Net {
             data: GenIndex::new(),
             ops: GenIndex::new(),
-            funcs: BTreeMap::new(),
             set_mark: BTreeSet::new(),
             graph: Graph::new(),
             data_grad: BTreeMap::new(),
@@ -93,41 +91,6 @@ impl Net {
 //
 //    }
 
-//    ///
-//    /// Return one output variable id if there is one.
-//    ///
-//    pub fn get_func_output(&self, func: &Func) -> Option<GenKey> {
-//        for i in self.graph.iter_output_given_op(func.get_id()).ok()? {
-//            return Some(*i)
-//        }
-//        None
-//    }
-
-
-
-//    /// Insert an empty var into the network.
-//    pub fn init_var(&mut self) -> GenKey {
-//        let id = self.data.insert(Tensor::new());
-//        self.graph.add_data(&id).expect("");
-//        id
-//    }
-
-//    pub fn drop_var(&mut self, var: &Var) {
-//        self.data.remove(var.get_id()).expect("");
-//        self.graph.drop_data(var.get_id()).expect("");
-//    }
-
-
-
-//    ///
-//    /// For Module::func, insert a new composed func.
-//    ///
-//    pub fn init_func(&mut self, funcs: &[GenKey]) -> GenKey {
-//        let id = self.ops.insert(Op::nop());
-//        self.graph.add_op(&id).expect("");
-//        self.funcs.insert(id, funcs.to_vec());
-//        id
-//    }
 
 //    ///
 //    /// Remove a concrete op or composed func from the graph.
@@ -166,28 +129,6 @@ impl Net {
 //        decoupled_inputs
 //    }
 
-    ///
-    /// Return a vec of sub ops for the given op.
-    /// Empty should be returned if the input is a concrete op.
-    ///
-    pub fn get_sub_func(&self, func: GenKey) -> Vec<GenKey> {
-        self.funcs.get(&func).expect("").to_vec()
-    }
-
-//    ///
-//    /// Check the func is concrete or not.
-//    ///
-//    pub fn is_composed(&self, func: &Func) -> Result<bool, ()> {
-//        if self.ops.contains(func.get_id()) {
-//            if !self.funcs.get(func.get_id()).expect("").is_empty() {
-//                Ok(true)
-//            } else {
-//                Ok(false)
-//            }
-//        } else {
-//            Err(())
-//        }
-//    }
 
     ///
     /// Build input-operator-output relation, with given components.
@@ -197,20 +138,6 @@ impl Net {
         self.graph.connect(input, output, &op).expect("");
     }
 
-//    pub fn connect2(&mut self, input: &[&Var], func: &Func, output: &[&Var]) {
-//        // connect if there is not connection.
-//        // do nothing if there is already a connection.
-//        let mut input_ids = Vec::with_capacity(input.len());
-//        for i in input {
-//            input_ids.push(*i.get_id());
-//        }
-//        let mut output_ids = Vec::with_capacity(output.len());
-//        for i in output {
-//            output_ids.push(*i.get_id());
-//        }
-//        
-//        self.graph.connect(&input_ids, &output_ids, func.get_id()).expect("");
-//    }
 
     /// set the set_mark, set_mark is used to label var with input value with it.
     pub fn set_mark(&mut self, did: &GenKey) {

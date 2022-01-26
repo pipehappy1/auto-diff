@@ -441,11 +441,15 @@ impl<'a, TNode> Iterator for NodeIterator<'a, TNode> {
     }
 }
 
-/////
-//pub trait Calling {
-//    fn calling<TData, TOp>(self, input: &[TData], output: &[TData], op: &TOp);
-//}
-
+impl fmt::Debug for Graph<GenKey, GenKey> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Dumping graph")?;
+        writeln!(f, "data: {:?}", self.data)?;
+        writeln!(f, "op: {:?}", self.op)?;
+        writeln!(f, "dt 2 op: {:?}", self.forward_dt_op)?;
+        writeln!(f, "op 2 dt: {:?}", self.forward_op_dt)
+    }
+}
 
 
 #[cfg(test)]
@@ -544,12 +548,3 @@ mod tests {
     }
 }
 
-impl fmt::Debug for Graph<GenKey, GenKey> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "Dumping graph")?;
-        writeln!(f, "data: {:?}", self.data)?;
-        writeln!(f, "op: {:?}", self.op)?;
-        writeln!(f, "dt 2 op: {:?}", self.forward_dt_op)?;
-        writeln!(f, "op 2 dt: {:?}", self.forward_op_dt)
-    }
-}
