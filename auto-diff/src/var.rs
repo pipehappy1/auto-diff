@@ -142,22 +142,23 @@ impl VarInner {
     }
 
     pub fn mul(&self, other: &mut VarInner) -> Result<VarInner, AutoDiffError> {
+        if !Rc::ptr_eq(&self.net, &other.net) {
+            let other_key = self.net.borrow_mut().append(
+                &mut other.net.borrow_mut(), &[other.id])?[0];
 
-        let other_key = self.net.borrow_mut().append(
-            &mut other.net.borrow_mut(), &[other.id])?[0];
-
-        other.net = self.net.clone();
-        other.id = other_key;
+            other.net = self.net.clone();
+            other.id = other_key;
+        }
 
         let mut op = Mul::new();
         let result = op.call(&[&self.net.borrow().get_tensor(self.id)?,
-                               &self.net.borrow().get_tensor(other_key)?])?[0].clone();
+                               &self.net.borrow().get_tensor(other.id)?])?[0].clone();
         let op = Op::new(Box::new(op));
         let opid = self.net.borrow_mut().add_op(op);
         
         let ret = VarInner::new_net_tensor(self.net.clone(), result);
 
-        self.net.borrow_mut().connect(&[self.id, other_key],
+        self.net.borrow_mut().connect(&[self.id, other.id],
                                       opid, &[ret.id]);
 
         Ok(ret)
@@ -209,6 +210,20 @@ impl Clone for VarInner {
 //    }
 //}
 
+//macro_rules! typed_tensor_method_single_same_return {
+//    ($a:ident, $b:ty) => {
+//        pub fn $a(&self) -> $b {
+//            match &self {
+//                TypedTensor::Typef32(v1) => {v1.$a()},
+//                TypedTensor::Typef64(v1) => {v1.$a()},
+//                #[cfg(feature = "use-cuda")]
+//                TypedTensor::Cudaf32(v1) => {v1.$a()},
+//                //_ => {panic!("should have same tensor type!");},
+//            }
+//        }
+//    }
+//}
+
 
 #[cfg(test)]
 mod tests {
@@ -217,11 +232,32 @@ mod tests {
     #[test]
     fn mul() {
         let a = Var::new(&[2., 3., 4., 5.], &[2, 2]);
-        let mut b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
-        let c = a.mul(&mut b).unwrap();
+        let b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
+        let c = a.mul(&b).unwrap();
         assert_eq!(c, Var::new(&[2., 6., 12., 20.], &[2, 2]));
         c.bp().unwrap();
         assert_eq!(a.grad().unwrap(), Var::new(&[1., 2., 3., 4.], &[2, 2]));
         assert_eq!(b.grad().unwrap(), Var::new(&[2., 3., 4., 5.], &[2, 2]));
+    }
+
+    #[test]
+    fn test_mul_repeat_vars() {
+        let a = Var::new(&[2., 3., 4., 5.], &[2, 2]);
+        let b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
+        let c = a.mul(&b).unwrap();
+        let d = c.mul(&b).unwrap(); // repeat vars
+        assert_eq!(d, Var::new(&[2., 12., 36., 80.], &[2, 2]));
+    }
+
+    #[test]
+    fn test_add_in_fn() {
+        let a = Var::new(&[2., 3., 4., 5.], &[2, 2]);
+        let b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
+    
+        fn my_mul(a: &Var, b: &Var) -> Var {
+            a.mul(b).unwrap()
+        }
+        let c = my_mul(&a, &b);
+        assert_eq!(c, Var::new(&[2., 6., 12., 20.], &[2, 2]));
     }
 }
