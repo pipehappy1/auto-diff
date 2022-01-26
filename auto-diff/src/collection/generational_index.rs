@@ -125,10 +125,6 @@ impl<T> GenIndex<T> {
     pub fn iter_key(&self) -> GenIndexIter<T> {
         GenIndexIter::<T>::new(self)
     }
-
-    pub fn append(&mut self, other: &mut GenIndex<T>) {
-        unimplemented!();
-    }
 }
 
 

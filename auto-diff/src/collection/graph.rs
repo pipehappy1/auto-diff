@@ -384,12 +384,48 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     //    Ok(())
     //}
 
+    /// 
     pub fn append(&mut self, other: &Self,
                   data_key_map: BTreeMap<TData, TData>,
                   op_key_map: BTreeMap<TOp, TOp>) -> Result<(), AutoDiffError> {
+
+        for key in other.iter_data() {
+            self.data.insert(data_key_map[&key]);
+        }
+        for key in other.iter_op() {
+            self.op.insert(op_key_map[&key]);
+        }
+        for (key, value) in other.forward_dt_op.iter() {
+            let mut new_set = BTreeSet::new();
+            for key in value.iter() {
+                new_set.insert(op_key_map[key]);
+            }
+            self.forward_dt_op.insert(data_key_map[key], new_set);
+        }
+        for (key, value) in other.backward_dt_op.iter() {
+            let mut new_set = BTreeSet::new();
+            for key in value.iter() {
+                new_set.insert(op_key_map[key]);
+            }
+            self.backward_dt_op.insert(data_key_map[key], new_set);
+        }
+        for (key, value) in other.forward_op_dt.iter() {
+            let mut new_set = BTreeSet::new();
+            for key in value.iter() {
+                new_set.insert(data_key_map[key]);
+            }
+            self.forward_op_dt.insert(op_key_map[key], new_set);
+        }
+        for (key, value) in other.backward_op_dt.iter() {
+            let mut new_set = BTreeSet::new();
+            for key in value.iter() {
+                new_set.insert(data_key_map[key]);
+            }
+            self.backward_op_dt.insert(op_key_map[key], new_set);
+        }
+
         
-        
-        unimplemented!()
+        Ok(())
     }
 }
 
