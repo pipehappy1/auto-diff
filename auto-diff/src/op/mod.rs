@@ -21,6 +21,13 @@ impl Op {
         }
     }
 
+    pub fn ref_copy(&self) -> Self {
+        Op {
+            o: self.o.clone(),
+            update_counter: RefCell::new(0) // TODO?
+        }
+    }
+
     pub fn nop() -> Self {
         Op {
             o: Rc::new(RefCell::new(Box::new(Nop{}))),

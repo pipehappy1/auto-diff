@@ -65,13 +65,13 @@ impl Var {
     pub fn mul(&self, other: &Var) -> Result<Var, AutoDiffError> {
 
         let other_key = self.net.borrow_mut().append(
-            &mut other.net.borrow_mut(), &[other.id])[0];
+            &mut other.net.borrow_mut(), &[other.id])?[0];
 
         let mut op = Mul::new();
         let result = op.call(&[&self.net.borrow().get_tensor(self.id)?,
                                &self.net.borrow().get_tensor(other_key)?])?[0].clone();
         let op = Op::new(Box::new(op));
-        let opid = self.net.borrow_mut().init_op(op);
+        let opid = self.net.borrow_mut().add_op(op);
         
         let ret = Var::new_tensor_net(self.net.clone(), result);
 

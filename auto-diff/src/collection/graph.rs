@@ -2,6 +2,7 @@
 /// and all the edges are data node.
 
 use std::collections::{BTreeMap, BTreeSet};
+use crate::err::AutoDiffError;
 
 /// Graph
 pub struct Graph<TData, TOp> {
@@ -383,6 +384,13 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     //    Ok(())
     //}
 
+    pub fn append(&mut self, other: &Self,
+                  data_key_map: BTreeMap<TData, TData>,
+                  op_key_map: BTreeMap<TOp, TOp>) -> Result<(), AutoDiffError> {
+        
+        
+        unimplemented!()
+    }
 }
 
 // iterator

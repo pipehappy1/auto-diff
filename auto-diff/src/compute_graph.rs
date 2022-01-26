@@ -37,6 +37,18 @@ impl Net {
     pub fn get_data_mut(&mut self) -> &mut GenIndex<Tensor> {
         &mut self.data
     }
+    pub fn get_ops(&self) -> &GenIndex<Op> {
+        &self.ops
+    }
+    pub fn get_ops_mut(&mut self) -> &mut GenIndex<Op> {
+        &mut self.ops
+    }
+
+    pub fn add_tensor(&mut self, t: Tensor) -> GenKey {
+        let id = self.data.insert(t);
+        self.graph.add_data(&id).expect("");
+        id
+    }
 
     pub fn get_tensor(&self, id: GenKey) -> Result<Tensor, AutoDiffError> {
         match self.data.get(&id) {
@@ -48,6 +60,17 @@ impl Net {
         self.data.replace(&id, val)?;
         Ok(())
     }
+
+    /// Insert operator into the network.
+    pub fn add_op(&mut self, op: Op) -> GenKey {
+        let id = self.ops.insert(op);
+        self.graph.add_op(&id).expect("");
+        id
+    }
+    pub fn get_op(&self, id: GenKey) -> Result<Op, AutoDiffError> {
+        Ok(self.ops.get(&id)?.ref_copy())
+    }
+    
 
 //    pub fn get_op(&self, func: &Func) -> Option<&Op> {
 //        self.ops.get(func.get_id())
@@ -79,41 +102,31 @@ impl Net {
 //        None
 //    }
 
-    pub fn add_tensor(&mut self, t: Tensor) -> GenKey {
-        let id = self.data.insert(t);
-        self.graph.add_data(&id).expect("");
-        id
-    }
 
-    /// Insert an empty var into the network.
-    pub fn init_var(&mut self) -> GenKey {
-        let id = self.data.insert(Tensor::new());
-        self.graph.add_data(&id).expect("");
-        id
-    }
+
+//    /// Insert an empty var into the network.
+//    pub fn init_var(&mut self) -> GenKey {
+//        let id = self.data.insert(Tensor::new());
+//        self.graph.add_data(&id).expect("");
+//        id
+//    }
 
 //    pub fn drop_var(&mut self, var: &Var) {
 //        self.data.remove(var.get_id()).expect("");
 //        self.graph.drop_data(var.get_id()).expect("");
 //    }
 
-    /// Insert operator into the network.
-    pub fn init_op(&mut self, op: Op) -> GenKey {
-        let id = self.ops.insert(op);
-        self.graph.add_op(&id).expect("");
-        self.funcs.insert(id, Vec::new());
-        id
-    }
 
-    ///
-    /// For Module::func, insert a new composed func.
-    ///
-    pub fn init_func(&mut self, funcs: &[GenKey]) -> GenKey {
-        let id = self.ops.insert(Op::nop());
-        self.graph.add_op(&id).expect("");
-        self.funcs.insert(id, funcs.to_vec());
-        id
-    }
+
+//    ///
+//    /// For Module::func, insert a new composed func.
+//    ///
+//    pub fn init_func(&mut self, funcs: &[GenKey]) -> GenKey {
+//        let id = self.ops.insert(Op::nop());
+//        self.graph.add_op(&id).expect("");
+//        self.funcs.insert(id, funcs.to_vec());
+//        id
+//    }
 
 //    ///
 //    /// Remove a concrete op or composed func from the graph.
@@ -362,12 +375,30 @@ impl Net {
         }
     }
 
-    pub fn append(&mut self, other: &mut Self,
-                  original_keys: &[GenKey]) -> Vec<GenKey> {
+    /// Move content in other network into self.
+    /// Return new ids for those have origianl_keys in the old network.
+    pub fn append(&mut self, other: &Self,
+                  original_keys: &[GenKey]) -> Result<Vec<GenKey>, AutoDiffError> {
 
+        let mut data_key_map = BTreeMap::new();
+        let mut ret_keys = Vec::new();
+        for key in other.get_data().iter_key() {
+            let new_key = self.add_tensor(other.get_tensor(key)?);
+            if original_keys.contains(&key) {
+                ret_keys.push(new_key);
+            }
+            data_key_map.insert(key, new_key);
+        }
+        
+        let mut op_key_map = BTreeMap::new();
+        for key in other.get_ops().iter_key() {
+            let new_key = self.add_op(other.get_op(key)?);
+            op_key_map.insert(key, new_key);
+        }
 
+        self.graph.append(&other.graph, data_key_map, op_key_map)?;
 
-        unimplemented!();
+        Ok(ret_keys)
     }
 }
 
