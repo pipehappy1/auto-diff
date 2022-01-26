@@ -11,6 +11,66 @@ use crate::op::{Op, OpTrait, Mul};
 use crate::err::AutoDiffError;
 
 
+pub struct Var1 {
+    var: Rc<RefCell<Var>>
+}
+impl Var1 {
+    #[cfg(feature = "use-f64")]
+    pub fn new(input: &[f64], dim: &[usize]) -> Var1 {
+        Var1 {
+            var: Rc::new(RefCell::new(Var::new(input, dim)))
+        }
+    }
+
+    pub fn grad(&self) -> Result<Var1, AutoDiffError> {
+        Ok(Var1 {
+            var: Rc::new(RefCell::new(self.var.borrow().grad()?))
+        })
+    }
+
+    pub fn bp(&self) -> Result<(), AutoDiffError> {
+        self.var.borrow().bp()?;
+
+        Ok(())
+    }
+
+    pub fn mul(&self, other: &Var1) -> Result<Var1, AutoDiffError> {
+        Ok(Var1 {
+            var: Rc::new(RefCell::new(self.var.borrow().mul(&mut other.var.borrow_mut())?))})
+    }
+}
+
+impl PartialEq for Var1 {
+    fn eq(&self, other: &Self) -> bool {
+        self.var.borrow().val().eq(&other.var.borrow().val())
+    }
+}
+
+impl Eq for Var1 {}
+
+impl fmt::Display for Var1 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//        write!(f, "id: {}", self.id)?;
+        write!(f, "tensor: {}", self.var.borrow().val())
+    }
+}
+
+impl fmt::Debug for Var1 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//        write!(f, "id: {}", self.id)?;
+        write!(f, "tensor: {}", self.var.borrow().val())
+    }
+}
+
+impl Clone for Var1 {
+    fn clone(&self) -> Self {
+        Var1 {
+            var: Rc::new(RefCell::new(self.var.borrow().clone()))
+        }
+    }
+}
+
+
 pub struct Var {
     id: GenKey,    
     net: Rc<RefCell<Net>>,
@@ -67,12 +127,18 @@ impl Var {
     pub(crate) fn set_val(&mut self, val: Tensor) {
         self.net.borrow_mut().set_tensor(self.id, val).expect("");
     }
-    pub(crate) fn id(&self) -> GenKey {
-        self.id
-    }
 
     pub fn grad(&self) -> Result<Var, AutoDiffError> {
         Ok(Var::new_tensor(self.net.borrow().get_grad(self.id)?))
+    }
+
+    /// backward pass.
+    pub fn bp(&self) -> Result<(), AutoDiffError> {
+        let mut job = BTreeMap::new();
+        job.insert(self.id, Tensor::ones_like(&self.val()));
+        self.net.borrow_mut().bptt(&job);
+        
+        Ok(())
     }
 
     pub fn mul(&self, other: &mut Var) -> Result<Var, AutoDiffError> {
@@ -96,16 +162,6 @@ impl Var {
 
         Ok(ret)
     }
-
-    /// backward pass.
-    pub fn bp(&self) -> Result<(), AutoDiffError> {
-        let mut job = BTreeMap::new();
-        job.insert(self.id, Tensor::ones_like(&self.val()));
-        self.net.borrow_mut().bptt(&job);
-        
-        Ok(())
-    }
-
 }
 
 impl PartialEq for Var {
@@ -160,15 +216,12 @@ mod tests {
 
     #[test]
     fn mul() {
-        let a = Var::new(&[2., 3., 4., 5.], &[2, 2]);
-        let mut b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
+        let a = Var1::new(&[2., 3., 4., 5.], &[2, 2]);
+        let mut b = Var1::new(&[1., 2., 3., 4.], &[2, 2]);
         let c = a.mul(&mut b).unwrap();
-        assert_eq!(c, Var::new(&[2., 6., 12., 20.], &[2, 2]));
+        assert_eq!(c, Var1::new(&[2., 6., 12., 20.], &[2, 2]));
         c.bp().unwrap();
-        println!("---");
-        println!("{:?}, {:?}", a.id(), a.grad());
-        println!("{:?}, {:?}", b.id(), b.grad());
-        //assert_eq!(a.grad(), Var::new(&[1., 2., 3., 4.], &[2, 2]));
-        //assert_eq!(b.grad(), Var::new(&[2., 3., 4., 5.], &[2, 2]));
+        assert_eq!(a.grad().unwrap(), Var1::new(&[1., 2., 3., 4.], &[2, 2]));
+        assert_eq!(b.grad().unwrap(), Var1::new(&[2., 3., 4., 5.], &[2, 2]));
     }
 }
