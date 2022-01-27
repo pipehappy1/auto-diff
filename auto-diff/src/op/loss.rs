@@ -12,7 +12,7 @@ pub enum Reduction{
 }
 
 // L1Loss
-// MSELoss
+
 /// MSELoss
 /// The left-most dimension is the N.
 pub struct MSELoss {
@@ -34,7 +34,6 @@ impl OpTrait for MSELoss {
         1
     }
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        // TODO: wait for Tensor to have lazy evaluation for elemwise operation.
         let tmp = input[0].sub(input[1]);
         let tmp2 = tmp.mul(&tmp);
         let tmp3 = tmp2.sum(None, false);
@@ -203,7 +202,7 @@ impl OpTrait for BCEWithLogitsLoss {
     /// The first is the prediction, the second input is the label
     /// ORDER IS IMPORTANT, SECOND ARGUMENT WON'T GET GRADEINT.
     fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-        if input.len() < 2 {
+        if input.len() != self.get_input_size() {
             panic!("{} expect two input, get {}", self.get_name(), input.len());
         }
         let ret_all = input[1].mul(&input[0].neg().log1pexp())

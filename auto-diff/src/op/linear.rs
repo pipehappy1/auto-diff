@@ -45,7 +45,7 @@ impl OpTrait for Linear {
         "Linear".to_string()
     }
     fn get_input_size(&self) -> usize {
-        2
+        1
     }
     fn get_output_size(&self) -> usize {
         1

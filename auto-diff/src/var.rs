@@ -7,10 +7,19 @@ use std::collections::BTreeMap;
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
-use crate::op::{Op, OpTrait, Add, Sub, Mul, Div, Linear,
-ELU, ReLU, Sigmoid};
+use crate::op::{Op, OpTrait, Add, Sub, Mul, Div,
+ELU, ReLU, Sigmoid, MSELoss};
 use crate::err::AutoDiffError;
 
+
+macro_rules! var_2_to_1 {
+    ($a:ident) => {
+        pub fn $a(&self, other: &Var) -> Result<Var, AutoDiffError> {
+            Ok(Var {
+                var: Rc::new(RefCell::new(self.var.borrow().$a(&mut other.var.borrow_mut())?))})
+        }
+    }
+}
 
 pub struct Var {
     var: Rc<RefCell<VarInner>>
@@ -35,10 +44,12 @@ impl Var {
         Ok(())
     }
 
-    pub fn mul(&self, other: &Var) -> Result<Var, AutoDiffError> {
-        Ok(Var {
-            var: Rc::new(RefCell::new(self.var.borrow().mul(&mut other.var.borrow_mut())?))})
-    }
+    var_2_to_1!(add);
+    var_2_to_1!(sub);
+    var_2_to_1!(mul);
+    var_2_to_1!(div);
+    
+    var_2_to_1!(mse_loss);
 }
 
 impl PartialEq for Var {
@@ -73,7 +84,7 @@ impl Clone for Var {
 
 
 
-macro_rules! var_2_to_1 {
+macro_rules! var_inner_2_to_1 {
     ($a:ident, $b:ident) => {
         pub fn $a(&self, other: &mut VarInner) -> Result<VarInner, AutoDiffError> {
             if !Rc::ptr_eq(&self.net, &other.net) {
@@ -170,11 +181,12 @@ impl VarInner {
         Ok(())
     }
 
-    var_2_to_1!(add, Add);
-    var_2_to_1!(sub, Sub);
-    var_2_to_1!(mul, Mul);
-    var_2_to_1!(div, Div);
-    //var_2_to_1!(linear, Linear);
+    var_inner_2_to_1!(add, Add);
+    var_inner_2_to_1!(sub, Sub);
+    var_inner_2_to_1!(mul, Mul);
+    var_inner_2_to_1!(div, Div);
+    
+    var_inner_2_to_1!(mse_loss, MSELoss);
 }
 
 impl PartialEq for VarInner {
@@ -259,5 +271,13 @@ mod tests {
         }
         let c = my_mul(&a, &b);
         assert_eq!(c, Var::new(&[2., 6., 12., 20.], &[2, 2]));
+    }
+
+    #[test]
+    fn test_op_mse() {
+        let a = Var::new(&[1., 2., 3., 4., 5., 6.,], &[3, 2]);
+        let b = Var::new(&[2., 3., 4., 5., 6., 7.,], &[3, 2]);
+        let c = a.mse_loss(&b).unwrap();
+        assert_eq!(c , Var::new(&[1., ], &vec![1]));
     }
 }
