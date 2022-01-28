@@ -145,7 +145,7 @@ impl Tensor {
         }
     }
 
-    pub fn swap(&self, o: Tensor) {
+    pub fn swap(&self, o: &Tensor) {
         self.v.swap(&o.v);
     }
 
