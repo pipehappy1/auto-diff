@@ -74,11 +74,11 @@ impl RNG {
     //// in place operation
     pub fn normal_(&mut self, o: &Tensor, mean: f32, std: f32) {
         let t = self.normal(&o.size(), mean, std);
-        o.swap(t);
+        o.swap(&t);
     }
 
     pub fn uniform_(&mut self, o: &Tensor, from: f32, to: f32) {
         let t = self.uniform(&o.size(), from, to);
-        o.swap(t);
+        o.swap(&t);
     }
 }

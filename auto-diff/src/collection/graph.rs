@@ -107,15 +107,6 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 
     /// Add a data node.
-    /// ```
-    /// # use auto_diff::collection::graph::*;
-    /// # use auto_diff::collection::generational_index::*;
-    /// let mut g = Graph::<GenKey, GenKey>::new();
-    /// let data1 = GenKey::new(0,0);
-    /// let data2 = GenKey::new(1,0);
-    /// g.add_data(&data1);
-    /// g.add_data(&data2);
-    /// ```
     pub fn add_data(&mut self, id: &TData) -> Result<TData, &str> {
         if !self.data.contains(id) {
             self.data.insert(*id);
@@ -545,6 +536,16 @@ mod tests {
         let mut g = Graph::<GenKey, GenKey>::new();
         setup_yy(&mut g);
         assert_eq!(g.get_output_edge_data().len(), 1);
+    }
+
+    #[test]
+    fn add_data() {
+
+        let mut g = Graph::<GenKey, GenKey>::new();
+        let data1 = GenKey::new(0,0);
+        let data2 = GenKey::new(1,0);
+        g.add_data(&data1);
+        g.add_data(&data2);
     }
 }
 

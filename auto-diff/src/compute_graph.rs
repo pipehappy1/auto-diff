@@ -5,7 +5,7 @@ use std::fmt;
 use crate::collection::generational_index::{GenIndex, GenKey};
 use crate::collection::graph::Graph;
 use tensor_rs::tensor::Tensor;
-use crate::op::*;
+use crate::op::Op;
 use crate::err::AutoDiffError;
 
 /// The computation network.
@@ -67,7 +67,7 @@ impl Net {
         id
     }
     pub fn get_op(&self, id: GenKey) -> Result<Op, AutoDiffError> {
-        Ok(self.ops.get(&id)?.ref_copy())
+        Ok(self.ops.get(&id)?.clone())
     }
 
     pub fn get_grad(&self, id: GenKey) -> Result<Tensor, AutoDiffError> {
