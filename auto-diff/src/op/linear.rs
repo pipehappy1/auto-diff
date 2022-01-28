@@ -30,10 +30,8 @@ impl Linear {
     }
 
     pub fn call(&mut self, inputs: &[&Var]) -> Vec<Var> {
-        let op = Op::new(Rc::new(RefCell::new(|x: &[&Tensor], y: &[&Tensor]| {
-
-        })),
-                         Rc::new(RefCell::new(|x: &[&Tensor], y: &[&Tensor], z: &[&Tensor]| {})),
+        let op = Op::new(Rc::new(RefCell::new(Self::apply)),
+                         Rc::new(RefCell::new(Self::grad)),
                          "linear".to_string(),
                          1,1);
         
@@ -42,6 +40,13 @@ impl Linear {
     }
 
 
+    pub fn apply(inputs: &[&Tensor], outputs: &[&Tensor], params: &[&Tensor]) {
+        
+    }
+
+    pub fn grad(inputs: &[&Tensor], outputs: &[&Tensor], z: &[&Tensor], a: &[&Tensor],) {
+        
+    }
     
 }
 

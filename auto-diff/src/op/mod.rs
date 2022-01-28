@@ -60,16 +60,16 @@ pub trait OpTrait {
 pub struct Op {
     update_counter: RefCell<usize>, // guard for the case there optim.step is called when .backward is not called yet.
     para_grad: Vec<(Tensor, Tensor)>,
-    func_apply: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor])>>,
-    func_gradient: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor], &[&Tensor])>>,
+    func_apply: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor], &[&Tensor])>>, // input, output, paras
+    func_gradient: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor], &[&Tensor], &[&Tensor])>>, // input, output_grad, input_grad, paras
 
     name: String,
     input_size: usize,
     output_size: usize,
 }
 impl Op {
-    pub fn new(apply: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor])>>,
-               gradient: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor], &[&Tensor])>>,
+    pub fn new(apply: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor], &[&Tensor])>>, // input. output, paras
+               gradient: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor], &[&Tensor], &[&Tensor])>>, // input, output_grad, input_grad, paras
                name: String, input_size: usize, output_size: usize) -> Self {
         Op {
             update_counter: RefCell::new(0),
@@ -101,13 +101,26 @@ impl Op {
     pub fn get_update_counter(&self) -> usize {
         *self.update_counter.borrow()
     }
-    /// Read the input and write result to output.
-    pub fn apply(&self, input: &[&Tensor], output: &[&Tensor]) {
-        
+    /// Read the input, do the calculation and write result to output.
+    /// Called by compute_grapyh.
+    pub fn apply(&self, input: &[&Tensor],
+                 output: &[&Tensor]) {
+        let mut paras: Vec<&Tensor> = Vec::new();
+        for (a, _) in &self.para_grad {
+            paras.push(&a);
+        }
+        self.func_apply.borrow()(input, output, &paras);
     }
     /// Given input and output_grad, return input_grad (forward view)
-    pub fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-        
+    /// Called by compute_grapyh.
+    pub fn grad(&self, input: &[&Tensor],
+                output_grad: &[&Tensor],
+                input_grad: &[&Tensor]) {
+        let mut paras: Vec<&Tensor> = Vec::new();
+        for (a, _) in &self.para_grad {
+            paras.push(&a);
+        }
+        self.func_gradient.borrow()(input, output_grad, input_grad, &paras);
         let new_counter = self.update_counter.borrow().overflowing_add(1).0;
         self.update_counter.replace(new_counter);
     }
