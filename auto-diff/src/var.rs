@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
-use crate::op::{Op, OpTrait,
+use crate::op::{Op, 
 //                Add, Sub, Mul, Div,
                 Linear,
 };

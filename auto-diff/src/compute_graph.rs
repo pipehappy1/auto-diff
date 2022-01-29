@@ -67,7 +67,7 @@ impl Net {
         id
     }
     pub fn get_op(&self, id: GenKey) -> Result<Op, AutoDiffError> {
-        Ok(self.ops.get(&id)?.clone())
+        Ok(self.ops.get(&id)?.ref_copy())
     }
 
     pub fn get_grad(&self, id: GenKey) -> Result<Tensor, AutoDiffError> {

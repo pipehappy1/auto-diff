@@ -4,29 +4,31 @@ use std::rc::Rc;
 
 use tensor_rs::tensor::Tensor;
 use crate::var::Var;
-
 use crate::err::AutoDiffError;
+use crate::collection::generational_index::{GenKey};
+use crate::compute_graph::Net;
 
-/// All op is OpTrait
-pub trait OpTrait {
 
-//    /// A conventional name for the op
-//    fn get_name(&self) -> String;
-//
-//    /// The number of input needs by this op.
-//    fn get_input_size(&self) -> usize;
-//
-//    /// The number of output produced by this op.
-//    fn get_output_size(&self) -> usize;
-//
-//    /// Forward pass
-//    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]);
-//
-//    fn call(&mut self, inputs: &[&Var]) -> Vec<Var> {
-//        //inputs[0].called_with()
-//        Vec::new()
-//    }
-//    
+pub trait OpInner {
+
+    /// A conventional name for the op
+    fn get_name(&self) -> String;
+
+    /// The number of input needs by this op.
+    fn get_input_size(&self) -> usize;
+
+    /// The number of output produced by this op.
+    fn get_output_size(&self) -> usize;
+
+    /// Forward pass
+    fn apply(&self, input: &[&Tensor], output: &[&Tensor]);
+
+    /// Given the forward input value and backward output_grad,
+    /// Update weight gradient.
+    /// return backward input gradeint.
+    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]);
+
+    
 //    fn call_tensor(&mut self, input: &[&Tensor]) -> Result<Vec<Tensor>, AutoDiffError> {
 //        if input.len() != self.get_input_size() {
 //            return Err(AutoDiffError::new(
@@ -41,53 +43,50 @@ pub trait OpTrait {
 //        self.apply(input, &ret_ref[..]);
 //        Ok(ret)
 //    }
-//    
-//    /// Given the forward input value and backward output_grad,
-//    /// Update weight gradient.
-//    /// return backward input gradeint.
-//    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]);
-//
-//    /// access weight values
-//    fn get_values(&self) -> Vec<&Tensor>;
-//    fn set_values(&self, v: &[Tensor]);
-//    /// access gradient values
-//    fn get_grads(&self) -> Vec<&Tensor>;
+    
+    /// access weight values
+    fn get_values(&self) -> Vec<&Tensor>;
+    fn set_values(&self, v: &[Tensor]);
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor>;
 }
+
+pub struct OpHandle {
+    id: GenKey,    
+    net: Rc<RefCell<Net>>,
+}
+impl OpHandle {
+    pub fn new() -> OpHandle {
+        OpHandle {
+            id: GenKey::new(0, 0),
+            net: Rc::new(RefCell::new(Net::new()))
+        }
+    }
+}
+
+
 
 ///
 /// Op is the Rc wrapper of typed op trait
 ///
 pub struct Op {
+    inner_op: Rc<RefCell<Box<dyn OpInner>>>,
     update_counter: RefCell<usize>, // guard for the case there optim.step is called when .backward is not called yet.
-    para_grad: Vec<(Tensor, Tensor)>,
-    func_apply: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor], &[&Tensor])>>, // input, output, paras
-    func_gradient: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor], &[&Tensor], &[&Tensor])>>, // input, output_grad, input_grad, paras
-
-    name: String,
-    input_size: usize,
-    output_size: usize,
 }
 impl Op {
-    pub fn new(apply: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor], &[&Tensor])>>, // input. output, paras
-               gradient: Rc<RefCell<dyn Fn(&[&Tensor], &[&Tensor], &[&Tensor], &[&Tensor])>>, // input, output_grad, input_grad, paras
-               name: String, input_size: usize, output_size: usize) -> Self {
+    pub fn new(op: Rc<RefCell<Box<dyn OpInner>>>) -> Self {
         Op {
+            inner_op: op.clone(),
             update_counter: RefCell::new(0),
-            para_grad: Vec::new(),
-            func_apply: apply.clone(),
-            func_gradient: gradient.clone(),
-            name,
-            input_size,
-            output_size,
         }
     }
 
-//    pub fn ref_copy(&self) -> Self {
-//        Op {
-//            o: self.o.clone(),
-//            update_counter: RefCell::new(0) // TODO?
-//        }
-//    }
+    pub fn ref_copy(&self) -> Self {
+        Op {
+            inner_op: self.inner_op.clone(),
+            update_counter: RefCell::new(0) // TODO?
+        }
+    }
 
 //    pub fn nop() -> Self {
 //        Op {
@@ -96,7 +95,7 @@ impl Op {
 //    }
 
     pub fn get_name(&self) -> String {
-        self.name.clone()
+        self.inner_op.borrow().get_name()
     }
     pub fn get_update_counter(&self) -> usize {
         *self.update_counter.borrow()
@@ -105,64 +104,57 @@ impl Op {
     /// Called by compute_grapyh.
     pub fn apply(&self, input: &[&Tensor],
                  output: &[&Tensor]) {
-        let mut paras: Vec<&Tensor> = Vec::new();
-        for (a, _) in &self.para_grad {
-            paras.push(&a);
-        }
-        self.func_apply.borrow()(input, output, &paras);
+        self.inner_op.borrow().apply(input, output);
     }
     /// Given input and output_grad, return input_grad (forward view)
     /// Called by compute_grapyh.
     pub fn grad(&self, input: &[&Tensor],
                 output_grad: &[&Tensor],
                 input_grad: &[&Tensor]) {
-        let mut paras: Vec<&Tensor> = Vec::new();
-        for (a, _) in &self.para_grad {
-            paras.push(&a);
-        }
-        self.func_gradient.borrow()(input, output_grad, input_grad, &paras);
+
+        self.inner_op.borrow().grad(input, output_grad, input_grad);
         let new_counter = self.update_counter.borrow().overflowing_add(1).0;
         self.update_counter.replace(new_counter);
     }
 
-    /// access weight/paramenters
-    pub fn get_values(&self) -> Vec<Tensor> {
-        let mut ret = Vec::new();
-        for i in &self.para_grad {
-            ret.push(i.0.clone());
-        }
-        ret
-    }
-
-    /// set parameters
-    pub fn set_values(&self, v: &[Tensor]) {
-        for (index, i) in v.iter().enumerate() {
-            self.para_grad[index].0.swap(i);
-        }
-    }
-
-    /// return gradient for weight/parameters.
-    pub fn get_grads(&self) -> Vec<Tensor> {
-        let mut ret = Vec::new();
-        for i in &self.para_grad {
-            ret.push(i.1.clone());
-        }
-        ret
-    }
+//    /// access weight/paramenters
+//    pub fn get_values(&self) -> Vec<Tensor> {
+//        let mut ret = Vec::new();
+//        for i in &self.para_grad {
+//            ret.push(i.0.clone());
+//        }
+//        ret
+//    }
+//
+//    /// set parameters
+//    pub fn set_values(&self, v: &[Tensor]) {
+//        for (index, i) in v.iter().enumerate() {
+//            self.para_grad[index].0.swap(i);
+//        }
+//    }
+//
+//    /// return gradient for weight/parameters.
+//    pub fn get_grads(&self) -> Vec<Tensor> {
+//        let mut ret = Vec::new();
+//        for i in &self.para_grad {
+//            ret.push(i.1.clone());
+//        }
+//        ret
+//    }
 }
-impl Clone for Op {
-    fn clone(&self) -> Self {
-        Op {
-            update_counter: self.update_counter.clone(),
-            para_grad: self.para_grad.iter().map(|(a, b)| (a.clone(), b.clone())).collect(),
-            func_apply: self.func_apply.clone(),
-            func_gradient: self.func_gradient.clone(),
-            name: self.name.clone(),
-            input_size: self.input_size,
-            output_size: self.output_size,
-        }
-    }
-}
+//impl Clone for Op {
+//    fn clone(&self) -> Self {
+//        Op {
+//            update_counter: self.update_counter.clone(),
+//            para_grad: self.para_grad.iter().map(|(a, b)| (a.clone(), b.clone())).collect(),
+//            func_apply: self.func_apply.clone(),
+//            func_gradient: self.func_gradient.clone(),
+//            name: self.name.clone(),
+//            input_size: self.input_size,
+//            output_size: self.output_size,
+//        }
+//    }
+//}
 
 
 

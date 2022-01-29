@@ -1,5 +1,5 @@
 use tensor_rs::tensor::Tensor;
-use super::{OpTrait, Op};
+use super::{OpInner, Op, OpHandle};
 
 use std::cell::{RefCell, Ref};
 use std::rc::Rc;
@@ -13,9 +13,12 @@ pub struct Linear {
     in_fea: Option<usize>,
     out_fea: Option<usize>,
     bias_option: bool,
-
-    id: GenKey,    
-    net: Rc<RefCell<Net>>,
+    weight: Tensor,
+    bias: Tensor,
+    weight_grad: Tensor,
+    bias_grad: Tensor,
+    
+    handle: OpHandle,
 }
 impl Linear {
     pub fn new(in_features: Option<usize>, out_features: Option<usize>, bias: bool) -> Linear {
@@ -23,29 +26,112 @@ impl Linear {
             in_fea: in_features,
             out_fea: out_features,
             bias_option: bias,
-            
-            id: GenKey::new(0, 0),
-            net: Rc::new(RefCell::new(Net::new()))
+            weight: Tensor::new(),
+            bias: Tensor::new(),
+            weight_grad: Tensor::new(),
+            bias_grad: Tensor::new(),
+            handle: OpHandle::new(),
         }
     }
 
-    pub fn call(&mut self, inputs: &[&Var]) -> Vec<Var> {
-        let op = Op::new(Rc::new(RefCell::new(Self::apply)),
-                         Rc::new(RefCell::new(Self::grad)),
-                         "linear".to_string(),
-                         1,1);
+    pub fn weight(&self) -> &Tensor {
+        &self.weight
+    }
+
+    pub fn set_weight(&self, var: Var) {
+        self.weight.data_copy(&var.val());
+    }
+    
+    pub fn bias(&self) -> &Tensor {
+        &self.bias
+    }
+    
+    pub fn set_bias(&self, var: Var) {
+        self.bias.data_copy(&var.val());
+    }
+}
+
+impl Linear {
+    fn call(&mut self, inputs: &[&Var]) -> Vec<Var> {
+        let new_one = Linear {
+            in_fea: self.in_fea,
+            out_fea: self.out_fea,
+            bias_option: self.bias_option,
+            weight: Tensor::new(),
+            bias: Tensor::new(),
+            weight_grad: Tensor::new(),
+            bias_grad: Tensor::new(),
+            handle: OpHandle::new(),
+        };
+        
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
         
         inputs[0].called_with(op, &inputs[1..inputs.len()-1]);
+        // TODO
         Vec::new()
     }
+    
+    fn get_handle(&self) -> &OpHandle {
+        &self.handle
+    }
+    
+    fn get_handle_mut(&mut self) -> &mut OpHandle {
+        &mut self.handle
+    }
+}
 
+impl OpInner for Linear {
+    
 
-    pub fn apply(inputs: &[&Tensor], outputs: &[&Tensor], params: &[&Tensor]) {
-        
+    fn get_name(&self) -> String {
+        "Linear".to_string()
     }
 
-    pub fn grad(inputs: &[&Tensor], outputs: &[&Tensor], z: &[&Tensor], a: &[&Tensor],) {
-        
+    fn get_input_size(&self) -> usize {
+        1
+    }
+
+    fn get_output_size(&self) -> usize {
+        1
+    }
+
+    fn apply(&self, inputs: &[&Tensor],
+                 outputs: &[&Tensor]) {
+//        if self.in_fea == None || self.out_fea == None {
+//            if self.in_fea == None {
+//                let in_size = input[0].size();
+//                self.in_fea = Some(in_size[in_size.len()-1]);
+//            }
+//            if self.out_fea == None {
+//                let out_size = output[0].size();
+//                self.out_fea = Some(out_size[0]);
+//            }
+//            self._new();
+//        }
+
+        //println!("left sie: {:?}, right size: {:?}", input[0].size(), self.weight.size());
+        //let ret = inputs[0].matmul(params[0]);
+        //outputs[0].swap(&ret);
+        ////println!("matmut done");
+        //if self.bias_option {
+        //    let ret = outputs[0].add(params[1]);
+        //    outputs[0].swap(&ret);
+        //}
+    }
+
+    fn grad(&self, inputs: &[&Tensor],
+            output_grad: &[&Tensor],
+            input_grad: &[&Tensor]) {
+        // TODO
+    }
+
+    fn get_values(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+    fn set_values(&self, v: &[Tensor]) {}
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor> {
+        Vec::new()
     }
     
 }

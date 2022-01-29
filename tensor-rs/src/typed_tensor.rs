@@ -203,6 +203,14 @@ impl TypedTensor {
         TypedTensor::Typef32(GenTensor::new())
     }
 
+    pub fn data_copy(&mut self, other: &TypedTensor) {
+        match (self, other) {
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {v1.data_copy(&v2)},
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {v1.data_copy(&v2)},
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
+
     pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {
         match self {
             TypedTensor::Typef32(v1) => {v1.index2dimpos(index)},

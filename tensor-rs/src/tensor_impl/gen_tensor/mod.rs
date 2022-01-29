@@ -43,6 +43,11 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
 
+    pub fn data_copy(&mut self, other: &GenTensor<T>) {
+        self.d = other.d.clone();
+        self.dim = other.dim.clone();
+    }
+
     /// Convert 1 dim index to multi-dim index.
     pub fn index2dimpos(&self, index: usize) -> Vec::<usize> {
         if index >= self.d.len() {

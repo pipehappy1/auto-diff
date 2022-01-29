@@ -145,6 +145,10 @@ impl Tensor {
         }
     }
 
+    pub fn data_copy(&self, o: &Tensor) {
+        self.v.borrow_mut().data_copy(&o.v.borrow());
+    }
+
     pub fn swap(&self, o: &Tensor) {
         self.v.swap(&o.v);
     }
