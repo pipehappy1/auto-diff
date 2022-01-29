@@ -9,7 +9,9 @@ use crate::collection::generational_index::{GenKey};
 use crate::compute_graph::Net;
 
 
-pub trait OpInner {
+pub trait OpTrait {
+    fn get_handle(&self) -> &OpHandle;
+    fn get_handle_mut(&mut self) -> &mut OpHandle;
 
     /// A conventional name for the op
     fn get_name(&self) -> String;
@@ -70,11 +72,11 @@ impl OpHandle {
 /// Op is the Rc wrapper of typed op trait
 ///
 pub struct Op {
-    inner_op: Rc<RefCell<Box<dyn OpInner>>>,
+    inner_op: Rc<RefCell<Box<dyn OpTrait>>>,
     update_counter: RefCell<usize>, // guard for the case there optim.step is called when .backward is not called yet.
 }
 impl Op {
-    pub fn new(op: Rc<RefCell<Box<dyn OpInner>>>) -> Self {
+    pub fn new(op: Rc<RefCell<Box<dyn OpTrait>>>) -> Self {
         Op {
             inner_op: op.clone(),
             update_counter: RefCell::new(0),
@@ -197,68 +199,71 @@ impl Op {
 ///
 /// Verify the gradient implementation is right.
 ///
-//pub fn _gradient_checker(op: &mut dyn OpTrait,
-//                         one_input: &[&Tensor], input_mask: Option<&[bool]>,
-//                         step: Option<f32>, tolerance: Option<f32>) -> bool {
-//
-//    let x_mask = if let Some(val) = input_mask {val.to_vec()} else {vec![true; one_input.len()]};
-//    let delta = if let Some(val) = step {val} else {0.01};
-//    let tol = if let Some(val) = tolerance {val} else {0.01};
-//
-//
-//    // system output
-//    let output = op.call_tensor(one_input).unwrap();
-//    if output.len() > 1 || output[0].numel() > 1 {
-//        panic!("gradient checker only handle scale output case. {:?}, {:?}", output.len(), output[0].size());
-//    }
-//    let output = output[0].get_scale_f32();
-//
-//    // get the system gradient
-//    let input_grad = vec![Tensor::new(); op.get_input_size()];
-//    let mut input_grad_ref = Vec::new();
-//    for i in &input_grad {
-//        input_grad_ref.push(i);
-//    }
-//    let output_grad = Tensor::from_vec_f32(&[1.], &[1]);
-//    op.grad(one_input, &[&output_grad], &input_grad_ref);
-//
-//    // get the numeric gradient
-//    let mut numeric_gradient = Vec::new();
-//    for v in one_input {
-//        numeric_gradient.push(v.zeros_like())
-//    }
-//
-//    let mut good_gradient = true;
-//    for (index, v) in one_input.iter().enumerate() {
-//        if !x_mask[index] {
-//            continue;
-//        }
-//        
-//        for i in 0..v.numel() {
-//            let dimpos = v.index2dimpos(i);
-//                
-//            let base_value = v.get_f32(&dimpos);
-//            let right_value = base_value + delta;
-//            let mut right_tensor = (*v).clone();
-//            right_tensor.set_f32(&dimpos, right_value);
-//
-//            let mut right_input = one_input.to_vec();
-//            right_input[index] = &right_tensor;
-//            let right_output = op.call_tensor(&right_input).unwrap()[0].get_scale_f32();
-//
-//            let scale_gradient = (right_output - output)/delta;
-//            numeric_gradient[index].set_f32(&dimpos, scale_gradient);
-//
-//            let system_gradient = input_grad[index].get_f32(&dimpos);
-//
-//            //println!("left: {:?}, right: {:?}", scale_gradient, system_gradient);
-//            if (scale_gradient - system_gradient)*(scale_gradient - system_gradient) > tol {
-//                good_gradient = false;
-//            }
-//        }
-//    }
-//    good_gradient
-//}
+pub fn _gradient_checker(op: &mut dyn OpTrait,
+                         one_input: &[&Tensor], input_mask: Option<&[bool]>,
+                         step: Option<f32>, tolerance: Option<f32>) -> bool {
+
+    let x_mask = if let Some(val) = input_mask {val.to_vec()} else {vec![true; one_input.len()]};
+    let delta = if let Some(val) = step {val} else {0.01};
+    let tol = if let Some(val) = tolerance {val} else {0.01};
+
+
+    // system output
+    let output = Tensor::new();
+    op.apply(one_input, &[&output]);
+    //if output.len() > 1 || output[0].numel() > 1 {
+    //    panic!("gradient checker only handle scale output case. {:?}, {:?}", output.len(), output[0].size());
+    //}
+    let output = output.get_scale_f32();
+
+    // get the system gradient
+    let input_grad = vec![Tensor::new(); op.get_input_size()];
+    let mut input_grad_ref = Vec::new();
+    for i in &input_grad {
+        input_grad_ref.push(i);
+    }
+    let output_grad = Tensor::from_vec_f32(&[1.], &[1]);
+    op.grad(one_input, &[&output_grad], &input_grad_ref);
+
+    // get the numeric gradient
+    let mut numeric_gradient = Vec::new();
+    for v in one_input {
+        numeric_gradient.push(v.zeros_like())
+    }
+
+    let mut good_gradient = true;
+    for (index, v) in one_input.iter().enumerate() {
+        if !x_mask[index] {
+            continue;
+        }
+        
+        for i in 0..v.numel() {
+            let dimpos = v.index2dimpos(i);
+                
+            let base_value = v.get_f32(&dimpos);
+            let right_value = base_value + delta;
+            let mut right_tensor = (*v).clone();
+            right_tensor.set_f32(&dimpos, right_value);
+
+            let mut right_input = one_input.to_vec();
+            right_input[index] = &right_tensor;
+            let right_output = Tensor::new();
+            op.apply(&right_input, &[&right_output]);
+            let right_output = right_output.get_scale_f32();
+
+            let scale_gradient = (right_output - output)/delta;
+            numeric_gradient[index].set_f32(&dimpos, scale_gradient);
+
+            let system_gradient = input_grad[index].get_f32(&dimpos);
+
+            //println!("left: {:?}, right: {:?}", scale_gradient, system_gradient);
+            if (scale_gradient - system_gradient)*(scale_gradient - system_gradient) > tol {
+                good_gradient = false;
+            }
+        }
+    }
+    good_gradient
+}
 
 ///
 /// View op
@@ -313,8 +318,8 @@ impl Op {
 //    }
 //}
 
-//pub mod local;
-//pub use local::{Add, Sub, Mul, Div};
+pub mod local;
+pub use local::{Add, Sub, Mul, Div};
 
 pub mod linear;
 pub use linear::Linear;
@@ -325,5 +330,6 @@ pub use linear::Linear;
 //pub mod convolution;
 //pub use convolution::{ Conv2d};
 
-//pub mod loss;
+pub mod loss;
 //pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};
+pub use loss::{MSELoss};

@@ -1,16 +1,26 @@
 #![allow(clippy::redundant_closure_call)]
 use tensor_rs::tensor::Tensor;
-use super::OpTrait;
+use super::{OpTrait, OpHandle};
 
 macro_rules! new_binary_op {
     ($a:ident, $b:expr, $c:tt, $d: tt) => {
-        pub struct $a {}
+        pub struct $a {
+            handle: OpHandle,
+        }
         impl $a {
             pub fn new() -> $a{
-                $a{}
+                $a{
+                    handle: OpHandle::new(),
+                }
             }
         }
         impl OpTrait for $a {
+            fn get_handle(&self) -> &OpHandle {
+                &self.handle
+            }
+            fn get_handle_mut(&mut self) -> &mut OpHandle {
+                &mut self.handle
+            }
             fn get_name(&self) -> String {
                 ($b).to_string()
             }
@@ -20,7 +30,7 @@ macro_rules! new_binary_op {
             fn get_output_size(&self) -> usize {
                 1
             }
-            fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+            fn apply(&self, input: &[&Tensor], output: &[&Tensor]) {
                 $c(input, output)
             }
             fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
@@ -40,42 +50,42 @@ macro_rules! new_binary_op {
 
 new_binary_op!(Add, "add",
                (|a:&[&Tensor], b:&[&Tensor]|
-                b[0].swap(a[0].add(a[1]))
+                b[0].swap(&a[0].add(a[1]))
                ),
                (|input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]| {
                    let x = input[0].ones_like().mul(output_grad[0]);
                    let y = input[1].ones_like().mul(output_grad[0]);
-                   input_grad[0].swap(x);
-                   input_grad[1].swap(y);
+                   input_grad[0].swap(&x);
+                   input_grad[1].swap(&y);
                })
 );
 new_binary_op!(Sub, "sub",
                (|a:&[&Tensor], b:&[&Tensor]|
-                b[0].swap(a[0].sub(a[1]))),
+                b[0].swap(&a[0].sub(a[1]))),
                (|input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]| {
                    let x = input[0].ones_like().mul(output_grad[0]);
                    let y = input[1].ones_like().neg().mul(output_grad[0]);
-                   input_grad[0].swap(x);
-                   input_grad[1].swap(y);
+                   input_grad[0].swap(&x);
+                   input_grad[1].swap(&y);
                })
 );
 new_binary_op!(Mul, "mul",
                (|a:&[&Tensor], b:&[&Tensor]|
-                b[0].swap(a[0].mul(a[1]))),
+                b[0].swap(&a[0].mul(a[1]))),
                (|input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]| {
                    let x = input[1].mul(output_grad[0]);
                    let y = input[0].mul(output_grad[0]);
-                   input_grad[0].swap(x);
-                   input_grad[1].swap(y);
+                   input_grad[0].swap(&x);
+                   input_grad[1].swap(&y);
                })
 );
 new_binary_op!(Div, "div",
                (|a:&[&Tensor], b:&[&Tensor]|
-                b[0].swap(a[0].div(a[1]))),
+                b[0].swap(&a[0].div(a[1]))),
                (|input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]| {
                    let x = input[1].reciprocal().mul(output_grad[0]);
                    let y = input[0].neg().div(input[1]).div(input[1]).mul(output_grad[0]);
-                   input_grad[0].swap(x);
-                   input_grad[1].swap(y);
+                   input_grad[0].swap(&x);
+                   input_grad[1].swap(&y);
                })
 );

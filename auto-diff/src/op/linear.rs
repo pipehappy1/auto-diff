@@ -1,5 +1,5 @@
 use tensor_rs::tensor::Tensor;
-use super::{OpInner, Op, OpHandle};
+use super::{OpTrait, Op, OpHandle};
 
 use std::cell::{RefCell, Ref};
 use std::rc::Rc;
@@ -7,6 +7,7 @@ use std::rc::Rc;
 use crate::var::{VarInner, Var};
 use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
+use crate::err::AutoDiffError;
 
 
 pub struct Linear {
@@ -21,7 +22,9 @@ pub struct Linear {
     handle: OpHandle,
 }
 impl Linear {
-    pub fn new(in_features: Option<usize>, out_features: Option<usize>, bias: bool) -> Linear {
+    pub fn new(in_features: Option<usize>,
+               out_features: Option<usize>,
+               bias: bool) -> Linear {
         Linear {
             in_fea: in_features,
             out_fea: out_features,
@@ -52,25 +55,27 @@ impl Linear {
 }
 
 impl Linear {
-    fn call(&mut self, inputs: &[&Var]) -> Vec<Var> {
+    pub fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
         let new_one = Linear {
             in_fea: self.in_fea,
             out_fea: self.out_fea,
             bias_option: self.bias_option,
-            weight: Tensor::new(),
-            bias: Tensor::new(),
-            weight_grad: Tensor::new(),
-            bias_grad: Tensor::new(),
-            handle: OpHandle::new(),
+            weight: self.weight.ref_copy(),
+            bias: self.bias.ref_copy(),
+            weight_grad: self.weight_grad.ref_copy(),
+            bias_grad: self.bias_grad.ref_copy(),
+            handle: OpHandle::new(), // TODO; change this to None, this shold never be used.
         };
         
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
         
-        inputs[0].called_with(op, &inputs[1..inputs.len()-1]);
-        // TODO
-        Vec::new()
+        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()-1])?)
     }
     
+
+}
+
+impl OpTrait for Linear {
     fn get_handle(&self) -> &OpHandle {
         &self.handle
     }
@@ -78,9 +83,6 @@ impl Linear {
     fn get_handle_mut(&mut self) -> &mut OpHandle {
         &mut self.handle
     }
-}
-
-impl OpInner for Linear {
     
 
     fn get_name(&self) -> String {

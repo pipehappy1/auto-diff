@@ -7,9 +7,10 @@ use std::collections::BTreeMap;
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
-use crate::op::{Op, 
-//                Add, Sub, Mul, Div,
+use crate::op::{Op, OpTrait,
+                Add, Sub, Mul, Div,
                 Linear,
+                MSELoss,
 };
 use crate::err::AutoDiffError;
 
@@ -52,12 +53,12 @@ impl Var {
         Ok(())
     }
 
-//    var_2_to_1!(add);
-//    var_2_to_1!(sub);
-//    var_2_to_1!(mul);
-//    var_2_to_1!(div);
+    var_2_to_1!(add);
+    var_2_to_1!(sub);
+    var_2_to_1!(mul);
+    var_2_to_1!(div);
     
-//    var_2_to_1!(mse_loss);
+    var_2_to_1!(mse_loss);
 
     pub(crate) fn val(&self) -> Tensor {
         self.var.borrow().val()
@@ -117,13 +118,14 @@ macro_rules! var_inner_2_to_1 {
                 other.id = other_key;
             }
 
+            let ret = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
+
             let mut op = $b::new();
-            let result = op.call_tensor(&[&self.net.borrow().get_tensor(self.id)?,
-                                          &self.net.borrow().get_tensor(other.id)?])?[0].clone();
-            let op = Op::new(Box::new(op));
+            op.apply(&[&self.net.borrow().get_tensor(self.id)?,
+                       &self.net.borrow().get_tensor(other.id)?],
+                     &[&self.net.borrow().get_tensor(ret.id)?]);
+            let op = Op::new(Rc::new(RefCell::new(Box::new(op))));
             let opid = self.net.borrow_mut().add_op(op);
-        
-            let ret = VarInner::new_net_tensor(self.net.clone(), result);
 
             self.net.borrow_mut().connect(&[self.id, other.id],
                                           opid, &[ret.id]);
@@ -244,12 +246,12 @@ impl VarInner {
         Ok(Vec::new())
     }
 
-//    var_inner_2_to_1!(add, Add);
-//    var_inner_2_to_1!(sub, Sub);
-//    var_inner_2_to_1!(mul, Mul);
-//    var_inner_2_to_1!(div, Div);
+    var_inner_2_to_1!(add, Add);
+    var_inner_2_to_1!(sub, Sub);
+    var_inner_2_to_1!(mul, Mul);
+    var_inner_2_to_1!(div, Div);
     
-//    var_inner_2_to_1!(mse_loss, MSELoss);
+    var_inner_2_to_1!(mse_loss, MSELoss);
 }
 
 impl PartialEq for VarInner {
@@ -322,13 +324,13 @@ mod tests {
         assert_eq!(c, Var::new(&[2., 6., 12., 20.], &[2, 2]));
     }
 
-//    #[test]
-//    fn test_op_mse() {
-//        let a = Var::new(&[1., 2., 3., 4., 5., 6.,], &[3, 2]);
-//        let b = Var::new(&[2., 3., 4., 5., 6., 7.,], &[3, 2]);
-//        let c = a.mse_loss(&b).unwrap();
-//        assert_eq!(c , Var::new(&[1., ], &vec![1]));
-//    }
+    #[test]
+    fn test_op_mse() {
+        let a = Var::new(&[1., 2., 3., 4., 5., 6.,], &[3, 2]);
+        let b = Var::new(&[2., 3., 4., 5., 6., 7.,], &[3, 2]);
+        let c = a.mse_loss(&b).unwrap();
+        assert_eq!(c , Var::new(&[1., ], &vec![1]));
+    }
 
     #[test]
     fn test_linear() {
@@ -336,7 +338,7 @@ mod tests {
         op1.set_weight(Var::new(&[1.,2.,3.,4.,5.,6.,7.,8.,9.,10.], &[2, 5]));
         op1.set_bias(Var::new(&[1.,2.,3.,4.,5.], &[5]));
         let input = Var::ones(&[3,2]);
-        let output = op1.call(&[&input]).pop().unwrap();
+        let output = op1.call(&[&input]).unwrap().pop().unwrap();
         assert_eq!(output, Var::new(&[8.0, 11.0, 14.0, 17.0, 20.0, 8.0, 11.0, 14.0, 17.0, 20.0, 8.0, 11.0, 14.0, 17.0, 20.0],
                                     &vec![3, 5]));
     }
