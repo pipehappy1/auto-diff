@@ -647,7 +647,7 @@ impl fmt::Display for Tensor {
 }
 impl fmt::Debug for Tensor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, )", self.v.borrow())
+        write!(f, "({:?}, )", self.v.borrow())
     }
 }
 impl PartialEq for Tensor {

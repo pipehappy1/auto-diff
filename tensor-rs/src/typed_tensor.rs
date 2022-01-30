@@ -200,7 +200,7 @@ impl Default for TypedTensor {
 impl TypedTensor {
     pub fn new() -> TypedTensor {
         // Default value type is f32.
-        TypedTensor::Typef32(GenTensor::new())
+        TypedTensor::Typef64(GenTensor::new())
     }
 
     pub fn data_copy(&mut self, other: &TypedTensor) {
@@ -231,7 +231,7 @@ impl TypedTensor {
     }
     typed_tensor_method_single_tensor_return!(zeros_like);
     pub fn ones(shape: &[usize]) -> TypedTensor {
-        TypedTensor::Typef32(GenTensor::<f32>::ones(shape))
+        TypedTensor::Typef64(GenTensor::<f64>::ones(shape))
     }
     typed_tensor_method_single_tensor_return!(ones_like);
     pub fn empty(shape: &[usize]) -> TypedTensor {
@@ -691,8 +691,17 @@ impl TypedTensor {
 impl fmt::Display for TypedTensor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TypedTensor::Typef32(v) => write!(f, "{}", v),
-            TypedTensor::Typef64(v) => write!(f, "({}, )", v),
+            TypedTensor::Typef32(v) => write!(f, "typef32 {}", v),
+            TypedTensor::Typef64(v) => write!(f, "typef64 ({}, )", v),
+            //_ => panic!("Other case"),
+        }
+    }
+}
+impl fmt::Debug for TypedTensor {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TypedTensor::Typef32(v) => write!(f, "typef32: {}", v),
+            TypedTensor::Typef64(v) => write!(f, "typef64: {}", v),
             //_ => panic!("Other case"),
         }
     }

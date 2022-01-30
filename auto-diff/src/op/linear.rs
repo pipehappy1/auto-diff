@@ -69,7 +69,7 @@ impl Linear {
         
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
         
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()-1])?)
+        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
     }
     
 
@@ -98,41 +98,54 @@ impl OpTrait for Linear {
     }
 
     fn apply(&self, inputs: &[Tensor],
-                 outputs: &[Tensor]) {
-//        if self.in_fea == None || self.out_fea == None {
-//            if self.in_fea == None {
-//                let in_size = input[0].size();
-//                self.in_fea = Some(in_size[in_size.len()-1]);
-//            }
-//            if self.out_fea == None {
-//                let out_size = output[0].size();
-//                self.out_fea = Some(out_size[0]);
-//            }
-//            self._new();
-//        }
-
-        //println!("left sie: {:?}, right size: {:?}", input[0].size(), self.weight.size());
-        //let ret = inputs[0].matmul(params[0]);
-        //outputs[0].swap(&ret);
-        ////println!("matmut done");
-        //if self.bias_option {
-        //    let ret = outputs[0].add(params[1]);
-        //    outputs[0].swap(&ret);
-        //}
+             outputs: &[Tensor]) {
+        // TODO go through condition where dimension is missing somewhere.
+        //println!("left sie: {:?}, right size: {:?}", inputs[0], self.weight);
+        let ret = inputs[0].matmul(&self.weight);
+        outputs[0].data_copy(&ret);
+        //println!("matmut done");
+        if self.bias_option {
+            let ret = outputs[0].add(&self.bias);
+            outputs[0].data_copy(&ret);
+        }
     }
 
     fn grad(&self, inputs: &[Tensor],
             output_grad: &[Tensor],
             input_grad: &[Tensor]) {
-        // TODO
+        if inputs.is_empty() {
+            panic!("Expect one input tensor");
+        }
+        if inputs[0].size()[1] != self.weight.size()[0] {
+            panic!("Expect input dimension matches weight dimension {:?}, {:?}",
+                   inputs[0].size(), self.weight.size());
+        }
+        if inputs[0].size()[0] != output_grad[0].size()[0] {
+            panic!("Expect input population matches output gradient population {:?}, {:?}",
+                   inputs[0].size(), output_grad[0].size());
+        }
+        if output_grad[0].size()[1] != self.weight.size()[1] {
+            panic!("Expect output gradient dimension matches weight dimension {:?}, {:?}",
+                   output_grad[0].size(), self.weight.size());
+        }
+
+        input_grad[0].data_copy(&output_grad[0].matmul(&self.weight.permute(&[1,0])));
+        self.weight_grad.data_copy(&inputs[0].outer(&output_grad[0], Some(true)));
+        if self.bias_option {
+            self.bias_grad.data_copy(&output_grad[0].mean(Some(&[0]), false));
+        }
     }
 
     fn get_values(&self) -> Vec<&Tensor> {
+        // TODO
         Vec::new()
     }
-    fn set_values(&self, v: &[Tensor]) {}
+    fn set_values(&self, v: &[Tensor]) {
+        unimplemented!()
+    }
     /// access gradient values
     fn get_grads(&self) -> Vec<&Tensor> {
+        // TODO
         Vec::new()
     }
     
