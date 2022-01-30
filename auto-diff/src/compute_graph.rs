@@ -163,15 +163,15 @@ impl Net {
                 |input, output, op| {
                     //println!("op: {}", self.ops.get(op).expect("").get_name());
                     
-                    let mut inputs: Vec<&Tensor> = Vec::new();
+                    let mut inputs: Vec<Tensor> = Vec::new();
                     for input_id in input {
-                        let a = self.data.get(input_id).expect("");
+                        let a = self.data.get(input_id).expect("").ref_copy();
                         inputs.push(a);
                     }
 
-                    let mut outputs: Vec<&Tensor> = Vec::new();
+                    let mut outputs: Vec<Tensor> = Vec::new();
                     for output_id in output {
-                        let a = self.data.get(output_id).expect("");
+                        let a = self.data.get(output_id).expect("").ref_copy();
                         outputs.push(a);
                     }
 
@@ -238,28 +238,28 @@ impl Net {
                     //println!("op, bptt: {}", self.ops.get(op).expect("").get_name());
 
                     // collect input tensor.
-                    let mut inputs: Vec<&Tensor> = Vec::new();
+                    let mut inputs: Vec<Tensor> = Vec::new();
                     for input_id in input_grads {
                         //println!("bptt {:?}", input_id);
-                        let a = self.data.get(input_id).expect("");
+                        let a = self.data.get(input_id).expect("").ref_copy();
                         inputs.push(a);
                     }
                     //println!("input: size {:?}", inputs.len());
 
                     // collect the output tensor gradient (forward view).
-                    let mut output_grad: Vec<&Tensor> = Vec::new();
+                    let mut output_grad: Vec<Tensor> = Vec::new();
                     for output_id in output_grads {
                         //println!("bptt 2 {:?}", output_id);
-                        let a = self.data_grad.get(output_id).expect("");
+                        let a = self.data_grad.get(output_id).expect("").ref_copy();
                         output_grad.push(a);
                     }
                     //println!("output grad: size {:?}", output_grad.len());
                     
                     // collect the input tensor gradient (forward view).
-                    let mut input_grad: Vec<&Tensor> = Vec::new();
+                    let mut input_grad: Vec<Tensor> = Vec::new();
                     for input_id in input_grads {
                         //println!("bptt 3 {:?}", input_id);
-                        let a = self.data_grad.get(input_id).expect("");
+                        let a = self.data_grad.get(input_id).expect("").ref_copy();
                         input_grad.push(a);
                     }
                     //println!("input grad: size {:?}", input_grad.len());

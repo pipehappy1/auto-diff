@@ -97,8 +97,8 @@ impl OpTrait for Linear {
         1
     }
 
-    fn apply(&self, inputs: &[&Tensor],
-                 outputs: &[&Tensor]) {
+    fn apply(&self, inputs: &[Tensor],
+                 outputs: &[Tensor]) {
 //        if self.in_fea == None || self.out_fea == None {
 //            if self.in_fea == None {
 //                let in_size = input[0].size();
@@ -121,9 +121,9 @@ impl OpTrait for Linear {
         //}
     }
 
-    fn grad(&self, inputs: &[&Tensor],
-            output_grad: &[&Tensor],
-            input_grad: &[&Tensor]) {
+    fn grad(&self, inputs: &[Tensor],
+            output_grad: &[Tensor],
+            input_grad: &[Tensor]) {
         // TODO
     }
 

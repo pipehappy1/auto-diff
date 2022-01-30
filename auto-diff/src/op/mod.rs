@@ -23,12 +23,12 @@ pub trait OpTrait {
     fn get_output_size(&self) -> usize;
 
     /// Forward pass
-    fn apply(&self, input: &[&Tensor], output: &[&Tensor]);
+    fn apply(&self, input: &[Tensor], output: &[Tensor]);
 
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]);
+    fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]);
 
     
 //    fn call_tensor(&mut self, input: &[&Tensor]) -> Result<Vec<Tensor>, AutoDiffError> {
@@ -99,20 +99,26 @@ impl Op {
     pub fn get_name(&self) -> String {
         self.inner_op.borrow().get_name()
     }
+    pub fn get_input_size(&self) -> usize {
+        self.inner_op.borrow().get_input_size()
+    }
+    pub fn get_output_size(&self) -> usize {
+        self.inner_op.borrow().get_output_size()
+    }
     pub fn get_update_counter(&self) -> usize {
         *self.update_counter.borrow()
     }
     /// Read the input, do the calculation and write result to output.
     /// Called by compute_grapyh.
-    pub fn apply(&self, input: &[&Tensor],
-                 output: &[&Tensor]) {
+    pub fn apply(&self, input: &[Tensor],
+                 output: &[Tensor]) {
         self.inner_op.borrow().apply(input, output);
     }
     /// Given input and output_grad, return input_grad (forward view)
     /// Called by compute_grapyh.
-    pub fn grad(&self, input: &[&Tensor],
-                output_grad: &[&Tensor],
-                input_grad: &[&Tensor]) {
+    pub fn grad(&self, input: &[Tensor],
+                output_grad: &[Tensor],
+                input_grad: &[Tensor]) {
 
         self.inner_op.borrow().grad(input, output_grad, input_grad);
         let new_counter = self.update_counter.borrow().overflowing_add(1).0;
@@ -200,7 +206,7 @@ impl Op {
 /// Verify the gradient implementation is right.
 ///
 pub fn _gradient_checker(op: &mut dyn OpTrait,
-                         one_input: &[&Tensor], input_mask: Option<&[bool]>,
+                         one_input: &[Tensor], input_mask: Option<&[bool]>,
                          step: Option<f32>, tolerance: Option<f32>) -> bool {
 
     let x_mask = if let Some(val) = input_mask {val.to_vec()} else {vec![true; one_input.len()]};
@@ -210,7 +216,7 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
 
     // system output
     let output = Tensor::new();
-    op.apply(one_input, &[&output]);
+    op.apply(one_input, &[output.ref_copy()]);
     //if output.len() > 1 || output[0].numel() > 1 {
     //    panic!("gradient checker only handle scale output case. {:?}, {:?}", output.len(), output[0].size());
     //}
@@ -220,10 +226,10 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
     let input_grad = vec![Tensor::new(); op.get_input_size()];
     let mut input_grad_ref = Vec::new();
     for i in &input_grad {
-        input_grad_ref.push(i);
+        input_grad_ref.push(i.ref_copy());
     }
     let output_grad = Tensor::from_vec_f32(&[1.], &[1]);
-    op.grad(one_input, &[&output_grad], &input_grad_ref);
+    op.grad(one_input, &[output_grad], &input_grad_ref);
 
     // get the numeric gradient
     let mut numeric_gradient = Vec::new();
@@ -246,9 +252,9 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
             right_tensor.set_f32(&dimpos, right_value);
 
             let mut right_input = one_input.to_vec();
-            right_input[index] = &right_tensor;
+            right_input[index] = right_tensor.ref_copy();
             let right_output = Tensor::new();
-            op.apply(&right_input, &[&right_output]);
+            op.apply(&right_input, &[right_output.ref_copy()]);
             let right_output = right_output.get_scale_f32();
 
             let scale_gradient = (right_output - output)/delta;

@@ -121,9 +121,9 @@ macro_rules! var_inner_2_to_1 {
             let ret = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
 
             let mut op = $b::new();
-            op.apply(&[&self.net.borrow().get_tensor(self.id)?,
-                       &self.net.borrow().get_tensor(other.id)?],
-                     &[&self.net.borrow().get_tensor(ret.id)?]);
+            op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
+                       self.net.borrow().get_tensor(other.id)?.ref_copy()],
+                     &[self.net.borrow().get_tensor(ret.id)?.ref_copy()]);
             let op = Op::new(Rc::new(RefCell::new(Box::new(op))));
             let opid = self.net.borrow_mut().add_op(op);
 
@@ -228,22 +228,31 @@ impl VarInner {
             }
         }
 
-        // TODO
-//            let result = op.call_tensor(&[&self.net.borrow().get_tensor(self.id)?,
-//                                          &self.net.borrow().get_tensor(other.id)?])?[0].clone();
-//            let op = Op::new(Box::new(op));
-//            let opid = self.net.borrow_mut().add_op(op);
-//        
-//            let ret = VarInner::new_net_tensor(self.net.clone(), result);
-//
-//            self.net.borrow_mut().connect(&[self.id, other.id],
-//                                          opid, &[ret.id]);
-//
-//        let opid = self.net.borrow_mut().add_op(op);
+        let mut input_id = vec![self.id];
+        let mut inputs = vec![self.net.borrow().get_tensor(self.id)?];
+        for i in others {
+            input_id.push(i.borrow().id);
+            inputs.push(self.net.borrow().get_tensor(i.borrow().id)?);
+        }
 
+        let mut output_id = vec![];
+        let mut outputs = Vec::new();
+        let mut ret = Vec::new();
+        for i in 0..op.get_output_size() {
+            let new_output = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
+            output_id.push(new_output.id);
+            outputs.push(self.net.borrow().get_tensor(new_output.id)?);
+            ret.push(new_output);
+        }
+
+        op.apply(&inputs, &outputs);
+        let opid = self.net.borrow_mut().add_op(op);
         
+        self.net.borrow_mut().connect(&input_id,
+                                      opid,
+                                      &output_id);
         
-        Ok(Vec::new())
+        Ok(ret)
     }
 
     var_inner_2_to_1!(add, Add);
