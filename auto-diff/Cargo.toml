@@ -2,7 +2,7 @@
 name = "auto-diff"
 version = "0.5.1"
 authors = ["yguan <yguan@example.com>"]
-edition = "2018"
+edition = "2021"
 description = """
 A neural network library in Rust.
 

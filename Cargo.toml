@@ -4,6 +4,7 @@ members = [
     "auto-diff",
     "tensor-rs",
     "benches",
+    "macros",
 ]
 
 exclude = [
