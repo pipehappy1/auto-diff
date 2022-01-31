@@ -182,6 +182,9 @@ impl Tensor {
     pub fn get_scale_f32(&self) -> f32 {
         self.v.borrow().get_scale_f32()
     }
+    pub fn get_scale_f64(&self) -> f64 {
+        self.v.borrow().get_scale_f64()
+    }
 
     tensor_method_single_tensor_return!(get_n);
     tensor_method_single_tensor_return!(get_c);
@@ -258,14 +261,32 @@ impl Tensor {
         self.v.borrow_mut().set_f32(o, v);
     }
 
+    pub fn get_f64(&self, o: &[usize]) -> f64 {
+        self.v.borrow().get_f64(o)
+    }
+    pub fn set_f64(&mut self, o: &[usize], v: f64) {
+        self.v.borrow_mut().set_f64(o, v);
+    }
+
 
     
     /// Returns a tensor of size size filled with fill_value.
-    pub fn fill(size: &[usize], fill_value: f32) -> Tensor {
+    pub fn fill(size: &[usize], fill_value: &Tensor) -> Tensor {
         Tensor {
-            v: Rc::new(RefCell::new(TypedTensor::fill(size, fill_value))),
+            v: Rc::new(RefCell::new(TypedTensor::fill(size, &fill_value.v.borrow()))),
         }
     }
+    pub fn fill_f32(size: &[usize], fill_value: f32) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::fill_f32(size, fill_value))),
+        }
+    }
+    pub fn fill_f64(size: &[usize], fill_value: f64) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::fill_f64(size, fill_value))),
+        }
+    }
+    
     // zeros
     pub fn zeros(dim: &[usize]) -> Tensor {
         Tensor {
@@ -466,7 +487,7 @@ impl Tensor {
     tensor_method_single_tensor_return!(floor);
     tensor_method_single_tensor_return!(frac);
     // lerp
-    pub fn lerp(&self, end: &Tensor, weight: f32) -> Tensor {
+    pub fn lerp(&self, end: &Tensor, weight: &Tensor) -> Tensor {
         self.add(&Tensor::fill(&self.size(), weight).mul(&end.sub(self)))
     }
     tensor_method_single_tensor_return!(log);

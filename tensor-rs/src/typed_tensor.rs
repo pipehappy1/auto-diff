@@ -237,8 +237,18 @@ impl TypedTensor {
     pub fn empty(shape: &[usize]) -> TypedTensor {
         TypedTensor::Typef32(GenTensor::<f32>::zeros(shape))
     }
-    pub fn fill(size: &[usize], fill_value: f32) -> TypedTensor {
+    pub fn fill(size: &[usize], fill_value: &TypedTensor) -> TypedTensor {
+        match fill_value {
+            TypedTensor::Typef32(v1) => {TypedTensor::fill_f32(size, v1.get_scale())},
+            TypedTensor::Typef64(v1) => {TypedTensor::fill_f64(size, v1.get_scale())},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    pub fn fill_f32(size: &[usize], fill_value: f32) -> TypedTensor {
         TypedTensor::Typef32(GenTensor::fill(fill_value, size))
+    }
+    pub fn fill_f64(size: &[usize], fill_value: f64) -> TypedTensor {
+        TypedTensor::Typef64(GenTensor::fill(fill_value, size))
     }
     pub fn from_record(&mut self, row: usize, record: &[f32]) -> Result<(), &'static str>{
         match self {
@@ -264,12 +274,35 @@ impl TypedTensor {
         }
     }
 
+    pub fn get_f64(&self, o: &[usize]) -> f64 {
+        match &self {
+            TypedTensor::Typef32(v1) => {v1.get(o) as f64},
+            TypedTensor::Typef64(v1) => {v1.get(o)},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    // pub fn get_f32() -> f32 {}
+    pub fn set_f64(&mut self, o: &[usize], v: f64) {
+        match self {
+            TypedTensor::Typef32(v1) => {v1.set(o, v as f32)},
+            TypedTensor::Typef64(v1) => {v1.set(o, v)},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+
     typed_tensor_method_single_same_return!(size, &Vec<usize>);
     typed_tensor_method_single_same_return!(numel, usize);
     pub fn get_scale_f32(&self) -> f32 {
         match &self {
             TypedTensor::Typef32(v1) => {v1.get_scale()},
             TypedTensor::Typef64(v1) => {v1.get_scale() as f32},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    pub fn get_scale_f64(&self) -> f64 {
+        match &self {
+            TypedTensor::Typef32(v1) => {v1.get_scale() as f64},
+            TypedTensor::Typef64(v1) => {v1.get_scale()},
             //_ => {panic!("should have same tensor type!");},
         }
     }

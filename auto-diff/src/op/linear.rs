@@ -1,5 +1,5 @@
 use tensor_rs::tensor::Tensor;
-use super::{OpTrait, Op, OpHandle};
+use super::{OpTrait, OpCall, Op, OpHandle};
 
 use std::cell::{RefCell, Ref};
 use std::rc::Rc;
@@ -52,10 +52,12 @@ impl Linear {
     pub fn set_bias(&self, var: Var) {
         self.bias.data_copy(&var.val());
     }
+
+    handle_method!();
 }
 
-impl Linear {
-    pub fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
+impl OpCall for Linear {
+    fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
         let new_one = Linear {
             in_fea: self.in_fea,
             out_fea: self.out_fea,
@@ -71,18 +73,12 @@ impl Linear {
         
         Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
     }
-    
+
 
 }
 
 impl OpTrait for Linear {
-    fn get_handle(&self) -> &OpHandle {
-        &self.handle
-    }
-    
-    fn get_handle_mut(&mut self) -> &mut OpHandle {
-        &mut self.handle
-    }
+
     
 
     fn get_name(&self) -> String {

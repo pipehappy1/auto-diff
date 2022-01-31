@@ -10,9 +10,6 @@ use crate::compute_graph::Net;
 
 
 pub trait OpTrait {
-    fn get_handle(&self) -> &OpHandle;
-    fn get_handle_mut(&mut self) -> &mut OpHandle;
-
     /// A conventional name for the op
     fn get_name(&self) -> String;
 
@@ -53,6 +50,11 @@ pub trait OpTrait {
     fn get_grads(&self) -> Vec<&Tensor>;
 }
 
+/// Ops that first created, then called needs to follow this behavior.
+pub trait OpCall {
+    fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError>;
+}
+
 pub struct OpHandle {
     id: GenKey,    
     net: Rc<RefCell<Net>>,
@@ -66,6 +68,17 @@ impl OpHandle {
     }
 }
 
+macro_rules! handle_method {
+    () => {
+        fn get_handle(&self) -> &OpHandle {
+            &self.handle
+        }
+    
+        fn get_handle_mut(&mut self) -> &mut OpHandle {
+            &mut self.handle
+        }
+    }
+}
 
 
 ///
@@ -207,11 +220,11 @@ impl Op {
 ///
 pub fn _gradient_checker(op: &mut dyn OpTrait,
                          one_input: &[Tensor], input_mask: Option<&[bool]>,
-                         step: Option<f32>, tolerance: Option<f32>) -> bool {
+                         step: Option<Tensor>, tolerance: Option<Tensor>) -> bool {
 
     let x_mask = if let Some(val) = input_mask {val.to_vec()} else {vec![true; one_input.len()]};
-    let delta = if let Some(val) = step {val} else {0.01};
-    let tol = if let Some(val) = tolerance {val} else {0.01};
+    let delta = if let Some(val) = step {val.get_scale_f64()} else {0.01};
+    let tol = if let Some(val) = tolerance {val.get_scale_f64()} else {0.01};
 
 
     // system output
@@ -220,7 +233,7 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
     //if output.len() > 1 || output[0].numel() > 1 {
     //    panic!("gradient checker only handle scale output case. {:?}, {:?}", output.len(), output[0].size());
     //}
-    let output = output.get_scale_f32();
+    let output = output.get_scale_f64();
 
     // get the system gradient
     let input_grad = vec![Tensor::new(); op.get_input_size()];
@@ -228,7 +241,7 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
     for i in &input_grad {
         input_grad_ref.push(i.ref_copy());
     }
-    let output_grad = Tensor::from_vec_f32(&[1.], &[1]);
+    let output_grad = Tensor::from_vec_f64(&[1.], &[1]);
     op.grad(one_input, &[output_grad], &input_grad_ref);
 
     // get the numeric gradient
@@ -246,21 +259,21 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
         for i in 0..v.numel() {
             let dimpos = v.index2dimpos(i);
                 
-            let base_value = v.get_f32(&dimpos);
+            let base_value = v.get_f64(&dimpos);
             let right_value = base_value + delta;
             let mut right_tensor = (*v).clone();
-            right_tensor.set_f32(&dimpos, right_value);
+            right_tensor.set_f64(&dimpos, right_value);
 
             let mut right_input = one_input.to_vec();
             right_input[index] = right_tensor.ref_copy();
             let right_output = Tensor::new();
             op.apply(&right_input, &[right_output.ref_copy()]);
-            let right_output = right_output.get_scale_f32();
+            let right_output = right_output.get_scale_f64();
 
             let scale_gradient = (right_output - output)/delta;
-            numeric_gradient[index].set_f32(&dimpos, scale_gradient);
+            numeric_gradient[index].set_f64(&dimpos, scale_gradient);
 
-            let system_gradient = input_grad[index].get_f32(&dimpos);
+            let system_gradient = input_grad[index].get_f64(&dimpos);
 
             //println!("left: {:?}, right: {:?}", scale_gradient, system_gradient);
             if (scale_gradient - system_gradient)*(scale_gradient - system_gradient) > tol {
@@ -274,55 +287,70 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
 ///
 /// View op
 ///
-//pub struct View {
-//    shape: Vec<usize>,
-//}
-//impl View {
-//    pub fn new(new_shape: &[usize]) -> View {
-//        View {
-//            shape: new_shape.to_vec(),
-//        }
-//    }
-//}
-//impl OpTrait for View {
-//    fn get_name(&self) -> String {
-//        "view".to_string()
-//    }
-//    fn get_input_size(&self) -> usize {
-//        1
-//    }
-//    fn get_output_size(&self) -> usize {
-//        1
-//    }
-//
-//    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
-//        if input.len() > 1 {
-//            panic!("view only acceipt one input");
-//        }
-//
-//        let total_numel: usize = self.shape.iter().product();
-//        if input[0].numel() != total_numel {
-//            panic!("view expect tensor has a total elem of {}, get {}", total_numel, input[0].numel());
-//        }
-//
-//        output[0].swap(input[0].reshape(&self.shape));
-//    }
-//
-//    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
-//        
-//        input_grad[0].swap(output_grad[0].reshape(&input[0].size()));
-//    }
-//
-//    fn get_values(&self) -> Vec<&Tensor> {
-//        Vec::new()
-//    }
-//    fn set_values(&self, _v: &[Tensor]) {
-//    }
-//    /// access gradient values
-//    fn get_grads(&self) -> Vec<&Tensor> {
-//        Vec::new()
-//    }
-//}
+pub struct View {
+    shape: Vec<usize>,
+    handle: OpHandle,
+}
+impl View {
+    pub fn new(new_shape: &[usize]) -> View {
+        View {
+            shape: new_shape.to_vec(),
+            handle: OpHandle::new(),
+        }
+    }
+    handle_method!();
+}
+impl OpCall for View {
+    fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
+        let new_one = View {
+            shape: self.shape.clone(),
+            handle: OpHandle::new(),
+        };
+
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+
+        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+    }
+}
+impl OpTrait for View {
+    fn get_name(&self) -> String {
+        "View".to_string()
+    }
+    fn get_input_size(&self) -> usize {
+        1
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
+
+    fn apply(&self, input: &[Tensor], output: &[Tensor]) {
+        if input.len() > 1 {
+            panic!("view only acceipt one input");
+        }
+
+        let total_numel: usize = self.shape.iter().product();
+        if input[0].numel() != total_numel {
+            panic!("view expect tensor has a total elem of {}, get {}", total_numel, input[0].numel());
+        }
+
+        output[0].data_copy(&input[0].reshape(&self.shape));
+    }
+
+    fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
+        
+        input_grad[0].data_copy(&output_grad[0].reshape(&input[0].size()));
+    }
+
+    fn get_values(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+    fn set_values(&self, _v: &[Tensor]) {
+    }
+    /// access gradient values
+    fn get_grads(&self) -> Vec<&Tensor> {
+        Vec::new()
+    }
+}
 
 pub mod local;
 pub use local::{Add, Sub, Mul, Div};
@@ -330,12 +358,11 @@ pub use local::{Add, Sub, Mul, Div};
 pub mod linear;
 pub use linear::Linear;
 
-//pub mod nonlinear;
-//pub use nonlinear::{ELU, ReLU, Sigmoid};
+pub mod nonlinear;
+pub use nonlinear::{ELU, ReLU, Sigmoid};
 //
 //pub mod convolution;
 //pub use convolution::{ Conv2d};
 
 pub mod loss;
-//pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};
-pub use loss::{MSELoss};
+pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};

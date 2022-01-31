@@ -34,6 +34,12 @@ impl Var {
             var: Rc::new(RefCell::new(VarInner::new(input, dim)))
         }
     }
+    #[cfg(feature = "use-f32")]
+    pub fn new(input: &[f32], dim: &[usize]) -> Var {
+        Var {
+            var: Rc::new(RefCell::new(VarInner::new(input, dim)))
+        }
+    }
 
     pub fn ones(dim: &[usize]) -> Var {
         Var {
@@ -143,10 +149,14 @@ pub struct VarInner {
 impl VarInner {
 
     // create functions.
-    #[cfg(feature = "use-f64")]
     pub fn new(input: &[f64], dim: &[usize]) -> VarInner {
         let mut net = Net::new();
+        
+        #[cfg(feature = "use-f64")]
         let tensor = Tensor::from_vec_f64(input, dim);
+        #[cfg(feature = "use-f32")]
+        let tensor = Tensor::from_vec_f32(input, dim);
+        
         let id = net.add_tensor(tensor);
         VarInner {
             id,
@@ -300,6 +310,7 @@ impl Clone for VarInner {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::op::OpCall;
 
     #[test]
     fn mul() {

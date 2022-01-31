@@ -207,16 +207,16 @@ impl Net {
 //            .apply(&inputs, &outputs);
 //    }
 
-    pub fn bptt_scale(&mut self, r: f32) {
-        let output = self.graph.get_output_edge_data();
-        let mut output_grad = BTreeMap::new();
-        for i in &output {
-            output_grad.insert(*i,
-                               Tensor::fill(&self.data.get(i).expect("").size(),
-                                            r));
-        }
-        self.bptt(&output_grad);
-    }
+//    pub fn bptt_scale(&mut self, r: f32) {
+//        let output = self.graph.get_output_edge_data();
+//        let mut output_grad = BTreeMap::new();
+//        for i in &output {
+//            output_grad.insert(*i,
+//                               Tensor::fill(&self.data.get(i).expect("").size(),
+//                                            r));
+//        }
+//        self.bptt(&output_grad);
+//    }
 
     pub fn bptt(&mut self, output_grad: &BTreeMap<GenKey, Tensor>) {
         let mut output = Vec::new();

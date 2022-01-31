@@ -47,7 +47,12 @@ tensorboard-rs = "0.2.2"
 
 [features]
 
-default = []
+default = ["use-f64"]
+
+use-f32 = []
+use-f64 = []
+use-usize = []
+use-u8 = []
 
 use-serde = ["serde", "serde-pickle"]
 

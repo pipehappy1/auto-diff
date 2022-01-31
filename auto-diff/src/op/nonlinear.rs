@@ -1,16 +1,28 @@
 use tensor_rs::tensor::Tensor;
-use super::OpTrait;
+use super::{OpTrait, OpHandle};
 
 /// ELU
 pub struct ELU {
-    alpha: f32,
+    alpha: Tensor,
+    handle: OpHandle,
 }
 impl ELU {
+    #[cfg(feature = "use-f32")]
     pub fn new(alpha: f32) -> ELU {
         ELU {
-            alpha: alpha,
+            alpha: Tensor::from_vec_f32(&[alpha], &[1]),
+            handle: OpHandle::new(),
         }
     }
+    #[cfg(feature = "use-f64")]
+    pub fn new(alpha: f64) -> ELU {
+        ELU {
+            alpha: Tensor::from_vec_f64(&[alpha], &[1]),
+            handle: OpHandle::new(),
+        }
+    }
+    
+    handle_method!();
 }
 impl OpTrait for ELU {
     fn get_name(&self) -> String {
@@ -24,21 +36,23 @@ impl OpTrait for ELU {
     }
 
     /// Forward pass
-    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+    fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         let positive = input[0].max_pair(&input[0].zeros_like());
-        let negative = input[0].expm1().mul(&Tensor::fill(&input[0].size(), self.alpha)).min_pair(&input[0].zeros_like());
+        let negative = input[0].expm1().mul(&Tensor::fill(&input[0].size(), &self.alpha)).min_pair(&input[0].zeros_like());
         let ret = positive.add(&negative);
-        output[0].swap(ret);
+        output[0].data_copy(&ret);
     }
     
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+    fn grad(&self, input: &[Tensor],
+            output_grad: &[Tensor],
+            input_grad: &[Tensor]) {
         let positive = input[0].ge(&input[0].zeros_like());
-        let negative = input[0].lt(&input[0].zeros_like()).mul(&Tensor::fill(&input[0].size(), self.alpha)).mul(&input[0].exp());
+        let negative = input[0].lt(&input[0].zeros_like()).mul(&Tensor::fill(&input[0].size(), &self.alpha)).mul(&input[0].exp());
         let g = positive.add(&negative);
-        input_grad[0].swap(g.mul(output_grad[0]));
+        input_grad[0].data_copy(&g.mul(&output_grad[0]));
     }
 
     /// access weight values
@@ -62,12 +76,16 @@ impl OpTrait for ELU {
 
 /// ReLU
 pub struct ReLU {
+    handle: OpHandle,
 }
 impl ReLU {
     pub fn new() -> ReLU {
         ReLU {
+            handle: OpHandle::new(),
         }
     }
+
+    handle_method!();
 }
 impl OpTrait for ReLU {
     fn get_name(&self) -> String {
@@ -80,17 +98,19 @@ impl OpTrait for ReLU {
         1
     }
     /// Forward pass
-    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+    fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         let ret = input[0].max_pair(&input[0].zeros_like());
-        output[0].swap(ret);
+        output[0].data_copy(&ret);
     }
     
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+    fn grad(&self, input: &[Tensor],
+            output_grad: &[Tensor],
+            input_grad: &[Tensor]) {
         let ret = input[0].ge(&input[0].zeros_like()); // gradient at 0 is 1. thus use right gradient.
-        input_grad[0].swap(ret.mul(output_grad[0]));
+        input_grad[0].data_copy(&ret.mul(&output_grad[0]));
     }
 
     /// access weight values
@@ -112,13 +132,15 @@ impl OpTrait for ReLU {
 // CELU
 // Sigmoid
 pub struct Sigmoid {
-    
+    handle: OpHandle,    
 }
 impl Sigmoid {
     pub fn new() -> Sigmoid {
         Sigmoid {
+            handle: OpHandle::new(),
         }
     }
+    handle_method!();
 }
 impl OpTrait for Sigmoid {
     
@@ -132,20 +154,22 @@ impl OpTrait for Sigmoid {
         1
     }
     /// The first is the prediction, the second input is the label
-    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+    fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         if input.is_empty() {
             panic!("{} expect two input, get {}", self.get_name(), input.len());
         }
-        output[0].swap(input[0].sigmoid());
+        output[0].data_copy(&input[0].sigmoid());
     }
     
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+    fn grad(&self, input: &[Tensor],
+            output_grad: &[Tensor],
+            input_grad: &[Tensor]) {
         let tmp1 = input[0].sigmoid().mul(&input[0].neg().sigmoid());
-        let tmp2 = tmp1.mul(output_grad[0]);
-        input_grad[0].swap(tmp2);
+        let tmp2 = tmp1.mul(&output_grad[0]);
+        input_grad[0].data_copy(&tmp2);
     }
 
     /// access weight values
@@ -171,12 +195,15 @@ impl OpTrait for Sigmoid {
 // Threshold
 
 pub struct Sine {
+    handle: OpHandle,
 }
 impl Sine {
     pub fn new() -> Sine {
         Sine {
+            handle: OpHandle::new(),
         }
     }
+    handle_method!();
 }
 impl OpTrait for Sine {
     fn get_name(&self) -> String {
@@ -189,17 +216,19 @@ impl OpTrait for Sine {
         1
     }
     /// Forward pass
-    fn apply(&mut self, input: &[&Tensor], output: &[&Tensor]) {
+    fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         let ret = input[0].sin();
-        output[0].swap(ret);
+        output[0].data_copy(&ret);
     }
     
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[&Tensor], output_grad: &[&Tensor], input_grad: &[&Tensor]) {
+    fn grad(&self, input: &[Tensor],
+            output_grad: &[Tensor],
+            input_grad: &[Tensor]) {
         let ret = input[0].cos();
-        input_grad[0].swap(ret.mul(output_grad[0]));
+        input_grad[0].data_copy(&ret.mul(&output_grad[0]));
     }
 
     /// access weight values
@@ -232,8 +261,8 @@ mod tests {
         let mut op = ELU::new(1.);
 
         for i in 0..10 {
-            let zero = Tensor::from_vec_f32(&vec![(i - 5) as f32], &vec![1]);
-            let good_grad = _gradient_checker(&mut op, &[&zero], None, None, None);
+            let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
             assert_eq!(good_grad, true);                        
         }
 
@@ -245,8 +274,8 @@ mod tests {
         let mut op = ReLU::new();
 
         for i in 0..10 {
-            let zero = Tensor::from_vec_f32(&vec![(i - 5) as f32], &vec![1]);
-            let good_grad = _gradient_checker(&mut op, &[&zero], None, None, None);
+            let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
             assert_eq!(good_grad, true);                        
         }
     }
@@ -256,8 +285,8 @@ mod tests {
         let mut op = Sigmoid::new();
 
         for i in 0..10 {
-            let zero = Tensor::from_vec_f32(&vec![(i - 5) as f32], &vec![1]);
-            let good_grad = _gradient_checker(&mut op, &[&zero], None, None, None);
+            let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
             assert_eq!(good_grad, true);                        
         }
     }
@@ -267,8 +296,8 @@ mod tests {
         let mut op = Sine::new();
 
         for i in 0..10 {
-            let zero = Tensor::from_vec_f32(&vec![(i - 5) as f32], &vec![1]);
-            let good_grad = _gradient_checker(&mut op, &[&zero], None, None, None);
+            let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
             assert_eq!(good_grad, true);                        
         }
     }

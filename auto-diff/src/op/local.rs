@@ -13,14 +13,15 @@ macro_rules! new_binary_op {
                     handle: OpHandle::new(),
                 }
             }
-        }
-        impl OpTrait for $a {
             fn get_handle(&self) -> &OpHandle {
                 &self.handle
             }
             fn get_handle_mut(&mut self) -> &mut OpHandle {
                 &mut self.handle
             }
+        }
+        impl OpTrait for $a {
+     
             fn get_name(&self) -> String {
                 ($b).to_string()
             }
