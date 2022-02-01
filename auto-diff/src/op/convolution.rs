@@ -43,13 +43,13 @@ impl OpTrait for Conv1d {
     }
 
     /// access weight values
-    fn get_values(&self) -> Vec<&Tensor> {
+    fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
     fn set_values(&self, v: &[Tensor]) {
     }
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
+    fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
 }
@@ -195,16 +195,16 @@ impl OpTrait for Conv2d {
     }
 
     /// access weight values
-    fn get_values(&self) -> Vec<&Tensor> {
-        vec![&self.weight, &self.bias]
+    fn get_values(&self) -> Vec<Tensor> {
+        vec![self.weight.ref_copy(), self.bias.ref_copy()]
     }
     fn set_values(&self, v: &[Tensor]) {
         self.weight.data_copy(&v[0]);
         self.bias.data_copy(&v[1]);
     }
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
-        vec![&self.weight_grad, &self.bias_grad]
+    fn get_grads(&self) -> Vec<Tensor> {
+        vec![self.weight_grad.ref_copy(), self.bias_grad.ref_copy()]
     }
 }
 // Conv3d

@@ -13,6 +13,7 @@ use crate::op::{Op, OpTrait,
                 MSELoss,
 };
 use crate::err::AutoDiffError;
+use crate::optim::Optimizer;
 
 
 macro_rules! var_2_to_1 {
@@ -224,6 +225,13 @@ impl VarInner {
         
         Ok(())
     }
+
+    /// Update,
+    pub fn step(&self, opt: &mut dyn Optimizer) -> Result<(), AutoDiffError> {
+        opt.step(self.net.clone());
+        Ok(())
+    }
+    
 
     pub(crate) fn called_with(&self, op: Op,
                               others: &[Rc<RefCell<VarInner>>]) -> Result<Vec<VarInner>, AutoDiffError> {

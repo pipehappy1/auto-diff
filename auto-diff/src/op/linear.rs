@@ -132,7 +132,7 @@ impl OpTrait for Linear {
         }
     }
 
-    fn get_values(&self) -> Vec<&Tensor> {
+    fn get_values(&self) -> Vec<Tensor> {
         // TODO
         Vec::new()
     }
@@ -140,7 +140,7 @@ impl OpTrait for Linear {
         unimplemented!()
     }
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
+    fn get_grads(&self) -> Vec<Tensor> {
         // TODO
         Vec::new()
     }

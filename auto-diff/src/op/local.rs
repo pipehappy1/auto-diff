@@ -37,10 +37,10 @@ macro_rules! new_binary_op {
             fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
                 $d(input, output_grad, input_grad)
             }
-            fn get_values(&self) -> Vec<&Tensor> {
+            fn get_values(&self) -> Vec<Tensor> {
                 Vec::new()
             }
-            fn get_grads(&self) -> Vec<&Tensor> {
+            fn get_grads(&self) -> Vec<Tensor> {
                 Vec::new()
             }
             fn set_values(&self, _v: &[Tensor]) {

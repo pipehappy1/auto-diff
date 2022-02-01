@@ -2,9 +2,11 @@
 //! Gradient based optimization.
 //!
 use std::cell::RefCell;
+use std::rc::Rc;
 use tensor_rs::tensor::Tensor;
 use rand::prelude::StdRng;
 use crate::err::AutoDiffError;
+use super::compute_graph::Net;
 
 /// Create random batch view from a large batch.
 pub struct MiniBatch {
@@ -35,61 +37,38 @@ impl MiniBatch {
     }
 }
 
-//pub trait Optimizer {
-//    fn step(&mut self, m: &Module);
-//    fn step2(&mut self, m: &Func);
-//}
-//
-//// actually it's GD
-//pub struct SGD {
-//    lr: Tensor,
-//}
-//impl SGD {
-//    pub fn new(lr: f32) -> SGD {
-//        SGD {
-//            lr: Tensor::from_vec_f32(&[lr], &[1]),
-//        }
-//    }
-//}
-//impl Optimizer for SGD {
-//    fn step(&mut self, m: &Module) {
-//        m._visit_op(|x| {
-//            let weights = x.get_values();
-//            let grads = x.get_grads();
-//            // println!("name: {}, {}, {}", x.get_name(), weights.len(), grads.len());
-//
-//            let mut new_weight = Vec::new();
-//            for (i, j) in weights.iter().zip(grads.iter()) {
-//                // println!("{:?}, {:?}, {:?}", i.size(), j.size(), self.lr.size());
-//                
-//                new_weight.push(i.add(&j.mul(&self.lr)));
-//            }
-//            x.set_values(&new_weight);
-//        });
-//    }
-//
-//    fn step2(&mut self, m: &Func) {
-//        m._visit_op(|x| {
-//            if x.get_update_counter() == 0 && x.get_name() != "Nop" {
-//                println!("name: {}, ", x.get_name(), );
-//                println!("Warning: haven't seen a backward pass, missing .backward call before update?");
-//                return;
-//            }
-//            
-//            let weights = x.get_values();
-//            let grads = x.get_grads();
-//            //println!("name: {}, {}, {}", x.get_name(), weights.len(), grads.len());
-//
-//            let mut new_weight = Vec::new();
-//            for (i, j) in weights.iter().zip(grads.iter()) {
-//                //println!("{:?}, {:?}, {:?}", i.size(), j.size(), self.lr.size());
-//                
-//                new_weight.push(i.add(&j.mul(&self.lr)));
-//            }
-//            x.set_values(&new_weight);
-//        });
-//    }
-//}
+pub trait Optimizer {
+    fn step(&mut self, net: Rc<RefCell<Net>>);
+}
+
+// actually it's GD
+pub struct SGD {
+    lr: Tensor,
+}
+impl SGD {
+    pub fn new(lr: f32) -> SGD {
+        SGD {
+            lr: Tensor::from_vec_f32(&[lr], &[1]),
+        }
+    }
+}
+impl Optimizer for SGD {
+    fn step(&mut self, net: Rc<RefCell<Net>>) {
+        net.borrow_mut().visit_op(|x| {
+            let weights = x.get_values();
+            let grads = x.get_grads();
+            // println!("name: {}, {}, {}", x.get_name(), weights.len(), grads.len());
+
+            let mut new_weight = Vec::new();
+            for (i, j) in weights.iter().zip(grads.iter()) {
+                // println!("{:?}, {:?}, {:?}", i.size(), j.size(), self.lr.size());
+                
+                new_weight.push(i.add(&j.mul(&self.lr)));
+            }
+            x.set_values(&new_weight);
+        }, None, None);
+    }
+}
 
 
 #[cfg(test)]

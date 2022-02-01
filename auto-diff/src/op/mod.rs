@@ -44,10 +44,10 @@ pub trait OpTrait {
 //    }
     
     /// access weight values
-    fn get_values(&self) -> Vec<&Tensor>;
+    fn get_values(&self) -> Vec<Tensor>;
     fn set_values(&self, v: &[Tensor]);
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor>;
+    fn get_grads(&self) -> Vec<Tensor>;
 }
 
 /// Ops that first created, then called needs to follow this behavior.
@@ -138,30 +138,20 @@ impl Op {
         self.update_counter.replace(new_counter);
     }
 
-//    /// access weight/paramenters
-//    pub fn get_values(&self) -> Vec<Tensor> {
-//        let mut ret = Vec::new();
-//        for i in &self.para_grad {
-//            ret.push(i.0.clone());
-//        }
-//        ret
-//    }
-//
-//    /// set parameters
-//    pub fn set_values(&self, v: &[Tensor]) {
-//        for (index, i) in v.iter().enumerate() {
-//            self.para_grad[index].0.swap(i);
-//        }
-//    }
-//
-//    /// return gradient for weight/parameters.
-//    pub fn get_grads(&self) -> Vec<Tensor> {
-//        let mut ret = Vec::new();
-//        for i in &self.para_grad {
-//            ret.push(i.1.clone());
-//        }
-//        ret
-//    }
+    /// access weight/paramenters
+    pub fn get_values(&self) -> Vec<Tensor> {
+        self.inner_op.borrow().get_values()
+    }
+
+    /// set parameters
+    pub fn set_values(&self, v: &[Tensor]) {
+        self.inner_op.borrow_mut().set_values(v);
+    }
+
+    /// return gradient for weight/parameters.
+    pub fn get_grads(&self) -> Vec<Tensor> {
+        self.inner_op.borrow().get_grads()
+    }
 }
 //impl Clone for Op {
 //    fn clone(&self) -> Self {
@@ -341,13 +331,13 @@ impl OpTrait for View {
         input_grad[0].swap(&output_grad[0].reshape(&input[0].size()));
     }
 
-    fn get_values(&self) -> Vec<&Tensor> {
+    fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
+    fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
 }

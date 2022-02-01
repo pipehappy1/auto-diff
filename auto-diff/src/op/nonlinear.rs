@@ -56,13 +56,13 @@ impl OpTrait for ELU {
     }
 
     /// access weight values
-    fn get_values(&self) -> Vec<&Tensor> {
+    fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
+    fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
 }
@@ -114,13 +114,13 @@ impl OpTrait for ReLU {
     }
 
     /// access weight values
-    fn get_values(&self) -> Vec<&Tensor> {
+    fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
+    fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
 }
@@ -173,7 +173,7 @@ impl OpTrait for Sigmoid {
     }
 
     /// access weight values
-    fn get_values(&self) -> Vec<&Tensor> {
+    fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
     
@@ -182,7 +182,7 @@ impl OpTrait for Sigmoid {
     }
     
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
+    fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
 }
@@ -232,13 +232,13 @@ impl OpTrait for Sine {
     }
 
     /// access weight values
-    fn get_values(&self) -> Vec<&Tensor> {
+    fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
+    fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
 }
