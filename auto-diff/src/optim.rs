@@ -3,37 +3,35 @@
 //!
 use std::cell::RefCell;
 use tensor_rs::tensor::Tensor;
-//use super::var1::{Func, Module};
-use crate::rand;
+use rand::prelude::StdRng;
+use crate::err::AutoDiffError;
 
+/// Create random batch view from a large batch.
 pub struct MiniBatch {
-    rng: RefCell<rand::RNG>,
+    rng: StdRng,
     size: usize,
 }
 impl MiniBatch {
-    pub fn new(rng: rand::RNG, size: usize) -> MiniBatch {
+    pub fn new(rng: StdRng, size: usize) -> MiniBatch {
         MiniBatch {
-            rng: RefCell::new(rng),
-            size: size,
+            rng,
+            size,
         }
     }
 
-    pub fn next(&self, data: &Tensor, label: &Tensor) -> (Tensor, Tensor) {
+    pub fn next(&mut self, data: &Tensor, label: &Tensor) -> Result<(Tensor, Tensor), AutoDiffError> {
         let sample_size = data.size()[0];
         let sample_size2 = label.size()[0];
 
         if sample_size != sample_size2 {
-            panic!("minibatch needs data and label has the same N {}, {}",
-                   sample_size, sample_size2);
+            return Err(AutoDiffError::new(&format!("minibatch needs data and label has the same N {}, {}",
+                                                   sample_size, sample_size2)));
         }
-        
-        let index = self.rng.borrow_mut().gen_range_usize(0, sample_size, Some(self.size));
-        //println!("minibatch index: {:?}", index);
-        let index_t = Tensor::from_vec_usize(&index, &[index.len()]);
+        let index_t = Tensor::rand_usize(&mut self.rng, &[self.size], 0, sample_size);
 
         let mdata = data.index_select(0, &index_t);
         let mlabel = label.index_select(0, &index_t);
-        (mdata, mlabel)
+        Ok((mdata, mlabel))
     }
 }
 
@@ -97,17 +95,17 @@ impl MiniBatch {
 #[cfg(test)]
 mod tests {
     use tensor_rs::tensor::Tensor;
-    use crate::rand::RNG;
     use super::*;
+    use rand::prelude::*;
 
     #[test]
     fn mini_batch() {
         let data = Tensor::ones(&[10, 3]);
         let label = Tensor::zeros(&[10]);
         
-        let rng = RNG::new();
-        let minibatch = MiniBatch::new(rng, 4);
-        let (mdata, mlabel) = minibatch.next(&data, &label);
+        let mut rng = StdRng::seed_from_u64(671);
+        let mut minibatch = MiniBatch::new(rng, 4);
+        let (mdata, mlabel) = minibatch.next(&data, &label).unwrap();
 
         assert_eq!(mdata.size(), [4, 3]);
         assert_eq!(mlabel.size(), [4]);

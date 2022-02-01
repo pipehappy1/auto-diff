@@ -20,7 +20,6 @@ extern crate ndarray_linalg;
 
 pub mod var;
 pub mod op;
-pub mod rand;
 pub mod optim;
 pub mod err;
 
