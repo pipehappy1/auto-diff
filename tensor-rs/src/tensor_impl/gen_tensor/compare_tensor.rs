@@ -3,6 +3,7 @@ use crate::tensor_trait::compare_tensor::CompareTensor;
 
 impl<T> CompareTensor for GenTensor<T> where T: num_traits::Float {
     type TensorType = GenTensor<T>;
+    type ElementType = T;
     
     fn max_pair(&self, o: &GenTensor<T>) -> GenTensor<T> {
         if self.size() != o.size() {
@@ -34,6 +35,13 @@ impl<T> CompareTensor for GenTensor<T> where T: num_traits::Float {
             }
         }
         ret
+    }
+
+    fn all(&self, f: &dyn Fn(Self::ElementType) -> bool) -> bool {
+        self.get_data().iter().all(|x| f(*x))
+    }
+    fn any(&self, f: &dyn Fn(Self::ElementType) -> bool) -> bool {
+        self.get_data().iter().any(|x| f(*x))
     }
 }
 

@@ -57,9 +57,12 @@ where T: num_traits::Float + rand_distr::uniform::SampleUniform,
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tensor_trait::compare_tensor::CompareTensor;
 
     #[test]
     fn normalize_unit() {
-        
+        let mut rng = StdRng::seed_from_u64(671);
+        let m = GenTensor::<f64>::uniform(&mut rng, &[2,2], 0., 10.);
+        assert!(GenTensor::<f64>::fill(10., &[2,2]).sub(&m).all(&|x| x > 0. && x < 10.));
     }
 }
