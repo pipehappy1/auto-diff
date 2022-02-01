@@ -307,7 +307,7 @@ where T: num_traits::Float {
 
         let ret = ret.t();
 
-        let det = if let Some(det_val) = self.det() { det_val} else {return None;};
+        let det = self.det()?;
 
         Some(ret.div(&det))
     }

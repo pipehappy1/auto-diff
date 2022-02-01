@@ -8,6 +8,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 //use std::ops::Index;
+use ::rand::prelude::StdRng;
 
 #[cfg(feature = "use-serde")]
 use serde::{Serialize, Deserialize};
@@ -35,13 +36,8 @@ macro_rules! tensor_method {
 macro_rules! tensor_method_2_to_1option {
     ($a:ident) => {
         pub fn $a(&self, o: &Tensor) -> Option<Tensor> {
-            match self.v.borrow().$a(&o.v.borrow()) {
-                Some(v) => {
-                    Some(Tensor {
-                    v: Rc::new(RefCell::new(v))})
-                },
-                None => None
-            }
+            self.v.borrow().$a(&o.v.borrow()).map(|v| Tensor {
+                v: Rc::new(RefCell::new(v))})            
         }
     }
 }
@@ -71,14 +67,9 @@ macro_rules! tensor_method_1_option_tensor_return {
     ($a:ident) => {
         pub fn $a(&self) -> Option<Tensor> {
             let r = self.v.borrow().$a();
-            match r {
-                Some(r1) => {
-                    Some(Tensor {
-                        v: Rc::new(RefCell::new(r1)),
-                    })
-                },
-                None => None
-            }
+            r.map(|r1| Tensor {
+                v: Rc::new(RefCell::new(r1)),
+            })            
         }
     }
 }
@@ -88,16 +79,11 @@ macro_rules! tensor_method_2_option_tensor_return {
     ($a:ident) => {
         pub fn $a(&self) -> Option<[Tensor; 2]> {
             let r = self.v.borrow().$a();
-            match r {
-                Some([r1, r2]) => {
-                    Some([Tensor {
-                        v: Rc::new(RefCell::new(r1)),},
-                          Tensor {
-                              v: Rc::new(RefCell::new(r2)),
-                          }])
-                },
-                None => None
-            }
+            r.map(|[r1, r2]| [Tensor {
+                v: Rc::new(RefCell::new(r1)),},
+                              Tensor {
+                                  v: Rc::new(RefCell::new(r2)),
+                              }])
         }
     }
 }
@@ -107,19 +93,16 @@ macro_rules! tensor_method_3_option_tensor_return {
     ($a:ident) => {
         pub fn $a(&self) -> Option<[Tensor; 3]> {
             let r = self.v.borrow().$a();
-            match r {
-                Some([r1, r2, r3]) => {
-                    Some([Tensor {
+            r.map(|[r1, r2, r3]| [
+                Tensor {
                         v: Rc::new(RefCell::new(r1)),},
                           Tensor {
                               v: Rc::new(RefCell::new(r2)),
                           },
                           Tensor {
                               v: Rc::new(RefCell::new(r3)),
-                          }])
-                },
-                None => None
-            }
+                          }
+            ])
         }
     }
 }
@@ -290,7 +273,10 @@ impl Tensor {
     // zeros
     pub fn zeros(dim: &[usize]) -> Tensor {
         Tensor {
-            v: Rc::new(RefCell::new(TypedTensor::zeros(dim))),
+            #[cfg(feature = "use-f64")]
+            v: Rc::new(RefCell::new(TypedTensor::zeros_f64(dim))),
+            #[cfg(feature = "use-f32")]
+            v: Rc::new(RefCell::new(TypedTensor::zeros_f32(dim))),
         }
     }
     // zeros_like
@@ -298,7 +284,10 @@ impl Tensor {
     // ones
     pub fn ones(dim: &[usize]) -> Tensor {
         Tensor {
-            v: Rc::new(RefCell::new(TypedTensor::ones(dim))),
+            #[cfg(feature = "use-f64")]
+            v: Rc::new(RefCell::new(TypedTensor::ones_f64(dim))),
+            #[cfg(feature = "use-f32")]
+            v: Rc::new(RefCell::new(TypedTensor::ones_f32(dim))),
         }
     }
     // ones_like
@@ -362,7 +351,10 @@ impl Tensor {
             }
         }
         Tensor {
-            v: Rc::new(RefCell::new(TypedTensor::zeros(shape))),
+            #[cfg(feature = "use-f64")]
+            v: Rc::new(RefCell::new(TypedTensor::zeros_f64(shape))),
+            #[cfg(feature = "use-f32")]
+            v: Rc::new(RefCell::new(TypedTensor::zeros_f32(shape))),
         }
     }
 
@@ -635,6 +627,44 @@ impl Tensor {
     tensor_method!(max_pair);
     tensor_method!(min_pair);
     tensor_method!(ne);
+
+    // rand
+    pub fn rand_usize(rng: &mut StdRng,
+                      dim: &[usize],
+                      left: usize, right: usize) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::rand_usize(rng, dim, left, right))),
+        }
+    }
+    pub fn normal_f64(rng: &mut StdRng,
+                  dim: &[usize],
+                  mean: f64, std: f64) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::normal_f64(rng, dim, mean, std))),
+        }
+    }
+    pub fn normal_f32(rng: &mut StdRng,
+                  dim: &[usize],
+                  mean: f32, std: f32) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::normal_f32(rng, dim, mean, std))),
+        }
+    }
+    pub fn uniform_f64(rng: &mut StdRng,
+                   dim: &[usize],
+                   from: f64, to: f64) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::uniform_f64(rng, dim, from, to)))
+        }
+    }
+    pub fn uniform_f32(rng: &mut StdRng,
+                   dim: &[usize],
+                   from: f32, to: f32) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(TypedTensor::uniform_f32(rng, dim, from, to)))
+        }
+    }
+    
 
     // conv ops
     pub fn conv2d(&self, o: &Tensor,

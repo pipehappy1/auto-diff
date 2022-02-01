@@ -1,6 +1,8 @@
 use std::fmt;
 use std::mem::discriminant;
 
+use ::rand::prelude::StdRng;
+
 #[cfg(feature = "use-serde")]
 use serde::{Serialize, Deserialize};
 
@@ -16,6 +18,7 @@ use super::tensor_trait::convolution::{Convolution};
 use super::tensor_impl::lapack_tensor::convolution::{gemm_conv_f32, gemm_conv_f64};
 use super::tensor_trait::reduction::ReduceTensor;
 use super::tensor_trait::linalg::LinearAlgbra;
+use super::tensor_trait::rand::Random;
 
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub enum TypedTensor {
@@ -25,7 +28,7 @@ pub enum TypedTensor {
     Cudaf32(CudaTensor),
 }
 
-/// Micro for creating TypedTensor method with no additional argument and one return value.
+/// Macro for creating TypedTensor method with no additional argument and one return value.
 /// 0-v
 /// * `a` - The method name.
 /// * `b` - The type of return value.
@@ -80,29 +83,14 @@ macro_rules! typed_tensor_method_single_same_option_1_return {
         pub fn $a(&self) -> Option<TypedTensor> {
             match &self {
                 TypedTensor::Typef32(v1) => {
-                    match v1.$a() {
-                        Some(r1) => {
-                            Some(TypedTensor::Typef32(r1))
-                        },
-                        None => None
-                    }
+                    v1.$a().map(TypedTensor::Typef32)
                 },
                 TypedTensor::Typef64(v1) => {
-                    match v1.$a() {
-                        Some(r1) => {
-                            Some(TypedTensor::Typef64(r1))
-                        },
-                        None => None
-                    }
+                    v1.$a().map(TypedTensor::Typef64)
                 },
                 #[cfg(feature = "use-cuda")]
                 TypedTensor::Cudaf32(v1) => {
-                    match v1.$a() {
-                        Some(r1) => {
-                            Some(TypedTensor::Cudaf32(r1))
-                        },
-                        None => None
-                    }
+                    v1.$a().map(TypedTensor::Cudaf32)
                 },
                 //_ => {panic!("should have same tensor type!");},
             }
@@ -115,32 +103,22 @@ macro_rules! typed_tensor_method_single_same_option_2_return {
         pub fn $a(&self) -> Option<[TypedTensor; 2]> {
             match &self {
                 TypedTensor::Typef32(v1) => {
-                    match v1.$a() {
-                        Some([r1, r2]) => {
-                            Some([TypedTensor::Typef32(r1),
-                                  TypedTensor::Typef32(r2),])
-                        },
-                        None => None
-                    }
+                    v1.$a().map(|[r1, r2]|
+                                [TypedTensor::Typef32(r1),
+                                      TypedTensor::Typef32(r2)]  
+                    )
                 },
                 TypedTensor::Typef64(v1) => {
-                    match v1.$a() {
-                        Some([r1, r2]) => {
-                            Some([TypedTensor::Typef64(r1),
-                                  TypedTensor::Typef64(r2),])
-                        },
-                        None => None
-                    }
-                },
+                    v1.$a().map(|[r1, r2]|
+                                [TypedTensor::Typef64(r1),
+                                 TypedTensor::Typef64(r2),])
+                   },
                 #[cfg(feature = "use-cuda")]
                 TypedTensor::Cudaf32(v1) => {
-                    match v1.$a() {
-                        Some([r1, r2]) => {
-                            Some([TypedTensor::Cudaf32(r1),
-                                  TypedTensor::Cudaf32(r2),])
-                        },
-                        None => None
-                    }
+                    v1.$a().map(|[r1, r2]|
+                                [TypedTensor::Cudaf32(r1),
+                                 TypedTensor::Cudaf32(r2),]
+                    )
                 },
                 //_ => {panic!("should have same tensor type!");},
             }
@@ -153,35 +131,20 @@ macro_rules! typed_tensor_method_single_same_option_3_return {
         pub fn $a(&self) -> Option<[TypedTensor; 3]> {
             match &self {
                 TypedTensor::Typef32(v1) => {
-                    match v1.$a() {
-                        Some([r1, r2, r3]) => {
-                            Some([TypedTensor::Typef32(r1),
-                                  TypedTensor::Typef32(r2),
-                                  TypedTensor::Typef32(r3),])
-                        },
-                        None => None
-                    }
+                    v1.$a().map(|[r1, r2, r3]| [TypedTensor::Typef32(r1),
+                                                TypedTensor::Typef32(r2),
+                                                TypedTensor::Typef32(r3),])
                 },
                 TypedTensor::Typef64(v1) => {
-                    match v1.$a() {
-                        Some([r1, r2, r3]) => {
-                            Some([TypedTensor::Typef64(r1),
-                                  TypedTensor::Typef64(r2),
-                                  TypedTensor::Typef64(r3),])
-                        },
-                        None => None
-                    }
+                    v1.$a().map(|[r1, r2, r3]| [TypedTensor::Typef64(r1),
+                                                TypedTensor::Typef64(r2),
+                                                TypedTensor::Typef64(r3),])
                 },
                 #[cfg(feature = "use-cuda")]
                 TypedTensor::Cudaf32(v1) => {
-                    match v1.$a() {
-                        Some([r1, r2, r3]) => {
-                            Some([TypedTensor::Cudaf32(r1),
-                                  TypedTensor::Cudaf32(r2),
-                                  TypedTensor::Cudaf32(r3),])
-                        },
-                        None => None
-                    }
+                    v1.$a().map(|[r1, r2, r3]| [TypedTensor::Cudaf32(r1),
+                                                TypedTensor::Cudaf32(r2),
+                                                TypedTensor::Cudaf32(r3),])
                 },
                 //_ => {panic!("should have same tensor type!");},
             }
@@ -205,8 +168,8 @@ impl TypedTensor {
 
     pub fn data_copy(&mut self, other: &TypedTensor) {
         match (self, other) {
-            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {v1.data_copy(&v2)},
-            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {v1.data_copy(&v2)},
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {v1.data_copy(v2)},
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {v1.data_copy(v2)},
             _ => {panic!("should have same tensor type!");},
         }
     }
@@ -226,17 +189,27 @@ impl TypedTensor {
         }
     }
 
-    pub fn zeros(shape: &[usize]) -> TypedTensor {
+    pub fn zeros_f32(shape: &[usize]) -> TypedTensor {
         TypedTensor::Typef32(GenTensor::<f32>::zeros(shape))
     }
+    pub fn zeros_f64(shape: &[usize]) -> TypedTensor {
+        TypedTensor::Typef64(GenTensor::<f64>::zeros(shape))
+    }
     typed_tensor_method_single_tensor_return!(zeros_like);
-    pub fn ones(shape: &[usize]) -> TypedTensor {
+    pub fn ones_f32(shape: &[usize]) -> TypedTensor {
+        TypedTensor::Typef32(GenTensor::<f32>::ones(shape))
+    }
+    pub fn ones_f64(shape: &[usize]) -> TypedTensor {
         TypedTensor::Typef64(GenTensor::<f64>::ones(shape))
     }
     typed_tensor_method_single_tensor_return!(ones_like);
-    pub fn empty(shape: &[usize]) -> TypedTensor {
+    pub fn empty_f32(shape: &[usize]) -> TypedTensor {
         TypedTensor::Typef32(GenTensor::<f32>::zeros(shape))
     }
+    pub fn empty_f64(shape: &[usize]) -> TypedTensor {
+        TypedTensor::Typef64(GenTensor::<f64>::zeros(shape))
+    }
+    
     pub fn fill(size: &[usize], fill_value: &TypedTensor) -> TypedTensor {
         match fill_value {
             TypedTensor::Typef32(v1) => {TypedTensor::fill_f32(size, v1.get_scale())},
@@ -633,20 +606,10 @@ impl TypedTensor {
     pub fn lu_solve(&self, b: &TypedTensor) -> Option<TypedTensor> {
         match (&self, b) {
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(b1)) => {
-                match v1.lu_solve(b1) {
-                    Some(r) => {
-                        Some(TypedTensor::Typef32(r))
-                    },
-                    None => None
-                }
+                v1.lu_solve(b1).map(TypedTensor::Typef32)
             },
             (TypedTensor::Typef64(v1), TypedTensor::Typef64(b1)) => {
-                match v1.lu_solve(b1) {
-                    Some(r) => {
-                        Some(TypedTensor::Typef64(r))
-                    },
-                    None => None
-                }
+                v1.lu_solve(b1).map(TypedTensor::Typef64)
             },
             _ => {panic!("should have same tensor type!");},
         }
@@ -670,6 +633,37 @@ impl TypedTensor {
     typed_tensor_method!(max_pair);
     typed_tensor_method!(min_pair);
     typed_tensor_method!(ne);
+
+    // rand
+    pub fn rand_usize(rng: &mut StdRng,
+                      dim: &[usize],
+                      left: usize, right: usize) -> TypedTensor {
+        #[cfg(feature = "use-f64")]
+        return TypedTensor::Typef64(GenTensor::<f64>::rand_usize(rng, dim, left, right));
+        #[cfg(feature = "use-f32")]
+        return TypedTensor::Typef32(GenTensor::<f32>::rand_usize(rng, dim, left, right));
+    }
+    pub fn normal_f64(rng: &mut StdRng,
+                      dim: &[usize],
+                      mean: f64, std: f64) -> TypedTensor {
+        TypedTensor::Typef64(GenTensor::<f64>::normal(rng, dim, mean, std))
+    }
+    pub fn normal_f32(rng: &mut StdRng,
+                      dim: &[usize],
+                      mean: f32, std: f32) -> TypedTensor {
+        TypedTensor::Typef32(GenTensor::<f32>::normal(rng, dim, mean, std))
+    }
+    pub fn uniform_f64(rng: &mut StdRng,
+                       dim: &[usize],
+                       from: f64, to: f64) -> TypedTensor {
+        TypedTensor::Typef64(GenTensor::<f64>::uniform(rng, dim, from, to))
+    }
+    pub fn uniform_f32(rng: &mut StdRng,
+                       dim: &[usize],
+                       from: f32, to: f32) -> TypedTensor {
+        TypedTensor::Typef32(GenTensor::<f32>::uniform(rng, dim, from, to))
+    }
+    
 
     // conv ops
     pub fn conv2d(&self, filter: &TypedTensor,
