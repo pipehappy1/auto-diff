@@ -11,6 +11,7 @@ pub mod elemwise;
 pub mod index_slicing;
 pub mod linalg;
 pub mod reduction;
+pub mod rand;
 
 /// Naive tensor implementation, single thread
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
