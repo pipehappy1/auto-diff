@@ -4,7 +4,9 @@ use crate::tensor_trait::rand::Random;
 use rand::prelude::*;
 use rand_distr::{Normal, Uniform, Distribution, StandardNormal};
 
-impl<T> Random for GenTensor<T> where T: num_traits::Float + rand_distr::uniform::SampleUniform, StandardNormal: Distribution<T> {
+impl<T> Random for GenTensor<T>
+where T: num_traits::Float + rand_distr::uniform::SampleUniform,
+      StandardNormal: Distribution<T> {
     type TensorType = GenTensor<T>;
     type ElementType = T;
 
@@ -48,5 +50,16 @@ impl<T> Random for GenTensor<T> where T: num_traits::Float + rand_distr::uniform
             dta.push(normal.sample(rng));
         }
         GenTensor::new_raw(&dta, dim)
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalize_unit() {
+        
     }
 }
