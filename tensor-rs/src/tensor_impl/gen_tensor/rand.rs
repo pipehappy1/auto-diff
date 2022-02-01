@@ -2,6 +2,7 @@ use super::GenTensor;
 use crate::tensor_trait::rand::Random;
 
 use rand::prelude::*;
+use rand::Rng;
 use rand_distr::{Normal, Uniform, Distribution, StandardNormal};
 
 impl<T> Random for GenTensor<T>
@@ -9,6 +10,19 @@ where T: num_traits::Float + rand_distr::uniform::SampleUniform,
       StandardNormal: Distribution<T> {
     type TensorType = GenTensor<T>;
     type ElementType = T;
+
+    fn rand_usize(rng: &mut StdRng,
+                dim: &[usize],
+                left: usize, right: usize) -> Self::TensorType {
+        let elem = dim.iter().product();
+        
+        let mut dta = Vec::<Self::ElementType>::with_capacity(elem);
+        for _i in 0..elem {
+            let v: usize = rng.gen_range(left..right);
+            dta.push(T::from(v).unwrap());
+        }
+        GenTensor::new_raw(&dta, dim)
+    }
 
     fn bernoulli() -> Self::TensorType {
         unimplemented!();

@@ -4,6 +4,10 @@ pub trait Random {
     type TensorType;
     type ElementType;
 
+    /// Generate a random int close on left, open on right.
+    fn rand_usize(rng: &mut StdRng,
+                dim: &[usize],
+                left: usize, right: usize) -> Self::TensorType;
     fn bernoulli() -> Self::TensorType;
     fn cauchy() -> Self::TensorType;
     fn exponential() -> Self::TensorType;
