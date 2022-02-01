@@ -2,9 +2,9 @@ use super::GenTensor;
 use crate::tensor_trait::rand::Random;
 
 use rand::prelude::*;
-use rand_distr::{Normal, Uniform, Distribution};
+use rand_distr::{Normal, Uniform, Distribution, StandardNormal};
 
-impl<T> Random for GenTensor<T> where T: num_traits::Float {
+impl<T> Random for GenTensor<T> where T: num_traits::Float + rand_distr::uniform::SampleUniform, StandardNormal: Distribution<T> {
     type TensorType = GenTensor<T>;
     type ElementType = T;
 
@@ -29,8 +29,8 @@ impl<T> Random for GenTensor<T> where T: num_traits::Float {
               std: Self::ElementType) -> Self::TensorType {
         let elem = dim.iter().product();
         
-        let mut dta = Vec::<f32>::with_capacity(elem);
-        let normal = Normal::new(mean, std).expect("");
+        let mut dta = Vec::<Self::ElementType>::with_capacity(elem);
+        let normal = Normal::<Self::ElementType>::new(mean, std).expect("");
         for _i in 0..elem {
             dta.push(normal.sample(rng));
         }
@@ -42,8 +42,8 @@ impl<T> Random for GenTensor<T> where T: num_traits::Float {
                to: Self::ElementType) -> Self::TensorType {
         let elem: usize = dim.iter().product();
 
-        let mut dta = Vec::<f32>::with_capacity(elem);
-        let normal = Uniform::new(from, to);
+        let mut dta = Vec::<Self::ElementType>::with_capacity(elem);
+        let normal = Uniform::<Self::ElementType>::new(from, to);
         for _i in 0..elem {
             dta.push(normal.sample(rng));
         }
