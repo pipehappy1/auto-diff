@@ -40,7 +40,7 @@ impl OpTrait for ELU {
         let positive = input[0].max_pair(&input[0].zeros_like());
         let negative = input[0].expm1().mul(&Tensor::fill(&input[0].size(), &self.alpha)).min_pair(&input[0].zeros_like());
         let ret = positive.add(&negative);
-        output[0].data_copy(&ret);
+        output[0].swap(&ret);
     }
     
     /// Given the forward input value and backward output_grad,
@@ -52,7 +52,7 @@ impl OpTrait for ELU {
         let positive = input[0].ge(&input[0].zeros_like());
         let negative = input[0].lt(&input[0].zeros_like()).mul(&Tensor::fill(&input[0].size(), &self.alpha)).mul(&input[0].exp());
         let g = positive.add(&negative);
-        input_grad[0].data_copy(&g.mul(&output_grad[0]));
+        input_grad[0].swap(&g.mul(&output_grad[0]));
     }
 
     /// access weight values
@@ -100,7 +100,7 @@ impl OpTrait for ReLU {
     /// Forward pass
     fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         let ret = input[0].max_pair(&input[0].zeros_like());
-        output[0].data_copy(&ret);
+        output[0].swap(&ret);
     }
     
     /// Given the forward input value and backward output_grad,
@@ -110,7 +110,7 @@ impl OpTrait for ReLU {
             output_grad: &[Tensor],
             input_grad: &[Tensor]) {
         let ret = input[0].ge(&input[0].zeros_like()); // gradient at 0 is 1. thus use right gradient.
-        input_grad[0].data_copy(&ret.mul(&output_grad[0]));
+        input_grad[0].swap(&ret.mul(&output_grad[0]));
     }
 
     /// access weight values
@@ -158,7 +158,7 @@ impl OpTrait for Sigmoid {
         if input.is_empty() {
             panic!("{} expect two input, get {}", self.get_name(), input.len());
         }
-        output[0].data_copy(&input[0].sigmoid());
+        output[0].swap(&input[0].sigmoid());
     }
     
     /// Given the forward input value and backward output_grad,
@@ -169,7 +169,7 @@ impl OpTrait for Sigmoid {
             input_grad: &[Tensor]) {
         let tmp1 = input[0].sigmoid().mul(&input[0].neg().sigmoid());
         let tmp2 = tmp1.mul(&output_grad[0]);
-        input_grad[0].data_copy(&tmp2);
+        input_grad[0].swap(&tmp2);
     }
 
     /// access weight values
@@ -218,7 +218,7 @@ impl OpTrait for Sine {
     /// Forward pass
     fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         let ret = input[0].sin();
-        output[0].data_copy(&ret);
+        output[0].swap(&ret);
     }
     
     /// Given the forward input value and backward output_grad,
@@ -228,7 +228,7 @@ impl OpTrait for Sine {
             output_grad: &[Tensor],
             input_grad: &[Tensor]) {
         let ret = input[0].cos();
-        input_grad[0].data_copy(&ret.mul(&output_grad[0]));
+        input_grad[0].swap(&ret.mul(&output_grad[0]));
     }
 
     /// access weight values

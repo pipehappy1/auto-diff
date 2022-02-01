@@ -119,7 +119,7 @@ impl OpTrait for CrossEntropyLoss {
         let class_index = input[1].unsqueeze(1);
         let class_score = input[0].gather(1, &class_index);
         let val = class_score.neg().add(&input[0].logsumexp(Some(&[1]), true)).mean(None, false);
-        output[0].data_copy(&val);
+        output[0].swap(&val);
     }
     
     /// Given the forward input value and backward output_grad,
@@ -172,7 +172,7 @@ impl OpTrait for CrossEntropyLoss {
         #[cfg(feature = "use-f64")]
         let grad = numerator.div(&denominator).div(&Tensor::from_vec_f64(&[input[1].numel() as f64], &[1]));
         let grad = grad.permute(&dim_order);
-        input_grad[0].data_copy(&grad.mul(&output_grad[0]));
+        input_grad[0].swap(&grad.mul(&output_grad[0]));
     }
 
     /// access weight values
@@ -232,7 +232,7 @@ impl OpTrait for BCEWithLogitsLoss {
             .add(&(input[1].neg().add(&input[1].ones_like())).mul(&input[0].log1pexp()));
         let tmp3 = ret_all.sum(None, false);
         let ret = tmp3.div(&input[0].get_n().mul(&input[0].get_c()));
-        output[0].data_copy(&ret);
+        output[0].swap(&ret);
     }
     
     /// Given the forward input value and backward output_grad,
@@ -250,8 +250,8 @@ impl OpTrait for BCEWithLogitsLoss {
         let tmp4 = tmp3.mul(&output_grad[0]);
         
         let zeros = Tensor::zeros_like(&input[0]);
-        input_grad[0].data_copy(&tmp4);
-        input_grad[1].data_copy(&zeros);
+        input_grad[0].swap(&tmp4);
+        input_grad[1].swap(&zeros);
     }
 
     /// access weight values

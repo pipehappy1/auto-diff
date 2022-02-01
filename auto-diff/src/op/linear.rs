@@ -125,10 +125,10 @@ impl OpTrait for Linear {
                    output_grad[0].size(), self.weight.size());
         }
 
-        input_grad[0].data_copy(&output_grad[0].matmul(&self.weight.permute(&[1,0])));
-        self.weight_grad.data_copy(&inputs[0].outer(&output_grad[0], Some(true)));
+        input_grad[0].swap(&output_grad[0].matmul(&self.weight.permute(&[1,0])));
+        self.weight_grad.swap(&inputs[0].outer(&output_grad[0], Some(true)));
         if self.bias_option {
-            self.bias_grad.data_copy(&output_grad[0].mean(Some(&[0]), false));
+            self.bias_grad.swap(&output_grad[0].mean(Some(&[0]), false));
         }
     }
 

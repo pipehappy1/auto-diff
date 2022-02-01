@@ -333,12 +333,12 @@ impl OpTrait for View {
             panic!("view expect tensor has a total elem of {}, get {}", total_numel, input[0].numel());
         }
 
-        output[0].data_copy(&input[0].reshape(&self.shape));
+        output[0].swap(&input[0].reshape(&self.shape));
     }
 
     fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
         
-        input_grad[0].data_copy(&output_grad[0].reshape(&input[0].size()));
+        input_grad[0].swap(&output_grad[0].reshape(&input[0].size()));
     }
 
     fn get_values(&self) -> Vec<&Tensor> {
@@ -360,9 +360,9 @@ pub use linear::Linear;
 
 pub mod nonlinear;
 pub use nonlinear::{ELU, ReLU, Sigmoid};
-//
-//pub mod convolution;
-//pub use convolution::{ Conv2d};
+
+pub mod convolution;
+pub use convolution::{ Conv2d};
 
 pub mod loss;
 pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};
