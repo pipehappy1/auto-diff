@@ -1,5 +1,4 @@
 use tensor_rs::tensor::Tensor;
-use auto_diff::rand::RNG;
 //use auto_diff::var::{Module};
 //use auto_diff::optim::{SGD, Optimizer};
 
@@ -10,8 +9,6 @@ fn main() {
     }
 
     let N = 100;
-    let mut rng = RNG::new();
-    rng.set_seed(123);
     let data = rng.normal(&vec![N, 2], 0., 2.);
     let label = func(&data);
 

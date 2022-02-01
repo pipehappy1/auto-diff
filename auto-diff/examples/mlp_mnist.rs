@@ -1,4 +1,3 @@
-use auto_diff::rand::RNG;
 use auto_diff::op::{Linear, Op, Sigmoid};
 //use auto_diff::var::{Module, crossentropyloss};
 //use auto_diff::optim::{SGD, Optimizer, MiniBatch};

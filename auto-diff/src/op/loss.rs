@@ -72,13 +72,13 @@ impl OpTrait for MSELoss {
         input_grad[1].swap(&tmp3);
     }
 
-    fn get_values(&self) -> Vec<&Tensor> {
+    fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
 
-    fn get_grads(&self) -> Vec<&Tensor> {
+    fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
 }
@@ -176,13 +176,13 @@ impl OpTrait for CrossEntropyLoss {
     }
 
     /// access weight values
-    fn get_values(&self) -> Vec<&Tensor> {
+    fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
+    fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
 }
@@ -255,7 +255,7 @@ impl OpTrait for BCEWithLogitsLoss {
     }
 
     /// access weight values
-    fn get_values(&self) -> Vec<&Tensor> {
+    fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
     
@@ -264,7 +264,7 @@ impl OpTrait for BCEWithLogitsLoss {
     }
     
     /// access gradient values
-    fn get_grads(&self) -> Vec<&Tensor> {
+    fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
 }

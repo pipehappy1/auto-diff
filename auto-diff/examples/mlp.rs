@@ -4,7 +4,6 @@
 
 
 use tensor_rs::tensor::Tensor;
-use auto_diff::rand::RNG;
 use auto_diff::op::{Linear, Op, Sigmoid};
 //use auto_diff::var::{Module, bcewithlogitsloss};
 //use auto_diff::optim::{SGD, Optimizer};

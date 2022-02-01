@@ -1,5 +1,4 @@
 use tensor_rs::tensor::{Tensor, PaddingMode};
-use auto_diff::rand::RNG;
 use auto_diff::op::{Linear, Op, Sigmoid, Conv2d, OpTrait, ReLU, View};
 //use auto_diff::var::{Module, crossentropyloss};
 //use auto_diff::optim::{SGD, Optimizer, MiniBatch};
