@@ -1,19 +1,21 @@
 
-//! A machine learning library with a 1st order learning approach
+//! An auto-difference library
 //! =============================================================
 //!
 //!
 //! Introduction
 //! ------------
+//! This is yet another auto-difference library for deep neural network.
+//! The focus is easy on use and dynamic computation graph building.
 //!
 //! Install
 //! ------------
+//! Add auto-diff = "0.5" to the [dependencies] section of your project Cargo.toml file.
 //!
 //! Example
 //! ------------
 //!
-//! Licese
-//! ------------
+
 
 extern crate ndarray;
 extern crate ndarray_linalg;
