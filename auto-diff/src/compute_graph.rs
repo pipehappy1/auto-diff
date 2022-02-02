@@ -148,9 +148,7 @@ impl Net {
     }
 
     /// Forward evaluate the computaiton graph.
-    /// This is for static graph run.
     pub fn eval(&mut self) -> Result<(), BTreeSet<GenKey>> {
-        println!("Deprecated! no more whole network forward pass.");
         let mut all_input = Vec::new();
         for i in &self.set_mark {
             all_input.push(*i);

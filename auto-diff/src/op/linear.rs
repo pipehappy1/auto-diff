@@ -4,7 +4,7 @@ use super::{OpTrait, OpCall, Op, OpHandle};
 use std::cell::{RefCell, Ref};
 use std::rc::Rc;
 
-use crate::var::{VarInner, Var};
+use crate::var::{Var};
 use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
 use crate::err::AutoDiffError;
@@ -133,16 +133,25 @@ impl OpTrait for Linear {
     }
 
     fn get_values(&self) -> Vec<Tensor> {
-        // TODO
-        Vec::new()
+        let mut ret = vec![self.weight.clone()];
+        if self.bias_option {
+            ret.push(self.bias.clone());
+        }
+        ret
     }
     fn set_values(&self, v: &[Tensor]) {
-        unimplemented!()
+        self.weight.swap(&v[0].clone());
+        if self.bias_option {
+            self.bias.swap(&v[1].clone());
+        }
     }
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
-        // TODO
-        Vec::new()
+        let mut ret = vec![self.weight_grad.clone()];
+        if self.bias_option {
+            ret.push(self.bias_grad.clone());
+        }
+        ret
     }
     
 }

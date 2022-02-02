@@ -1,44 +1,41 @@
 use tensor_rs::tensor::Tensor;
 use rand::prelude::*;
 use auto_diff::var::Var;
-use auto_diff::optim::{SGD, Optimizer};
+use auto_diff::optim::{SGD};
 use auto_diff::op::Linear;
+use auto_diff::op::OpCall;
 
 fn main() {
 
     fn func(input: &Var) -> Var {
-        input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1])).add(&Tensor::from_vec_f32(&vec![1.], &vec![1]));
-        
+        return input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1])).add(&Tensor::from_vec_f32(&vec![1.], &vec![1]));
     }
 
     let N = 100;
     let mut rng = StdRng::seed_from_u64(671);
-    let data = Var::normal(&mut rng, &vec![N, 2], 0., 2.);
-    let label = func(&data.clone().set_grad(false));
+    let mut data = Var::normal(&mut rng, &vec![N, 2], 0., 2.);
+    data.set_grad(false);
+    let label = func(&data);
 
     
     let op1 = Linear::new(Some(2), Some(1), true);
     op1.set_weight(Var::normal(&mut rng, &[2], 0., 2.));
     op1.set_bias(Var::normal(&mut rng, &[1], 0., 2.));
 
-
-    
+    let output = op1.call(&[&data]).unwrap().pop().unwrap();
+    let loss = output.mse_loss(&label).unwrap();
     
     let mut opt = SGD::new(3.);
 
     for i in 0..200 {
-        let input = m.var_value(data.clone());
         
-        let y = block.call(&[&input]);
-        
-        let loss = loss_func.call(&[&y, &m.var_value(label.clone())]);
-        println!("index: {}, loss: {}", i, loss.get().get_scale_f32());
-        
-        loss.backward(-1.);
-        opt.step2(&block);
-
+        println!("index: {}, loss: {:?}", i, loss);
+        loss.rerun().unwrap();
+        loss.bp().unwrap();
+        loss.step(&mut opt).unwrap();
     }
 
-    let weights = op1.get_values().expect("");
-    println!("{:?}, {:?}", weights[0], weights[1]);
+    let weight = op1.weight();
+    let bias = op1.bias();
+    println!("{:?}, {:?}", weight, bias);
 }
