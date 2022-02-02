@@ -53,6 +53,23 @@ impl Var {
         }
     }
 
+    pub fn grad(&self) -> Result<Var, AutoDiffError> {
+        Ok(Var {
+            var: Rc::new(RefCell::new(self.var.borrow().grad()?))
+        })
+    }
+
+    pub fn bp(&self) -> Result<(), AutoDiffError> {
+        self.var.borrow().bp()?;
+
+        Ok(())
+    }
+
+    /// Use gradient or not, default is to use.
+    pub fn set_grad(&self, use_gradient: bool) {
+        self.var.borrow_mut().set_grad(use_gradient);
+    }
+
     delegate_new_op!(ones, dim: &[usize]);
     delegate_new_op!(eye, n: usize, m: usize);
 
@@ -105,25 +122,12 @@ impl Var {
     }
 
 
-    pub fn grad(&self) -> Result<Var, AutoDiffError> {
-        Ok(Var {
-            var: Rc::new(RefCell::new(self.var.borrow().grad()?))
-        })
-    }
-
-    pub fn bp(&self) -> Result<(), AutoDiffError> {
-        self.var.borrow().bp()?;
-
-        Ok(())
-    }
-
     var_2_to_1!(add);
     var_2_to_1!(sub);
     var_2_to_1!(mul);
     var_2_to_1!(div);
     
     var_2_to_1!(mse_loss);
-
 
 
     // innternal use
@@ -177,27 +181,37 @@ impl Clone for Var {
 macro_rules! var_inner_2_to_1 {
     ($a:ident, $b:ident) => {
         pub fn $a(&self, other: &mut VarInner) -> Result<VarInner, AutoDiffError> {
-            if !Rc::ptr_eq(&self.net, &other.net) {
-                let other_key = self.net.borrow_mut().append(
-                    &mut other.net.borrow_mut(), &[other.id])?[0];
-
-                other.net = self.net.clone();
-                other.id = other_key;
+            if self.need_grad {
+                if !Rc::ptr_eq(&self.net, &other.net) {
+                    let other_key = self.net.borrow_mut().append(
+                        &mut other.net.borrow_mut(), &[other.id])?[0];
+                
+                    other.net = self.net.clone();
+                    other.id = other_key;
+                }
+                
+                let ret = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
+                
+                let mut op = $b::new();
+                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
+                           self.net.borrow().get_tensor(other.id)?.ref_copy()],
+                         &[self.net.borrow().get_tensor(ret.id)?.ref_copy()]);
+                let op = Op::new(Rc::new(RefCell::new(Box::new(op))));
+                let opid = self.net.borrow_mut().add_op(op);
+                
+                self.net.borrow_mut().connect(&[self.id, other.id],
+                                              opid, &[ret.id]);
+                
+                Ok(ret)
+            } else {
+                let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())), Tensor::new());
+                let mut op = $b::new();
+                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
+                           other.net.borrow().get_tensor(other.id)?.ref_copy()],
+                         &[ret.net.borrow().get_tensor(ret.id)?.ref_copy()]);
+                Ok(ret)
             }
-
-            let ret = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
-
-            let mut op = $b::new();
-            op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
-                       self.net.borrow().get_tensor(other.id)?.ref_copy()],
-                     &[self.net.borrow().get_tensor(ret.id)?.ref_copy()]);
-            let op = Op::new(Rc::new(RefCell::new(Box::new(op))));
-            let opid = self.net.borrow_mut().add_op(op);
-
-            self.net.borrow_mut().connect(&[self.id, other.id],
-                                          opid, &[ret.id]);
-
-            Ok(ret)
+            
         }
     }
 }
@@ -210,6 +224,7 @@ macro_rules! delegate_new_inner_op {
             let id = net.add_tensor(tensor);
             VarInner {
                 id,
+                need_grad: true,
                 net: Rc::new(RefCell::new(net)),
             }
         }
@@ -217,7 +232,8 @@ macro_rules! delegate_new_inner_op {
 }
 
 pub struct VarInner {
-    id: GenKey,    
+    id: GenKey,
+    need_grad: bool,
     net: Rc<RefCell<Net>>,
 }
 
@@ -235,6 +251,7 @@ impl VarInner {
         let id = net.add_tensor(tensor);
         VarInner {
             id,
+            need_grad: true,
             net: Rc::new(RefCell::new(net)),
         }
     }
@@ -245,6 +262,7 @@ impl VarInner {
         let id = net.borrow_mut().add_tensor(tensor);
         VarInner {
             id,
+            need_grad: true,
             net
         }
     }
@@ -254,6 +272,7 @@ impl VarInner {
         let id = net.add_tensor(tensor);
         VarInner {
             id,
+            need_grad: true,
             net: Rc::new(RefCell::new(net)),
         }
     }
@@ -311,46 +330,68 @@ impl VarInner {
         opt.step(self.net.clone());
         Ok(())
     }
-    
+
+    pub(crate) fn set_grad(&mut self, use_gradient: bool) {
+        self.need_grad = use_gradient;
+    }
 
     pub(crate) fn called_with(&self, op: Op,
                               others: &[Rc<RefCell<VarInner>>]) -> Result<Vec<VarInner>, AutoDiffError> {
-        // TODO there may the same net among others.
-        for item in others.iter().map(|x| x.clone()) {
-            if !Rc::ptr_eq(&self.net, &item.borrow().net) {
-                let other_key = self.net.borrow_mut().append(
-                    &mut item.borrow().net.borrow_mut(), &[item.borrow().id])?[0];
-
-                item.borrow_mut().net = self.net.clone();
-                item.borrow_mut().id = other_key;
+        if self.need_grad {
+            // TODO there may the same net among others.
+            for item in others.iter().map(|x| x.clone()) {
+                if !Rc::ptr_eq(&self.net, &item.borrow().net) {
+                    let other_key = self.net.borrow_mut().append(
+                        &mut item.borrow().net.borrow_mut(), &[item.borrow().id])?[0];
+            
+                    item.borrow_mut().net = self.net.clone();
+                    item.borrow_mut().id = other_key;
+                }
             }
-        }
+            
+            let mut input_id = vec![self.id];
+            let mut inputs = vec![self.net.borrow().get_tensor(self.id)?];
+            for i in others {
+                input_id.push(i.borrow().id);
+                inputs.push(self.net.borrow().get_tensor(i.borrow().id)?);
+            }
+            
+            let mut output_id = vec![];
+            let mut outputs = Vec::new();
+            let mut ret = Vec::new();
+            for _ in 0..op.get_output_size() {
+                let new_output = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
+                output_id.push(new_output.id);
+                outputs.push(self.net.borrow().get_tensor(new_output.id)?);
+                ret.push(new_output);
+            }
+            
+            op.apply(&inputs, &outputs);
+            let opid = self.net.borrow_mut().add_op(op);
+            
+            self.net.borrow_mut().connect(&input_id,
+                                          opid,
+                                          &output_id);
+            
+            Ok(ret)    
+        } else {
+            let mut inputs = vec![self.net.borrow().get_tensor(self.id)?];
+            for i in others {
+                inputs.push(i.borrow().net.borrow().get_tensor(i.borrow().id)?);
+            }
+            
+            let mut ret = Vec::new();
+            let mut outputs = Vec::new();
+            for _ in 0..op.get_output_size() {
+                let new_output = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())), Tensor::new());
+                outputs.push(new_output.net.borrow().get_tensor(new_output.id)?);
+                ret.push(new_output);
+            }
+            
+            op.apply(&inputs, &outputs);
 
-        let mut input_id = vec![self.id];
-        let mut inputs = vec![self.net.borrow().get_tensor(self.id)?];
-        for i in others {
-            input_id.push(i.borrow().id);
-            inputs.push(self.net.borrow().get_tensor(i.borrow().id)?);
+            Ok(ret)
         }
-
-        let mut output_id = vec![];
-        let mut outputs = Vec::new();
-        let mut ret = Vec::new();
-        for i in 0..op.get_output_size() {
-            let new_output = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
-            output_id.push(new_output.id);
-            outputs.push(self.net.borrow().get_tensor(new_output.id)?);
-            ret.push(new_output);
-        }
-
-        op.apply(&inputs, &outputs);
-        let opid = self.net.borrow_mut().add_op(op);
-        
-        self.net.borrow_mut().connect(&input_id,
-                                      opid,
-                                      &output_id);
-        
-        Ok(ret)
     }
 
     var_inner_2_to_1!(add, Add);
@@ -388,6 +429,7 @@ impl Clone for VarInner {
         let val = self.val().clone();
         let mut ret = VarInner::new(&[], &[]);
         ret.set_val(val);
+        ret.need_grad = self.need_grad
         ret
     }
 }

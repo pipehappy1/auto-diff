@@ -6,21 +6,23 @@ use auto_diff::op::Linear;
 
 fn main() {
 
-    fn func(input: &Tensor) -> Tensor {
-        input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1])).add(&Tensor::from_vec_f32(&vec![1.], &vec![1]))
+    fn func(input: &Var) -> Var {
+        input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1])).add(&Tensor::from_vec_f32(&vec![1.], &vec![1]));
+        
     }
 
     let N = 100;
     let mut rng = StdRng::seed_from_u64(671);
-    let data = Tensor::normal_f64(&mut rng, &vec![N, 2], 0., 2.);
-    let label = func(&data);
+    let data = Var::normal(&mut rng, &vec![N, 2], 0., 2.);
+    let label = func(&data.clone().set_grad(false));
 
     
     let op1 = Linear::new(Some(2), Some(1), true);
-    op1.set_weight();
-    op1.set_bias();
+    op1.set_weight(Var::normal(&mut rng, &[2], 0., 2.));
+    op1.set_bias(Var::normal(&mut rng, &[1], 0., 2.));
 
-    //let loss_func = m.mse_loss();
+
+    
     
     let mut opt = SGD::new(3.);
 
