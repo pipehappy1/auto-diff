@@ -55,6 +55,8 @@ macro_rules! var_inner_2_to_1 {
     }
 }
 
+// Macro for creation associated function.
+// Not for method.
 macro_rules! delegate_new_inner_op {
     ($a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
         pub fn $a($( $arg_name : $ArgTy ),*) -> VarInner {
@@ -116,8 +118,18 @@ impl VarInner {
         }
     }
 
+    //delegate_new_inner_op!(fill, dim: &[usize], fill_value: &);
+    delegate_new_inner_op!(zeros, dim: &[usize]);
     delegate_new_inner_op!(ones, dim: &[usize]);
+    //delegate_new_inner_op!(arange, end: usize);
+    //delegate_new_inner_op!(range, start: f32, end: f32, step: Option<f32>);
+    //delegate_new_inner_op!(linspace, start: f32, end: f32, steps: usize);
+    //delegate_new_inner_op!(logspace, start: f32, end: f32, steps: usize, base: f32);
     delegate_new_inner_op!(eye, n: usize, m: usize);
+    delegate_new_inner_op!(empty, dim: &[usize]);
+
+    
+
 
     // rand
     delegate_new_inner_op!(rand_usize,
