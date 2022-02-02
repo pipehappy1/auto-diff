@@ -8,6 +8,7 @@ use tensor_rs::tensor::Tensor;
 //use auto_diff::optim::{SGD, Optimizer};
 use csv;
 use std::collections::{BTreeSet};
+use rand::prelude::*;
 
 fn main() {
     let mut reader = csv::ReaderBuilder::new()
@@ -79,8 +80,8 @@ fn main() {
 
     // build the model
 //    let mut m = Module::new();
-    let mut rng = RNG::new();
-    rng.set_seed(123);
+    let mut rng = StdRng::seed_from_u64(671);
+
 
 
 //    let op1 = m.linear(Some(30), Some(1), true);

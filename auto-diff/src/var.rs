@@ -3,6 +3,7 @@ use std::rc::Rc;
 use std::fmt;
 use std::ops;
 use std::collections::BTreeMap;
+use ::rand::prelude::StdRng;
 
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use crate::compute_graph::{Net};
@@ -25,6 +26,16 @@ macro_rules! var_2_to_1 {
     }
 }
 
+macro_rules! delegate_new_op {
+    ($a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        pub fn $a($( $arg_name : $ArgTy ),*) -> Var {
+            Var {
+                var: Rc::new(RefCell::new(VarInner::$a($( $arg_name ),*)))
+            }
+        }
+    }
+}
+
 pub struct Var {
     var: Rc<RefCell<VarInner>>
 }
@@ -42,11 +53,57 @@ impl Var {
         }
     }
 
-    pub fn ones(dim: &[usize]) -> Var {
-        Var {
-            var: Rc::new(RefCell::new(VarInner::ones(dim)))
-        }
+    delegate_new_op!(ones, dim: &[usize]);
+    delegate_new_op!(eye, n: usize, m: usize);
+
+    // rand
+    delegate_new_op!(rand_usize,
+                     rng: &mut StdRng,
+                     dim: &[usize],
+                     left: usize, right: usize);
+    
+    delegate_new_op!(normal_f64,
+                     rng: &mut StdRng,
+                     dim: &[usize],
+                     mean: f64, std: f64);
+    delegate_new_op!(normal_f32,
+                     rng: &mut StdRng,
+                     dim: &[usize],
+                     mean: f32, std: f32);
+    #[cfg(feature = "use-f32")]
+    pub fn normal(rng: &mut StdRng,
+                  dim: &[usize],
+                  mean: f32, std: f32) -> Var {
+        Self::normal_f32(rng, dim, mean, std)
     }
+    #[cfg(feature = "use-f64")]
+    pub fn normal(rng: &mut StdRng,
+                  dim: &[usize],
+                  mean: f64, std: f64) -> Var {
+        Self::normal_f64(rng, dim, mean, std)
+    }
+    
+    delegate_new_op!(uniform_f64,
+                     rng: &mut StdRng,
+                     dim: &[usize],
+                     from: f64, to: f64);
+    delegate_new_op!(uniform_f32,
+                     rng: &mut StdRng,
+                     dim: &[usize],
+                     from: f32, to: f32);
+    #[cfg(feature = "use-f32")]
+    pub fn uniform(rng: &mut StdRng,
+                   dim: &[usize],
+                   from: f32, to: f32) -> Var {
+        Self::uniform_f32(rng, dim, from, to)
+    }
+    #[cfg(feature = "use-f64")]
+    pub fn uniform(rng: &mut StdRng,
+                   dim: &[usize],
+                   from: f64, to: f64) -> Var {
+        Self::uniform_f64(rng, dim, from, to)
+    }
+
 
     pub fn grad(&self) -> Result<Var, AutoDiffError> {
         Ok(Var {
@@ -67,6 +124,9 @@ impl Var {
     
     var_2_to_1!(mse_loss);
 
+
+
+    // innternal use
     pub(crate) fn val(&self) -> Tensor {
         self.var.borrow().val()
     }
@@ -142,6 +202,20 @@ macro_rules! var_inner_2_to_1 {
     }
 }
 
+macro_rules! delegate_new_inner_op {
+    ($a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        pub fn $a($( $arg_name : $ArgTy ),*) -> VarInner {
+            let mut net = Net::new();
+            let tensor = Tensor::$a($( $arg_name ),*);
+            let id = net.add_tensor(tensor);
+            VarInner {
+                id,
+                net: Rc::new(RefCell::new(net)),
+            }
+        }
+    }
+}
+
 pub struct VarInner {
     id: GenKey,    
     net: Rc<RefCell<Net>>,
@@ -184,25 +258,31 @@ impl VarInner {
         }
     }
 
-    pub fn ones(dim: &[usize]) -> VarInner {
-        let mut net = Net::new();
-        let tensor = Tensor::ones(dim);
-        let id = net.add_tensor(tensor);
-        VarInner {
-            id,
-            net: Rc::new(RefCell::new(net)),
-        }
-    }
+    delegate_new_inner_op!(ones, dim: &[usize]);
+    delegate_new_inner_op!(eye, n: usize, m: usize);
 
-    pub fn eye(n: usize, m: usize) -> VarInner {
-        let mut net = Net::new();
-        let tensor = Tensor::eye(n, m);
-        let id = net.add_tensor(tensor);
-        VarInner {
-            id,
-            net: Rc::new(RefCell::new(net)),
-        }
-    }
+    // rand
+    delegate_new_inner_op!(rand_usize,
+                           rng: &mut StdRng,
+                           dim: &[usize],
+                           left: usize, right: usize);
+    delegate_new_inner_op!(normal_f64,
+                           rng: &mut StdRng,
+                           dim: &[usize],
+                           mean: f64, std: f64);
+    delegate_new_inner_op!(normal_f32,
+                           rng: &mut StdRng,
+                           dim: &[usize],
+                           mean: f32, std: f32);
+    delegate_new_inner_op!(uniform_f64,
+                           rng: &mut StdRng,
+                           dim: &[usize],
+                           from: f64, to: f64);
+    delegate_new_inner_op!(uniform_f32,
+                           rng: &mut StdRng,
+                           dim: &[usize],
+                           from: f32, to: f32);
+    
 
     // get and set.
     /// This is a ref. Clone it to cut the connection.
