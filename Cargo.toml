@@ -5,6 +5,7 @@ members = [
     "tensor-rs",
     "benches",
     "macros",
+    "extension-op",
 ]
 
 exclude = [
