@@ -11,7 +11,7 @@ pub trait IndexSlicing where Self: Sized {
     /// the inputs on the given dimension.
     /// Apply cat on [tensor(5, 3, 2), tensor(5, 7, 2), ]
     /// will get a tensor(5, 10, 2).
-    fn cat(&self, tensors: &[&Self], dim: usize) -> Self;
+    fn cat(&self, tensors: &[Self], dim: usize) -> Self;
     
     /// Splits a tensor into a specific number of chunks.
     fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self>;
@@ -44,7 +44,7 @@ pub trait IndexSlicing where Self: Sized {
     /// Stack tensor with the same size along a new dimension
     /// specified by dim.
     /// The difference from cat is that cat don't create new dimension.
-    fn stack(tensors: &[&Self], dim: usize) -> Self;
+    fn stack(tensors: &[Self], dim: usize) -> Self;
 
     /// Transpose
     fn t(&self) -> Self;

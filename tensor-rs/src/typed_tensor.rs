@@ -326,14 +326,14 @@ impl TypedTensor {
     }
 
     // Indexing, Slicing, Joining, Mutating Ops
-    pub fn cat(&self, tensors: &[&TypedTensor], dim: usize) -> TypedTensor {
+    pub fn cat(&self, tensors: &[TypedTensor], dim: usize) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {
                 let mut converted_tensor = Vec::new();
                 for i in tensors {
-                    if discriminant(*i) == discriminant(&TypedTensor::Typef32(GenTensor::<f32>::new())) {
+                    if discriminant(i) == discriminant(&TypedTensor::Typef32(GenTensor::<f32>::new())) {
                         let tmp_ref = match i {
-                            TypedTensor::Typef32(v1) => {v1},
+                            TypedTensor::Typef32(v1) => {v1.clone()},
                             TypedTensor::Typef64(_v1) => {panic!("");},
                             //_ => panic!("Other case"),
                         };
@@ -347,9 +347,9 @@ impl TypedTensor {
             TypedTensor::Typef64(v1) => {
                 let mut converted_tensor = Vec::new();
                 for i in tensors {
-                    if discriminant(*i) == discriminant(&TypedTensor::Typef64(GenTensor::<f64>::new())) {
+                    if discriminant(i) == discriminant(&TypedTensor::Typef64(GenTensor::<f64>::new())) {
                         let tmp_ref = match i {
-                            TypedTensor::Typef64(v1) => {v1},
+                            TypedTensor::Typef64(v1) => {v1.clone()},
                             TypedTensor::Typef32(_v1) => {panic!("");},
                             //_ => panic!("Other case"),
                         };

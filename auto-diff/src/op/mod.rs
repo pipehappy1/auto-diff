@@ -360,3 +360,6 @@ pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};
 pub mod element;
 pub use element::{Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, //Sigmoid,
                   Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc};
+
+pub mod index_slicing;
+//pub use index_slicing::{Cat};

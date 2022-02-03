@@ -360,18 +360,14 @@ impl Tensor {
 
     
     // Indexing, Slicing, Joining, Mutating Ops
-    pub fn cat(&self, tensors: &[&Tensor], dim: usize) -> Tensor {
+    pub fn cat(&self, tensors: &[Tensor], dim: usize) -> Tensor {
         let mut concrete_tensor = Vec::new();
         
         for i in tensors {
             concrete_tensor.push(i.v.borrow().clone());
         }
-        let mut converted_tensor = Vec::new();
-        for i in &concrete_tensor {
-            converted_tensor.push(i);
-        }
         Tensor {
-            v: Rc::new(RefCell::new(self.v.borrow().cat(&converted_tensor[..], dim))),
+            v: Rc::new(RefCell::new(self.v.borrow().cat(&concrete_tensor, dim))),
         }
     }
     pub fn chunk() {

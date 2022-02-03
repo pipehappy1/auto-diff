@@ -6,7 +6,7 @@ use crate::tensor_trait::index_slicing::IndexSlicing;
 impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
 
     /// Concatenates the given sequence of seq tensors in the given dimension.
-    fn cat(&self, tensors: &[&Self], dim: usize) -> Self {
+    fn cat(&self, tensors: &[Self], dim: usize) -> Self {
         let total_dim = self.size();
         for i in tensors {
             if i.size().len() != total_dim.len() {
@@ -278,14 +278,14 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     /// # use crate::tensor_rs::tensor_trait::index_slicing::IndexSlicing;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
     /// let m2 = GenTensor::<f64>::new_raw(&vec![2.,3.,4.,5.,6.,7.], &vec![3,2]);
-    /// let result = GenTensor::<f64>::stack(&vec![&m1, &m2], 1);
+    /// let result = GenTensor::<f64>::stack(&vec![m1, m2], 1);
     /// let raw = result.get_raw();
     /// for i in raw {
     ///     println!("{}", i);
     /// }
     /// assert_eq!(*result.size(), vec![3,2,2]);
     /// ```
-    fn stack(tensors: &[&Self], dim: usize) -> Self {
+    fn stack(tensors: &[Self], dim: usize) -> Self {
         
         let cap = tensors.len()*tensors[0].numel();
         let mut odim = Vec::new();
@@ -458,7 +458,7 @@ mod tests {
         let b = GenTensor::<f32>::fill(2., &vec![5, 3, 3, 2]);
         let c = GenTensor::<f32>::fill(3., &vec![5, 3, 3, 2]);
 
-        let d = a.cat(&vec![&b, &c], 1);
+        let d = a.cat(&vec![b, c], 1);
         //println!("{}", d);
         assert_eq!(d, GenTensor::new_raw(&vec![1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 
                                                1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 
@@ -504,7 +504,7 @@ mod tests {
         let b = GenTensor::<f32>::fill(2., &vec![5, 3, 3, 2]);
         let c = GenTensor::<f32>::fill(3., &vec![5, 3, 3, 2]);
     
-        let d = a.cat(&vec![&b, &c], 1);
+        let d = a.cat(&vec![b.clone(), c.clone()], 1);
     
         let secs = vec![3, 3, 3];
         let tensors = d.split(&secs, 1);
@@ -540,6 +540,4 @@ mod tests {
         println!("{:?}", b);
         assert_eq!(b, GenTensor::<f32>::new_raw(&[1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3. ], &[4, 6]));
     }
-    
-
 }

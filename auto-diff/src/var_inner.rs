@@ -11,10 +11,37 @@ use crate::op::{Op, OpTrait,
                 Add, Sub, Mul, Div, Matmul,
                 MSELoss,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
+//                Cat,
 };
 use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
 
+
+//macro_rules! var_inner_1_to_1_with_args {
+//    ($a:ident, $b:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+//        pub fn $a(&self, $( $arg_name : $ArgTy ),*) -> Result<VarInner, AutoDiffError> {
+//            if self.need_grad {
+//                let ret = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
+//                let op = $b::new($( $arg_name ),*);
+//                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy()],
+//                         &[self.net.borrow().get_tensor(ret.id)?.ref_copy()]);
+//                let op = Op::new(Rc::new(RefCell::new(Box::new(op))));
+//                let opid = self.net.borrow_mut().add_op(op);
+//                
+//                self.net.borrow_mut().connect(&[self.id],
+//                                              opid, &[ret.id]);
+//                
+//                Ok(ret)
+//            } else {
+//                let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())), Tensor::new());
+//                let op = $b::new($( $arg_name ),*);
+//                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy()],
+//                         &[ret.net.borrow().get_tensor(ret.id)?.ref_copy()]);
+//                Ok(ret)
+//            }
+//        }
+//    }
+//}
 
 /// For elementwise ops
 /// var_inner_1_to_1!(abs, Abs);
@@ -281,6 +308,7 @@ impl VarInner {
         }
     }
 
+    // 2-in-1 ops
     var_inner_2_to_1!(add, Add);
     var_inner_2_to_1!(sub, Sub);
     var_inner_2_to_1!(mul, Mul);
@@ -317,6 +345,9 @@ impl VarInner {
     var_inner_1_to_1!(tan, Tan);
     var_inner_1_to_1!(tanh, Tanh);
     var_inner_1_to_1!(trunc, Trunc);
+
+    // index and slicing
+    //var_inner_1_to_1_with_args!(cat, Cat, tensors: &[&Tensor], dim: usize);
     
 }
 
