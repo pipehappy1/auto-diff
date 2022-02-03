@@ -6,6 +6,10 @@
 //! ------------
 //! This is a type less tensor library with the option to use
 //! built-in operators or third-party acceleration library.
+//! Some API for tensor to implement are listed in [tensor_trait].
+//! [typed_tensor] is an enum to cover the tensor type information for [tensor].
+//!
+//! Currently, there are over 80 methods for [tensor].
 //!
 //! Install
 //! ------------
