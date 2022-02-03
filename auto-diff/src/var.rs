@@ -156,6 +156,11 @@ impl Var {
     var_1_to_1!(tanh);
     var_1_to_1!(trunc);
 
+    // index and slicing
+
+    // linalg
+    var_1_to_1!(det);
+
 
     // innternal use
     pub(crate) fn val(&self) -> Tensor {

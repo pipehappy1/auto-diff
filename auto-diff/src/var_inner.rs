@@ -11,7 +11,8 @@ use crate::op::{Op, OpTrait,
                 Add, Sub, Mul, Div, Matmul,
                 MSELoss,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
-//                Cat,
+                //                Cat,
+                Det,
 };
 use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
@@ -348,6 +349,9 @@ impl VarInner {
 
     // index and slicing
     //var_inner_1_to_1_with_args!(cat, Cat, tensors: &[&Tensor], dim: usize);
+
+    // linalg
+    var_inner_1_to_1!(det, Det);
     
 }
 
