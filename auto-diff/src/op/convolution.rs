@@ -1,5 +1,5 @@
 use tensor_rs::tensor::{Tensor, PaddingMode};
-use std::cell::{RefCell, Ref};
+use std::cell::{RefCell};
 use std::rc::Rc;
 use super::{OpTrait, OpCall, Op, OpHandle};
 use crate::var::Var;

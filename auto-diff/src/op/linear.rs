@@ -1,12 +1,10 @@
 use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpCall, Op, OpHandle};
 
-use std::cell::{RefCell, Ref};
+use std::cell::{RefCell};
 use std::rc::Rc;
 
 use crate::var::{Var};
-use crate::compute_graph::{Net};
-use crate::collection::generational_index::{GenKey};
 use crate::err::AutoDiffError;
 
 

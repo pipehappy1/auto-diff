@@ -1,5 +1,5 @@
 /// Only NCWH format is supported.
-use std::cell::{RefCell, Ref};
+use std::cell::{RefCell};
 use std::rc::Rc;
 
 use tensor_rs::tensor::Tensor;

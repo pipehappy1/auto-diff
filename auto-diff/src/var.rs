@@ -279,6 +279,8 @@ mod tests {
 
     #[test]
     fn test_linear() {
+        use crate::op::Linear;
+        
         let mut op1 = Linear::new(Some(2), Some(5), true);
         op1.set_weight(Var::new(&[1.,2.,3.,4.,5.,6.,7.,8.,9.,10.], &[2, 5]));
         op1.set_bias(Var::new(&[1.,2.,3.,4.,5.], &[5]));
