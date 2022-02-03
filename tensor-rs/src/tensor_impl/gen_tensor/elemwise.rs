@@ -135,7 +135,7 @@ impl<T> ElemwiseTensorOp for GenTensor<T> where T: num_traits::Float {
     }
 
     /// Better log(1 + exp(x))
-    /// see https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
+    /// see <https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf>
     fn log1pexp(&self) -> GenTensor<T> {
         let mut ret = GenTensor::new_move(Vec::with_capacity(self.get_data().len()),
                                           self.get_size().to_vec());
@@ -200,7 +200,7 @@ impl<T> ElemwiseTensorOp for GenTensor<T> where T: num_traits::Float {
     // rsqrt
     fn rsqrt(&self) -> GenTensor<T> {
         self._pointwise(|x| {
-            x.sqrt()/(*x)
+            x.sqrt()/(*x) // TODO ?
         })
     }
     

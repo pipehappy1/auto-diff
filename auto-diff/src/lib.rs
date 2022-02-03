@@ -10,7 +10,7 @@
 //!
 //! Install
 //! ------------
-//! Add auto-diff = "0.5" to the [dependencies] section of your project Cargo.toml file.
+//! Add auto-diff = "0.5" to the \[dependencies\] section of your project Cargo.toml file.
 //!
 //! Example
 //! ------------
