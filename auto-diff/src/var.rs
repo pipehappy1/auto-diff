@@ -11,6 +11,15 @@ use crate::optim::Optimizer;
 use crate::var_inner::VarInner;
 
 
+macro_rules! var_1_to_1 {
+    ($a:ident) => {
+        pub fn $a(&self) -> Result<Var, AutoDiffError> {
+            Ok(Var {
+                var: Rc::new(RefCell::new(self.var.borrow().$a()?))})
+        }
+    }
+}
+
 macro_rules! var_2_to_1 {
     ($a:ident) => {
         pub fn $a(&self, other: &Var) -> Result<Var, AutoDiffError> {
@@ -114,8 +123,38 @@ impl Var {
     var_2_to_1!(sub);
     var_2_to_1!(mul);
     var_2_to_1!(div);
+    var_2_to_1!(matmul);
     
     var_2_to_1!(mse_loss);
+
+    //elementwise op
+    var_1_to_1!(abs);
+    var_1_to_1!(acos);
+    var_1_to_1!(asin);
+    var_1_to_1!(atan);
+    var_1_to_1!(ceil);
+    var_1_to_1!(cos);
+    var_1_to_1!(cosh);
+    var_1_to_1!(exp);
+    var_1_to_1!(expm1);
+    var_1_to_1!(floor);
+    var_1_to_1!(frac);
+    var_1_to_1!(log);
+    var_1_to_1!(log10);
+    var_1_to_1!(log1p);
+    var_1_to_1!(log1pexp);
+    var_1_to_1!(log2);
+    var_1_to_1!(neg);
+    var_1_to_1!(reciprocal);
+    var_1_to_1!(round);
+    var_1_to_1!(rsqrt);
+    var_1_to_1!(sign);
+    var_1_to_1!(sin);
+    var_1_to_1!(sinh);
+    var_1_to_1!(sqrt);
+    var_1_to_1!(tan);
+    var_1_to_1!(tanh);
+    var_1_to_1!(trunc);
 
 
     // innternal use

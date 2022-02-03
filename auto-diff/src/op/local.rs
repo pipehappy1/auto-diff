@@ -90,3 +90,12 @@ new_binary_op!(Div, "div",
                    input_grad[1].swap(&y);
                })
 );
+
+new_binary_op!(Matmul, "matmul",
+               (|a:&[Tensor], b:&[Tensor]|
+                b[0].swap(&a[0].matmul(&a[1]))),
+               (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
+                   unimplemented!();
+               })
+);
+

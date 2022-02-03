@@ -8,13 +8,44 @@ use tensor_rs::tensor::{Tensor};
 use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
 use crate::op::{Op, OpTrait,
-                Add, Sub, Mul, Div,
+                Add, Sub, Mul, Div, Matmul,
                 MSELoss,
+                Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
 };
 use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
 
 
+/// For elementwise ops
+/// var_inner_1_to_1!(abs, Abs);
+macro_rules! var_inner_1_to_1 {
+    ($a:ident, $b:ident) => {
+        pub fn $a(&self) -> Result<VarInner, AutoDiffError> {
+            if self.need_grad {
+                
+                let ret = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
+                
+                let op = $b::new();
+                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy()],
+                         &[self.net.borrow().get_tensor(ret.id)?.ref_copy()]);
+                let op = Op::new(Rc::new(RefCell::new(Box::new(op))));
+                let opid = self.net.borrow_mut().add_op(op);
+                
+                self.net.borrow_mut().connect(&[self.id],
+                                              opid, &[ret.id]);
+                
+                Ok(ret)
+            } else {
+                let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())), Tensor::new());
+                let op = $b::new();
+                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy()],
+                         &[ret.net.borrow().get_tensor(ret.id)?.ref_copy()]);
+                Ok(ret)
+            }
+            
+        }
+    }
+}
 
 
 macro_rules! var_inner_2_to_1 {
@@ -31,7 +62,7 @@ macro_rules! var_inner_2_to_1 {
                 
                 let ret = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
                 
-                let mut op = $b::new();
+                let op = $b::new();
                 op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
                            self.net.borrow().get_tensor(other.id)?.ref_copy()],
                          &[self.net.borrow().get_tensor(ret.id)?.ref_copy()]);
@@ -44,7 +75,7 @@ macro_rules! var_inner_2_to_1 {
                 Ok(ret)
             } else {
                 let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())), Tensor::new());
-                let mut op = $b::new();
+                let op = $b::new();
                 op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
                            other.net.borrow().get_tensor(other.id)?.ref_copy()],
                          &[ret.net.borrow().get_tensor(ret.id)?.ref_copy()]);
@@ -254,8 +285,39 @@ impl VarInner {
     var_inner_2_to_1!(sub, Sub);
     var_inner_2_to_1!(mul, Mul);
     var_inner_2_to_1!(div, Div);
+    var_inner_2_to_1!(matmul, Matmul);
     
     var_inner_2_to_1!(mse_loss, MSELoss);
+
+    // element ops
+    var_inner_1_to_1!(abs, Abs);
+    var_inner_1_to_1!(acos, Acos);
+    var_inner_1_to_1!(asin, Asin);
+    var_inner_1_to_1!(atan, Atan);
+    var_inner_1_to_1!(ceil, Ceil);
+    var_inner_1_to_1!(cos, Cos);
+    var_inner_1_to_1!(cosh, Cosh);
+    var_inner_1_to_1!(exp, Exp);
+    var_inner_1_to_1!(expm1, Expm1);
+    var_inner_1_to_1!(floor, Floor);
+    var_inner_1_to_1!(frac, Frac);
+    var_inner_1_to_1!(log, Log);
+    var_inner_1_to_1!(log10, Log10);
+    var_inner_1_to_1!(log1p, Log1p);
+    var_inner_1_to_1!(log1pexp, Log1pexp);
+    var_inner_1_to_1!(log2, Log2);
+    var_inner_1_to_1!(neg, Neg);
+    var_inner_1_to_1!(reciprocal, Reciprocal);
+    var_inner_1_to_1!(round, Round);
+    var_inner_1_to_1!(rsqrt, Rsqrt);
+    var_inner_1_to_1!(sign, Sign);
+    var_inner_1_to_1!(sin, Sin);
+    var_inner_1_to_1!(sinh, Sinh);
+    var_inner_1_to_1!(sqrt, Sqrt);
+    var_inner_1_to_1!(tan, Tan);
+    var_inner_1_to_1!(tanh, Tanh);
+    var_inner_1_to_1!(trunc, Trunc);
+    
 }
 
 impl PartialEq for VarInner {

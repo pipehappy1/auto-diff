@@ -343,7 +343,7 @@ impl OpTrait for View {
 }
 
 pub mod local;
-pub use local::{Add, Sub, Mul, Div};
+pub use local::{Add, Sub, Mul, Div, Matmul};
 
 pub mod linear;
 pub use linear::Linear;
@@ -356,3 +356,7 @@ pub use convolution::{ Conv2d};
 
 pub mod loss;
 pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};
+
+pub mod element;
+pub use element::{Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, //Sigmoid,
+                  Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc};
