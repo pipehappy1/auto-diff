@@ -362,7 +362,7 @@ pub use element::{Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Fra
                   Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc};
 
 pub mod index_slicing;
-//pub use index_slicing::{Cat};
+pub use index_slicing::{Cat};
 
 pub mod linalg;
 pub use linalg::{Det};

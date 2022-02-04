@@ -11,7 +11,7 @@ use crate::op::{Op, OpTrait,
                 Add, Sub, Mul, Div, Matmul,
                 MSELoss,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
-                //                Cat,
+                Cat,
                 Det,
 };
 use crate::err::AutoDiffError;
@@ -250,8 +250,10 @@ impl VarInner {
         self.need_grad = use_gradient;
     }
 
+    /// used in OpCall trait implementation.
     pub(crate) fn called_with(&self, op: Op,
-                              others: &[Rc<RefCell<VarInner>>]) -> Result<Vec<VarInner>, AutoDiffError> {
+                              others: &[Rc<RefCell<VarInner>>])
+                              -> Result<Vec<VarInner>, AutoDiffError> {
         if self.need_grad {
             // TODO there may the same net among others.
             for item in others.iter().map(|x| x.clone()) {
@@ -349,6 +351,13 @@ impl VarInner {
 
     // index and slicing
     //var_inner_1_to_1_with_args!(cat, Cat, tensors: &[&Tensor], dim: usize);
+    pub fn cat(&self, inputs: &[Rc<RefCell<VarInner>>],
+               dim: usize) -> Result<VarInner, AutoDiffError> {
+        let new_one = Cat::new(dim);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut result = self.called_with(op, inputs)?;
+        Ok(result.remove(0))
+    }
 
     // linalg
     var_inner_1_to_1!(det, Det);

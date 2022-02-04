@@ -157,6 +157,15 @@ impl Var {
     var_1_to_1!(trunc);
 
     // index and slicing
+    pub fn cat(&self, other: &[Var], dim: usize) -> Result<Var, AutoDiffError> {
+        let mut other_input = Vec::new();
+        for i in other {
+            other_input.push(i.var.clone());
+        }
+        Ok(Var {
+            var: Rc::new(RefCell::new(self.var.borrow().cat(&other_input, dim)?))
+        })
+    }
 
     // linalg
     var_1_to_1!(det);
