@@ -114,6 +114,18 @@ macro_rules! var_inner_2_to_1 {
     }
 }
 
+macro_rules! var_inner_more_to_1_with_para {
+    ($a:ident, $b:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        pub fn $a(&self, inputs: &[Rc<RefCell<VarInner>>],
+        $( $arg_name : $ArgTy ),*) -> Result<VarInner, AutoDiffError> {
+            let new_one = $b::new($( $arg_name ),*);
+            let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+            let mut result = self.called_with(op, inputs)?;
+            Ok(result.remove(0))            
+        }
+    }
+}
+
 // Macro for creation associated function.
 // Not for method.
 macro_rules! delegate_new_inner_op {
@@ -350,14 +362,7 @@ impl VarInner {
     var_inner_1_to_1!(trunc, Trunc);
 
     // index and slicing
-    //var_inner_1_to_1_with_args!(cat, Cat, tensors: &[&Tensor], dim: usize);
-    pub fn cat(&self, inputs: &[Rc<RefCell<VarInner>>],
-               dim: usize) -> Result<VarInner, AutoDiffError> {
-        let new_one = Cat::new(dim);
-        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
-        let mut result = self.called_with(op, inputs)?;
-        Ok(result.remove(0))
-    }
+    var_inner_more_to_1_with_para!(cat, Cat, dim: usize);
 
     // linalg
     var_inner_1_to_1!(det, Det);

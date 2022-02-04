@@ -29,6 +29,19 @@ macro_rules! var_2_to_1 {
     }
 }
 
+macro_rules! var_more_to_1_with_para {
+    ($a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        pub fn $a(&self, other: &[Var], $( $arg_name : $ArgTy ),*) -> Result<Var, AutoDiffError> {
+            let mut other_input = Vec::new();
+            for i in other {
+                other_input.push(i.var.clone());
+            }
+            Ok(Var {
+                var: Rc::new(RefCell::new(self.var.borrow().$a(&other_input, $( $arg_name ),*)?))})
+        }
+    }
+}
+
 macro_rules! delegate_new_op {
     ($a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
         pub fn $a($( $arg_name : $ArgTy ),*) -> Var {
@@ -157,15 +170,7 @@ impl Var {
     var_1_to_1!(trunc);
 
     // index and slicing
-    pub fn cat(&self, other: &[Var], dim: usize) -> Result<Var, AutoDiffError> {
-        let mut other_input = Vec::new();
-        for i in other {
-            other_input.push(i.var.clone());
-        }
-        Ok(Var {
-            var: Rc::new(RefCell::new(self.var.borrow().cat(&other_input, dim)?))
-        })
-    }
+    var_more_to_1_with_para!(cat, dim: usize);
 
     // linalg
     var_1_to_1!(det);
