@@ -7,7 +7,7 @@ use std::rc::Rc;
 
 use crate::var::{Var};
 use crate::err::AutoDiffError;
-use super::macros::many_to_1_op_with_paras;
+use super::macros::{many_to_1_op_with_paras, one_to_vec_op_with_paras};
 
 
 many_to_1_op_with_paras!(Cat,
@@ -22,3 +22,26 @@ many_to_1_op_with_paras!(Cat,
                            }),
                           dim: usize);
 
+one_to_vec_op_with_paras!(Chunk,
+                          "chunk",
+                          1,1,chunk,
+                          (|input: &[Tensor],
+                           output_grad: &[Tensor],
+                           input_grad: &[Tensor]| {
+                               unimplemented!();
+                           }),
+                          chunks: usize, dim: usize);
+                          
+// gather
+// index_select
+// index_exclude
+// reshape
+// split
+// squeeze
+// stack
+// t
+// take
+// permute
+// unsqueeze
+// conditional_select
+// repeat

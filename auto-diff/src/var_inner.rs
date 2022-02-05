@@ -114,6 +114,7 @@ macro_rules! var_inner_2_to_1 {
     }
 }
 
+/// Multiple tensor in, 1 out and with parameters
 macro_rules! var_inner_more_to_1_with_para {
     ($a:ident, $b:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
         pub fn $a(&self, inputs: &[Rc<RefCell<VarInner>>],
@@ -125,6 +126,8 @@ macro_rules! var_inner_more_to_1_with_para {
         }
     }
 }
+
+
 
 // Macro for creation associated function.
 // Not for method.
