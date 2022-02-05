@@ -370,8 +370,15 @@ impl Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().cat(&concrete_tensor, dim))),
         }
     }
-    pub fn chunk() {
-        unimplemented!();
+    pub fn chunk(&self, chunks: usize, dim: usize) -> Vec<Tensor> {
+        let mut result = self.v.borrow().chunk(chunks, dim);
+        let mut ret = Vec::new();
+        for i in result.drain(..) {
+            ret.push(Tensor {
+                v: Rc::new(RefCell::new(i))
+            });
+        }
+        ret
     }
     pub fn gather(&self, dim: usize, index: &Tensor) -> Tensor {
         Tensor {
@@ -412,11 +419,20 @@ impl Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().squeeze(dim))),
         }
     }
-    pub fn stack() {
-        unimplemented!();
+    pub fn stack(&self, tensors: &[Tensor], dim: usize) -> Tensor {
+        let mut concrete_tensor = Vec::new();
+        
+        for i in tensors {
+            concrete_tensor.push(i.v.borrow().clone());
+        }
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().stack(&concrete_tensor, dim))),
+        }
     }
-    pub fn t() {
-        unimplemented!();
+    pub fn t(&self) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().t()))
+        }
     }
     pub fn take() {
         unimplemented!();

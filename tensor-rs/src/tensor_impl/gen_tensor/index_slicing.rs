@@ -278,25 +278,25 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     /// # use crate::tensor_rs::tensor_trait::index_slicing::IndexSlicing;
     /// let m1 = GenTensor::<f64>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
     /// let m2 = GenTensor::<f64>::new_raw(&vec![2.,3.,4.,5.,6.,7.], &vec![3,2]);
-    /// let result = GenTensor::<f64>::stack(&vec![m1, m2], 1);
+    /// let result = m1.stack(&vec![m2], 1);
     /// let raw = result.get_raw();
     /// for i in raw {
     ///     println!("{}", i);
     /// }
     /// assert_eq!(*result.size(), vec![3,2,2]);
     /// ```
-    fn stack(tensors: &[Self], dim: usize) -> Self {
+    fn stack(&self, tensors: &[Self], dim: usize) -> Self {
         
-        let cap = tensors.len()*tensors[0].numel();
+        let cap = (tensors.len() + 1)*tensors[0].numel();
         let mut odim = Vec::new();
         for i in 0..tensors[0].size().len() {
             if i == dim {
-                odim.push(tensors.len());
+                odim.push(tensors.len()+1);
             }
             odim.push(tensors[0].size()[i]);
         }
         if odim.len() == tensors[0].size().len() {
-            odim.push(tensors.len());
+            odim.push(tensors.len()+1);
         }
         
         
@@ -312,6 +312,9 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
             }
         }
         for i in 0..outter_loop {
+            for k in 0..inner_loop {
+                    d.push(self.get_data()[k + i*inner_loop]);
+                }
             for j in tensors {
                 for k in 0..inner_loop {
                     d.push(j.get_data()[k + i*inner_loop]);

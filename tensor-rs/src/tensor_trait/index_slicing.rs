@@ -44,7 +44,7 @@ pub trait IndexSlicing where Self: Sized {
     /// Stack tensor with the same size along a new dimension
     /// specified by dim.
     /// The difference from cat is that cat don't create new dimension.
-    fn stack(tensors: &[Self], dim: usize) -> Self;
+    fn stack(&self, tensors: &[Self], dim: usize) -> Self;
 
     /// Transpose
     fn t(&self) -> Self;

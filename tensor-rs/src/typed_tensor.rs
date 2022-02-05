@@ -364,6 +364,28 @@ impl TypedTensor {
         }
     }
 
+    pub fn chunk(&self, chunks: usize, dim: usize) -> Vec<TypedTensor> {
+        match self {
+            TypedTensor::Typef32(v1) => {
+                let mut result = v1.chunk(chunks, dim);
+                let mut ret = Vec::new();
+                for i in result.drain(..) {
+                    ret.push(TypedTensor::Typef32(i));
+                }
+                ret
+            },
+            TypedTensor::Typef64(v1) => {
+                let mut result = v1.chunk(chunks, dim);
+                let mut ret = Vec::new();
+                for i in result.drain(..) {
+                    ret.push(TypedTensor::Typef64(i));
+                }
+                ret
+            },
+            // _ => {panic!("should have same tensor type!");},
+        }
+    }
+
     pub fn gather(&self, dim: usize, index: &TypedTensor) -> TypedTensor {
         match (self, index) {
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
@@ -431,8 +453,45 @@ impl TypedTensor {
     }
 
     // Concatenates sequence of tensors along a new dimension.
-    //pub fn stack(&self, tensors: &[&Self], dim: usize) -> TypedTensor {
-    //}
+    pub fn stack(&self, tensors: &[Self], dim: usize) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {
+                let mut converted_tensor = Vec::new();
+                for i in tensors {
+                    if discriminant(i) == discriminant(&TypedTensor::Typef32(GenTensor::<f32>::new())) {
+                        let tmp_ref = match i {
+                            TypedTensor::Typef32(v1) => {v1.clone()},
+                            TypedTensor::Typef64(_v1) => {panic!("");},
+                            //_ => panic!("Other case"),
+                        };
+                        converted_tensor.push(tmp_ref);
+                    } else {
+                        unimplemented!();
+                    }
+                }
+                TypedTensor::Typef32(v1.stack(&converted_tensor[..], dim))
+            },
+            TypedTensor::Typef64(v1) => {
+                let mut converted_tensor = Vec::new();
+                for i in tensors {
+                    if discriminant(i) == discriminant(&TypedTensor::Typef64(GenTensor::<f64>::new())) {
+                        let tmp_ref = match i {
+                            TypedTensor::Typef64(v1) => {v1.clone()},
+                            TypedTensor::Typef32(_v1) => {panic!("");},
+                            //_ => panic!("Other case"),
+                        };
+                        converted_tensor.push(tmp_ref);
+                    } else {
+                        unimplemented!();
+                    }
+                }
+                TypedTensor::Typef64(v1.stack(&converted_tensor[..], dim))
+            },
+            //_ => panic!("Other case"),
+        }
+    }
+
+    typed_tensor_method_single_tensor_return!(t);
 
     pub fn permute(&self, dim: &[usize]) -> TypedTensor {
         match &self {
