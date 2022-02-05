@@ -52,6 +52,9 @@ macro_rules! delegate_new_op {
     }
 }
 
+/// [Var] can be thought as the value it holds plus a link
+/// to the computation graph.
+/// Majority of operators are methods on [Var].
 pub struct Var {
     var: Rc<RefCell<VarInner>>
 }
@@ -275,12 +278,16 @@ impl Var {
     var_1_to_1!(det);
 
 
+    // basic getter/setter
+    
+
+
     // innternal use
     pub(crate) fn val(&self) -> Tensor {
         self.var.borrow().val()
     }
 
-        /// Use gradient or not, default is to use.
+    /// Use gradient or not, default is to use.
     pub fn set_grad(&self, use_gradient: bool) {
         self.var.borrow_mut().set_grad(use_gradient);
     }
