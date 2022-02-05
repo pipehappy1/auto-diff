@@ -1,4 +1,5 @@
-
+#![allow(dead_code)]
+#![allow(unused_variables)]
 //! An auto-difference library
 //! =============================================================
 //!

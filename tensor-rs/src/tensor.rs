@@ -390,6 +390,11 @@ impl Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().index_select(dim, &index.v.borrow()))),
         }
     }
+    pub fn index_exclude(&self, dim: usize, index: &Tensor) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().index_exclude(dim, &index.v.borrow()))),
+        }
+    }
     pub fn masked_select() {
         unimplemented!();
     }
@@ -434,8 +439,10 @@ impl Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().t()))
         }
     }
-    pub fn take() {
-        unimplemented!();
+    pub fn take(&self, index: &[usize]) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().take(index)))
+        }
     }
     pub fn transpose() {
         unimplemented!();

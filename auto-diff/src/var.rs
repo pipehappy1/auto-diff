@@ -171,6 +171,105 @@ impl Var {
 
     // index and slicing
     var_more_to_1_with_para!(cat, dim: usize);
+    pub fn chunk(&self, chunks: usize, dim: usize)
+                 -> Result<Vec<Var>, AutoDiffError> {
+        let mut result = self.var.borrow().chunk(chunks, dim)?;
+        let mut ret = Vec::new();
+        for i in result.drain(..) {
+            ret.push(Var {
+                var: Rc::new(RefCell::new(i)),
+            });
+        }
+        Ok(ret)
+    }
+    pub fn conditional_select(&self, x: &Var, y: &Var)
+                              -> Result<Var, AutoDiffError> {
+        let result = self.var.borrow().conditional_select(x.var.clone(),
+                                                          y.var.clone())?;
+        Ok(Var {
+            var: Rc::new(RefCell::new(result)),
+        })
+    }
+    pub fn gather(&self, dim: usize, index: Var)
+                  -> Result<Var, AutoDiffError> {
+        let result = self.var.borrow().gather(dim, index.var.clone())?;
+        Ok(Var {
+            var: Rc::new(RefCell::new(result)),
+        })
+    }
+    pub fn index_select(&self, dim: usize,
+                        index: Var)
+                        -> Result<Var, AutoDiffError> {
+        let result = self.var.borrow().index_select(
+            dim, index.var.clone())?;
+        Ok(Var {
+            var: Rc::new(RefCell::new(result)),
+        })
+    }
+    pub fn index_exclude(&self, dim: usize,
+                        index: Var)
+                        -> Result<Var, AutoDiffError> {
+        let result = self.var.borrow().index_exclude(
+            dim, index.var.clone())?;
+        Ok(Var {
+            var: Rc::new(RefCell::new(result)),
+        })
+    }
+    pub fn permute(&self, dim: &[usize])
+                   -> Result<Var, AutoDiffError> {
+        let result = self.var.borrow().permute(dim)?;
+        Ok(Var {
+            var: Rc::new(RefCell::new(result)),
+        })
+    }
+    pub fn repeat(&self, dim: &[usize])
+                  -> Result<Var, AutoDiffError> {
+        let result = self.var.borrow().repeat(dim)?;
+        Ok(Var {
+            var: Rc::new(RefCell::new(result)),
+        })
+    }
+    pub fn reshape(&self, new_shape: &[usize])
+                  -> Result<Var, AutoDiffError> {
+        let result = self.var.borrow().reshape(new_shape)?;
+        Ok(Var {
+            var: Rc::new(RefCell::new(result)),
+        })
+    }
+    pub fn split(&self, sections: &[usize], dim: usize)
+                  -> Result<Vec<Var>, AutoDiffError> {
+        let mut result = self.var.borrow().split(sections, dim)?;
+        let mut ret = Vec::new();
+        for i in result.drain(..) {
+            ret.push(Var {
+                var: Rc::new(RefCell::new(i)),
+            });
+        }
+        Ok(ret)
+    }
+    pub fn squeeze(&self, dim: Option<usize>)
+                   -> Result<Var, AutoDiffError> {
+        let result = self.var.borrow().squeeze(dim)?;
+        Ok(Var {
+            var: Rc::new(RefCell::new(result)),
+        })
+    }
+    var_1_to_1!(t);
+    pub fn take(&self, index: &[usize])
+                -> Result<Var, AutoDiffError> {
+        let result = self.var.borrow().take(index)?;
+        Ok(Var {
+            var: Rc::new(RefCell::new(result)),
+        })
+    }
+    pub fn unsqueeze(&self, dim: usize)
+                   -> Result<Var, AutoDiffError> {
+        let result = self.var.borrow().unsqueeze(dim)?;
+        Ok(Var {
+            var: Rc::new(RefCell::new(result)),
+        })
+    }
+    var_more_to_1_with_para!(stack, dim: usize);
 
     // linalg
     var_1_to_1!(det);

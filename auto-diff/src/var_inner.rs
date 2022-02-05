@@ -11,7 +11,7 @@ use crate::op::{Op, OpTrait,
                 Add, Sub, Mul, Div, Matmul,
                 MSELoss,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
-                Cat,
+                Cat, Chunk, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, ConditionalSelect, Repeat,
                 Det,
 };
 use crate::err::AutoDiffError;
@@ -366,6 +366,89 @@ impl VarInner {
 
     // index and slicing
     var_inner_more_to_1_with_para!(cat, Cat, dim: usize);
+    pub fn chunk(&self, chunks: usize, dim: usize) -> Result<Vec<VarInner>, AutoDiffError> {
+        let new_one = Chunk::new(chunks, dim);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let result = self.called_with(op, &Vec::new())?;
+        Ok(result)
+    }
+    pub fn conditional_select(&self, x: Rc<RefCell<VarInner>>, y: Rc<RefCell<VarInner>>) -> Result<VarInner, AutoDiffError> {
+        let new_one = ConditionalSelect::new();
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut inputs = Vec::new();
+        inputs.push(x.clone());
+        inputs.push(y.clone());
+        let mut result = self.called_with(op, &inputs)?;
+        Ok(result.remove(0))
+    }
+    pub fn gather(&self, dim: usize, index: Rc<RefCell<VarInner>>) -> Result<VarInner, AutoDiffError> {
+        let new_one = Gather::new(dim);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut inputs = Vec::new();
+        inputs.push(index.clone());
+        let mut result = self.called_with(op, &inputs)?;
+        Ok(result.remove(0))
+    }
+    pub fn index_select(&self, dim: usize, index: Rc<RefCell<VarInner>>) -> Result<VarInner, AutoDiffError> {
+        let new_one = IndexSelect::new(dim);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut inputs = Vec::new();
+        inputs.push(index.clone());
+        let mut result = self.called_with(op, &inputs)?;
+        Ok(result.remove(0))
+    }
+    pub fn index_exclude(&self, dim: usize, index: Rc<RefCell<VarInner>>) -> Result<VarInner, AutoDiffError> {
+        let new_one = IndexExclude::new(dim);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut inputs = Vec::new();
+        inputs.push(index.clone());
+        let mut result = self.called_with(op, &inputs)?;
+        Ok(result.remove(0))
+    }
+    pub fn permute(&self, dim: &[usize]) -> Result<VarInner, AutoDiffError> {
+        let new_one = Permute::new(dim);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut result = self.called_with(op, &[])?;
+        Ok(result.remove(0))
+    }
+    pub fn repeat(&self, dim: &[usize]) -> Result<VarInner, AutoDiffError> {
+        let new_one = Repeat::new(dim);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut result = self.called_with(op, &[])?;
+        Ok(result.remove(0))
+    }
+    pub fn reshape(&self, new_shape: &[usize]) -> Result<VarInner, AutoDiffError> {
+        let new_one = Reshape::new(new_shape);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut result = self.called_with(op, &[])?;
+        Ok(result.remove(0))
+    }
+    pub fn split(&self, sections: &[usize], dim: usize) -> Result<Vec<VarInner>, AutoDiffError> {
+        let new_one = Split::new(sections, dim);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let result = self.called_with(op, &Vec::new())?;
+        Ok(result)
+    }
+    pub fn squeeze(&self, dim: Option<usize>) -> Result<VarInner, AutoDiffError> {
+        let new_one = Squeeze::new(dim);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut result = self.called_with(op, &[])?;
+        Ok(result.remove(0))
+    }
+    var_inner_1_to_1!(t, T);
+    pub fn take(&self, index: &[usize]) -> Result<VarInner, AutoDiffError> {
+        let new_one = Take::new(index);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut result = self.called_with(op, &[])?;
+        Ok(result.remove(0))
+    }
+    pub fn unsqueeze(&self, dim: usize) -> Result<VarInner, AutoDiffError> {
+        let new_one = Unsqueeze::new(dim);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut result = self.called_with(op, &[])?;
+        Ok(result.remove(0))
+    }
+    var_inner_more_to_1_with_para!(stack, Stack, dim: usize);
 
     // linalg
     var_inner_1_to_1!(det, Det);

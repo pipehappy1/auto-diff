@@ -364,7 +364,7 @@ pub use element::{Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Fra
                   Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc};
 
 pub mod index_slicing;
-pub use index_slicing::{Cat, Chunk, Stack, T};
+pub use index_slicing::{Cat, Chunk, ConditionalSelect, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, Repeat};
 
 pub mod linalg;
 pub use linalg::{Det};
