@@ -214,6 +214,26 @@ impl VarInner {
     
 
     //delegate_new_inner_op!(fill, dim: &[usize], fill_value: &);
+    pub fn fill_f32(size: &[usize], fill_value: f32) -> VarInner {
+        let mut net = Net::new();
+        let tensor = Tensor::fill_f32(size, fill_value);
+        let id = net.add_tensor(tensor);
+        VarInner {
+            id,
+            need_grad: true,
+            net: Rc::new(RefCell::new(net)),
+        }
+    }
+    pub fn fill_f64(size: &[usize], fill_value: f64) -> VarInner {
+        let mut net = Net::new();
+        let tensor = Tensor::fill_f64(size, fill_value);
+        let id = net.add_tensor(tensor);
+        VarInner {
+            id,
+            need_grad: true,
+            net: Rc::new(RefCell::new(net)),
+        }
+    }
     delegate_new_inner_op!(zeros, dim: &[usize]);
     delegate_new_inner_op!(ones, dim: &[usize]);
     //delegate_new_inner_op!(arange, end: usize);

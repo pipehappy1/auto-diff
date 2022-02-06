@@ -94,6 +94,8 @@ impl Var {
     
 
     //delegate_new_inner_op!(fill, dim: &[usize], fill_value: &);
+    delegate_new_op!(fill_f32, size: &[usize], fill_value: f32);
+    delegate_new_op!(fill_f64, size: &[usize], fill_value: f64);
     delegate_new_op!(zeros, dim: &[usize]);
     delegate_new_op!(ones, dim: &[usize]);
     //delegate_new_inner_op!(arange, end: usize);
