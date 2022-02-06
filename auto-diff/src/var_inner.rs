@@ -12,7 +12,7 @@ use crate::op::{Op, OpTrait,
                 MSELoss,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
                 Cat, Chunk, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, ConditionalSelect, Repeat,
-                Det,
+                Det, Inv,
 };
 use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
@@ -473,6 +473,7 @@ impl VarInner {
 
     // linalg
     var_inner_1_to_1!(det, Det);
+    var_inner_1_to_1!(inv, Inv);
     
 }
 

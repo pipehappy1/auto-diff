@@ -294,9 +294,7 @@ impl Var {
 
     // linalg
     var_1_to_1!(det);
-
-
-    // basic getter/setter
+    var_1_to_1!(inv);
     
 
 
