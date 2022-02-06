@@ -73,7 +73,25 @@ impl Var {
     }
 
 
-
+    pub fn size(&self) -> Vec<usize> {
+        self.var.borrow().size()
+    }
+    pub fn numel(&self) -> usize {
+        self.var.borrow().numel()
+    }
+    pub fn get_f32(&self, o: &[usize]) -> f32 {
+        self.var.borrow().get_f32(o)
+    }
+    pub fn set_f32(&self, o: &[usize], v: f32) {
+        self.var.borrow_mut().set_f32(o, v);
+    }
+    pub fn get_f64(&self, o: &[usize]) -> f64 {
+        self.var.borrow().get_f64(o)
+    }
+    pub fn set_f64(&self, o: &[usize], v: f64) {
+        self.var.borrow_mut().set_f64(o, v);
+    }
+    
 
     //delegate_new_inner_op!(fill, dim: &[usize], fill_value: &);
     delegate_new_op!(zeros, dim: &[usize]);

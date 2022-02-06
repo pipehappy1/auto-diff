@@ -192,6 +192,27 @@ impl VarInner {
         }
     }
 
+
+    pub fn size(&self) -> Vec<usize> {
+        self.net.borrow().get_tensor(self.id).expect("").size()
+    }
+    pub fn numel(&self) -> usize {
+        self.net.borrow().get_tensor(self.id).expect("").numel()
+    }
+    pub fn get_f32(&self, o: &[usize]) -> f32 {
+        self.net.borrow().get_tensor(self.id).expect("").get_f32(o)
+    }
+    pub fn set_f32(&mut self, o: &[usize], v: f32) {
+        self.net.borrow().get_tensor(self.id).expect("").set_f32(o, v);
+    }
+    pub fn get_f64(&self, o: &[usize]) -> f64 {
+        self.net.borrow().get_tensor(self.id).expect("").get_f64(o)
+    }
+    pub fn set_f64(&mut self, o: &[usize], v: f64) {
+        self.net.borrow().get_tensor(self.id).expect("").set_f64(o, v);
+    }
+    
+
     //delegate_new_inner_op!(fill, dim: &[usize], fill_value: &);
     delegate_new_inner_op!(zeros, dim: &[usize]);
     delegate_new_inner_op!(ones, dim: &[usize]);
