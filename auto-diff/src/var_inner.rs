@@ -51,7 +51,9 @@ macro_rules! var_inner_1_to_1 {
         pub fn $a(&self) -> Result<VarInner, AutoDiffError> {
             if self.need_grad {
                 
-                let ret = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
+                let ret = VarInner::new_net_tensor(self.net.clone(),
+                                                   self.need_grad,
+                                                   Tensor::new());
                 
                 let op = $b::new();
                 op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy()],
@@ -64,7 +66,9 @@ macro_rules! var_inner_1_to_1 {
                 
                 Ok(ret)
             } else {
-                let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())), Tensor::new());
+                let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())),
+                                                   self.need_grad,
+                                                   Tensor::new());
                 let op = $b::new();
                 op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy()],
                          &[ret.net.borrow().get_tensor(ret.id)?.ref_copy()]);
@@ -88,7 +92,9 @@ macro_rules! var_inner_2_to_1 {
                     other.id = other_key;
                 }
                 
-                let ret = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
+                let ret = VarInner::new_net_tensor(self.net.clone(),
+                                                   self.need_grad,
+                                                   Tensor::new());
                 
                 let op = $b::new();
                 op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
@@ -102,7 +108,9 @@ macro_rules! var_inner_2_to_1 {
                 
                 Ok(ret)
             } else {
-                let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())), Tensor::new());
+                let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())),
+                                                   self.need_grad,
+                                                   Tensor::new());
                 let op = $b::new();
                 op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
                            other.net.borrow().get_tensor(other.id)?.ref_copy()],
@@ -208,11 +216,12 @@ impl VarInner {
 
     /// Create a new var with an existing net and value.
     pub(crate) fn new_net_tensor(net: Rc<RefCell<Net>>,
+                                 need_grad: bool,
                                  tensor: Tensor) -> VarInner {
         let id = net.borrow_mut().add_tensor(tensor);
         VarInner {
             id,
-            need_grad: true,
+            need_grad,
             net
         }
     }
@@ -368,7 +377,9 @@ impl VarInner {
             let mut outputs = Vec::new();
             let mut ret = Vec::new();
             for _ in 0..op.get_output_size() {
-                let new_output = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
+                let new_output = VarInner::new_net_tensor(self.net.clone(),
+                                                          self.need_grad,
+                                                          Tensor::new());
                 output_id.push(new_output.id);
                 outputs.push(self.net.borrow().get_tensor(new_output.id)?);
                 ret.push(new_output);
@@ -391,7 +402,9 @@ impl VarInner {
             let mut ret = Vec::new();
             let mut outputs = Vec::new();
             for _ in 0..op.get_output_size() {
-                let new_output = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())), Tensor::new());
+                let new_output = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())),
+                                                          self.need_grad,
+                                                          Tensor::new());
                 outputs.push(new_output.net.borrow().get_tensor(new_output.id)?);
                 ret.push(new_output);
             }
@@ -529,7 +542,10 @@ impl VarInner {
     // linalg
     var_inner_1_to_1!(det, Det);
     var_inner_1_to_1!(inv, Inv);
-    
+
+    pub fn dump_net(&self) -> Rc<RefCell<Net>> {
+        self.net.clone()
+    }
 }
 
 impl PartialEq for VarInner {

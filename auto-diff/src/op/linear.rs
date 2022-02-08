@@ -96,11 +96,11 @@ impl OpTrait for Linear {
         // TODO go through condition where dimension is missing somewhere.
         //println!("left sie: {:?}, right size: {:?}", inputs[0], self.weight);
         let ret = inputs[0].matmul(&self.weight);
-        outputs[0].data_copy(&ret);
+        outputs[0].swap(&ret);
         //println!("matmut done");
         if self.bias_option {
             let ret = outputs[0].add(&self.bias);
-            outputs[0].data_copy(&ret);
+            outputs[0].swap(&ret);
         }
     }
 

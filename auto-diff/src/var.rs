@@ -8,6 +8,7 @@ use crate::op::{Op};
 use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
 use crate::var_inner::VarInner;
+use crate::compute_graph::{Net};
 
 
 macro_rules! var_1_to_1 {
@@ -343,6 +344,10 @@ impl Var {
             var: Rc::new(RefCell::new(x))
         }).collect();
         Ok(ret)
+    }
+
+    pub fn dump_net(&self) -> Rc<RefCell<Net>> {
+        self.var.borrow().dump_net()
     }
 }
 
