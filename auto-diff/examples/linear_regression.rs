@@ -1,4 +1,3 @@
-use tensor_rs::tensor::Tensor;
 use rand::prelude::*;
 use auto_diff::var::Var;
 use auto_diff::optim::{SGD};
@@ -8,13 +7,16 @@ use auto_diff::op::OpCall;
 fn main() {
 
     fn func(input: &Var) -> Var {
-        return input.matmul(&Tensor::from_vec_f32(&vec![2., 3.], &vec![2, 1])).add(&Tensor::from_vec_f32(&vec![1.], &vec![1]));
+        let input = input.clone();
+        input.set_grad(false);
+        let result = input.matmul(&Var::new(&vec![2., 3.], &vec![2, 1])).add(&Var::new(&vec![1.], &vec![1]));
+        result.set_grad(true);
+        result
     }
 
     let N = 100;
     let mut rng = StdRng::seed_from_u64(671);
     let mut data = Var::normal(&mut rng, &vec![N, 2], 0., 2.);
-    data.set_grad(false);
     let label = func(&data);
 
     

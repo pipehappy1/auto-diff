@@ -4,8 +4,7 @@ use std::fmt;
 use ::rand::prelude::StdRng;
 
 use tensor_rs::tensor::{Tensor};
-use crate::op::{Op
-};
+use crate::op::{Op};
 use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
 use crate::var_inner::VarInner;
@@ -61,14 +60,20 @@ pub struct Var {
 impl Var {
     #[cfg(feature = "use-f64")]
     pub fn new(input: &[f64], dim: &[usize]) -> Var {
-        Var {
-            var: Rc::new(RefCell::new(VarInner::new(input, dim)))
-        }
+        Var::new_f64(input, dim)
     }
     #[cfg(feature = "use-f32")]
     pub fn new(input: &[f32], dim: &[usize]) -> Var {
+        Var::new_f32(input, dim)
+    }
+    pub fn new_f64(input: &[f64], dim: &[usize]) -> Var {
         Var {
-            var: Rc::new(RefCell::new(VarInner::new(input, dim)))
+            var: Rc::new(RefCell::new(VarInner::new_f64(input, dim)))
+        }
+    }
+    pub fn new_f32(input: &[f32], dim: &[usize]) -> Var {
+        Var {
+            var: Rc::new(RefCell::new(VarInner::new_f32(input, dim)))
         }
     }
 

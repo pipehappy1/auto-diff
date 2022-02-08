@@ -155,12 +155,47 @@ pub struct VarInner {
 impl VarInner {
 
     // create functions.
+    #[cfg(feature = "use-f64")]
     pub fn new(input: &[f64], dim: &[usize]) -> VarInner {
         let mut net = Net::new();
         
-        #[cfg(feature = "use-f64")]
         let tensor = Tensor::from_vec_f64(input, dim);
-        #[cfg(feature = "use-f32")]
+        
+        let id = net.add_tensor(tensor);
+        VarInner {
+            id,
+            need_grad: true,
+            net: Rc::new(RefCell::new(net)),
+        }
+    }
+    #[cfg(feature = "use-f32")]
+    pub fn new(input: &[f32], dim: &[usize]) -> VarInner {
+        let mut net = Net::new();
+        
+        let tensor = Tensor::from_vec_f32(input, dim);
+        
+        let id = net.add_tensor(tensor);
+        VarInner {
+            id,
+            need_grad: true,
+            net: Rc::new(RefCell::new(net)),
+        }
+    }
+    pub fn new_f64(input: &[f64], dim: &[usize]) -> VarInner {
+        let mut net = Net::new();
+        
+        let tensor = Tensor::from_vec_f64(input, dim);
+        
+        let id = net.add_tensor(tensor);
+        VarInner {
+            id,
+            need_grad: true,
+            net: Rc::new(RefCell::new(net)),
+        }
+    }
+    pub fn new_f32(input: &[f32], dim: &[usize]) -> VarInner {
+        let mut net = Net::new();
+        
         let tensor = Tensor::from_vec_f32(input, dim);
         
         let id = net.add_tensor(tensor);
