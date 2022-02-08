@@ -46,7 +46,12 @@ pub struct SGD {
     lr: Tensor,
 }
 impl SGD {
-    pub fn new(lr: f32) -> SGD {
+    pub fn new_f64(lr: f64) -> SGD {
+        SGD {
+            lr: Tensor::from_vec_f64(&[lr], &[1]),
+        }
+    }
+    pub fn new_f32(lr: f32) -> SGD {
         SGD {
             lr: Tensor::from_vec_f32(&[lr], &[1]),
         }
@@ -57,12 +62,11 @@ impl Optimizer for SGD {
         net.borrow_mut().visit_op(|x| {
             let weights = x.get_values();
             let grads = x.get_grads();
-            // println!("name: {}, {}, {}", x.get_name(), weights.len(), grads.len());
+            //println!("name: {}, {}, {}", x.get_name(), weights.len(), grads.len());
 
             let mut new_weight = Vec::new();
             for (i, j) in weights.iter().zip(grads.iter()) {
-                // println!("{:?}, {:?}, {:?}", i.size(), j.size(), self.lr.size());
-                
+                //println!("{:?}, {:?}, {:?}", i.size(), j.size(), self.lr.size());
                 new_weight.push(i.add(&j.mul(&self.lr)));
             }
             x.set_values(&new_weight);
