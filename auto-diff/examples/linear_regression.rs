@@ -28,7 +28,7 @@ fn main() {
 
     let loss = output.mse_loss(&label).unwrap();
     
-    let mut opt = SGD::new_f64(0.1);
+    let mut opt = SGD::new(3.);
 
     for i in 0..200 {
         
@@ -36,6 +36,8 @@ fn main() {
         loss.rerun().unwrap();
         loss.bp().unwrap();
         loss.step(&mut opt).unwrap();
+
+        //println!("net: {:?}", loss.dump_net().borrow());
 
         let weight = op1.weight();
         let bias = op1.bias();

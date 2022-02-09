@@ -76,7 +76,14 @@ impl Net {
             None => {Err(AutoDiffError::new(&format!("Data {:?} doesn't ahave gradient yet.", id)))}
         }
     }
-    
+
+    pub fn get_input_edge_data(&self) -> BTreeSet<GenKey> {
+        self.graph.get_input_edge_data()
+    }
+
+    pub fn get_output_edge_data(&self) -> BTreeSet<GenKey> {
+        self.graph.get_output_edge_data()
+    }
 
 
 //    pub fn is_dangling_var(&self, var: &Var) -> Result<bool, ()> {
@@ -148,15 +155,11 @@ impl Net {
     }
 
     /// Forward evaluate the computaiton graph.
-    pub fn eval(&mut self) -> Result<(), BTreeSet<GenKey>> {
-        let mut all_input = Vec::new();
-        for i in &self.set_mark {
-            all_input.push(*i);
-        }
+    pub fn eval(&mut self, starting_node: &[GenKey]) -> Result<(), BTreeSet<GenKey>> {
         
         self.graph
             .walk(
-                &all_input[..],
+                starting_node,
                 true,
                 |input, output, op| {
                     //println!("op: {}", self.ops.get(op).expect("").get_name());
@@ -326,15 +329,19 @@ impl Net {
 
 impl fmt::Debug for Net {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "Dumping Net")?;
+        writeln!(f, "Dumping Net:")?;
         for i in self.data.iter_key() {
-            write!(f, "id: {:?} data: {:?}", i, self.data.get(&i))?;
+            writeln!(f, "id: {:?}  data: {:?}", i, self.data.get(&i))?;
         }
         writeln!(f, "data_grad")?;
         for (k, v) in self.data_grad.iter() {
-            write!(f, "id: {:?} data: {:?}", k, v)?;
+            writeln!(f, "id: {:?}  data: {:?}", k, v)?;
         }
-        write!(f, "graph: {:?}", self.graph)
+        writeln!(f, "op names")?;
+        for i in self.ops.iter_key() {
+            writeln!(f, "id: {:?} \n data: {:?}", i, self.ops.get(&i)?.get_name())?;
+        }
+        writeln!(f, "graph: {:?}", self.graph)
     }
 }
 

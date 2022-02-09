@@ -46,6 +46,15 @@ pub struct SGD {
     lr: Tensor,
 }
 impl SGD {
+    #[cfg(feature = "use-f64")]
+    pub fn new(lr: f64) -> SGD {
+        Self::new_f64(lr)
+    }
+    #[cfg(feature = "use-f32")]
+    pub fn new(lr: f32) -> SGD {
+        Self::new_f32(lr)
+    }
+    
     pub fn new_f64(lr: f64) -> SGD {
         SGD {
             lr: Tensor::from_vec_f64(&[lr], &[1]),
@@ -67,7 +76,7 @@ impl Optimizer for SGD {
             let mut new_weight = Vec::new();
             for (i, j) in weights.iter().zip(grads.iter()) {
                 //println!("{:?}, {:?}, {:?}", i.size(), j.size(), self.lr.size());
-                new_weight.push(i.add(&j.mul(&self.lr)));
+                new_weight.push(i.sub(&j.mul(&self.lr)));
             }
             x.set_values(&new_weight);
         }, None, None);

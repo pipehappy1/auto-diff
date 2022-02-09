@@ -342,7 +342,11 @@ impl VarInner {
     }
 
     pub fn rerun(&self) -> Result<(), AutoDiffError> {
-        self.net.borrow_mut().eval().expect("");
+        let mut all_input = Vec::new();
+        for i in &self.net.borrow().get_input_edge_data() {
+            all_input.push(*i);
+        }
+        self.net.borrow_mut().eval(&all_input).expect("");
         Ok(())
     }
 

@@ -27,6 +27,12 @@ impl Error for AutoDiffError {
     }
 }
 
+impl From<AutoDiffError> for std::fmt::Error {
+    fn from(item: AutoDiffError) -> std::fmt::Error {
+        std::fmt::Error::default()
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
