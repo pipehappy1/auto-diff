@@ -12,7 +12,7 @@ use crate::op::{Op, OpTrait,
                 MSELoss,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
                 Cat, Chunk, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, ConditionalSelect, Repeat,
-                Det, Inv,
+                Det, Inv, NormalizeUnit,
 };
 use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
@@ -154,7 +154,7 @@ macro_rules! delegate_new_inner_op {
     }
 }
 
-pub struct VarInner {
+pub(crate) struct VarInner {
     id: GenKey,
     need_grad: bool,
     net: Rc<RefCell<Net>>,
@@ -287,8 +287,13 @@ impl VarInner {
     delegate_new_inner_op!(eye, n: usize, m: usize);
     delegate_new_inner_op!(empty, dim: &[usize]);
 
+    pub fn from_record_f32(&self, row: usize, record: &[f32]) {
+        self.val().from_record_f32(row, record).expect("");
+    }
+    pub fn from_record_f64(&self, row: usize, record: &[f64]) {
+        self.val().from_record_f64(row, record).expect("");
+    }
     
-
 
     // rand
     delegate_new_inner_op!(rand_usize,
@@ -352,6 +357,14 @@ impl VarInner {
 
     pub(crate) fn set_grad(&mut self, use_gradient: bool) {
         self.need_grad = use_gradient;
+    }
+
+    pub(crate) fn reset_net(&mut self) {
+        let value = self.val();
+        let mut net = Net::new();
+        let id = net.add_tensor(value);
+        self.id = id;
+        self.net = Rc::new(RefCell::new(net));
     }
 
     /// used in OpCall trait implementation.
@@ -546,6 +559,7 @@ impl VarInner {
     // linalg
     var_inner_1_to_1!(det, Det);
     var_inner_1_to_1!(inv, Inv);
+    var_inner_1_to_1!(normalize_unit, NormalizeUnit);
 
     pub fn dump_net(&self) -> Rc<RefCell<Net>> {
         self.net.clone()

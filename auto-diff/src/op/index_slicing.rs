@@ -311,12 +311,12 @@ impl OpTrait for Split {
         1
     }
     fn get_output_size(&self) -> usize {
-        1
+        self.sections.len()
     }
     fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         let mut result = input[0].split(&self.sections, self.dim);
-        for i in result.drain(..) {
-            output[0].swap(&i);
+        for (index, i) in result.drain(..).enumerate() {
+            output[index].swap(&i);
         }
     }
     fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {

@@ -15,9 +15,9 @@ fn main() {
         Ok(result)
     }
 
-    let N = 15;
+    let n = 15;
     let mut rng = StdRng::seed_from_u64(671);
-    let mut data = Var::normal(&mut rng, &vec![N, 2], 0., 2.);
+    let data = Var::normal(&mut rng, &vec![n, 2], 0., 2.);
     let label = func(&data).unwrap();
     
     let mut op1 = Linear::new(Some(2), Some(1), true);
@@ -36,8 +36,6 @@ fn main() {
         loss.rerun().unwrap();
         loss.bp().unwrap();
         loss.step(&mut opt).unwrap();
-
-        //println!("net: {:?}", loss.dump_net().borrow());
 
         let weight = op1.weight();
         let bias = op1.bias();

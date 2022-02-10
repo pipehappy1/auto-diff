@@ -193,7 +193,13 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     /// assign a row.
-    pub fn from_record(&mut self, row: usize, record: &[f32]) -> Result<(), &'static str> {
+    pub fn from_record_f32(&mut self, row: usize, record: &[f32]) -> Result<(), &'static str> {
+        for (i, index) in record.iter().zip(0..self.dim[self.dim.len()-1]) {
+            self.d[row*self.dim[self.dim.len()-1] + index] = T::from(*i).expect("");
+        }
+        Ok(())
+    }
+    pub fn from_record_f64(&mut self, row: usize, record: &[f64]) -> Result<(), &'static str> {
         for (i, index) in record.iter().zip(0..self.dim[self.dim.len()-1]) {
             self.d[row*self.dim[self.dim.len()-1] + index] = T::from(*i).expect("");
         }

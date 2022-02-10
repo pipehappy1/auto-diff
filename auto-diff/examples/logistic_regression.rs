@@ -3,9 +3,10 @@
 //! The dataset is from http://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28diagnostic%29
 
 
-use tensor_rs::tensor::Tensor;
-//use auto_diff::var::{Module, };
-//use auto_diff::optim::{SGD, Optimizer};
+use auto_diff::var::Var;
+use auto_diff::op::Linear;
+use auto_diff::op::OpCall;
+use auto_diff::optim::{SGD};
 use csv;
 use std::collections::{BTreeSet};
 use rand::prelude::*;
@@ -37,12 +38,12 @@ fn main() {
     let size = ids.len();
     println!("total size: {}", size);
 
-    let data = Tensor::empty(&vec![size, 31]);
+    let data = Var::empty(&vec![size, 31]);
     //println!("{:?} \n {}", data.size(), data);
     reader.seek(head).expect("");
     for (record, index) in reader.records().zip(0..size) {
         let line = record.expect("");
-        let mut tmp = Vec::<f32>::with_capacity(31);
+        let mut tmp = Vec::<f64>::with_capacity(31);
         
         ill = line[1].trim().parse::<String>().expect("");
         if ill == "M" {
@@ -52,12 +53,12 @@ fn main() {
         }
         
         for i in 2..32 {
-            let value = line[i].trim().parse::<f32>().expect("");
+            let value = line[i].trim().parse::<f64>().expect("");
             //println!("{}", value);
             tmp.push(value);
         }
         //println!("{:?}", tmp);
-        data.from_record(index, &tmp).expect("");
+        data.from_record_f64(index, &tmp);
     }
 
     
@@ -65,37 +66,47 @@ fn main() {
     let train_size = ((size as f32)*0.7) as usize;
     let test_size = size - train_size;
     //let splited_data = data.split(&vec![train_size, test_size], 0);
-    let data_label_split = data.split(&vec![1, 30], 1);
+    let data_label_split = data.split(&vec![1, 30], 1).unwrap();
     let label = &data_label_split[0];
     let data = &data_label_split[1];
-    let data = data.normalize_unit();
-    let label_split = label.split(&vec![train_size, test_size], 0);
-    let data_split = data.split(&vec![train_size, test_size], 0);
+    let data = data.normalize_unit().unwrap();
+    let label_split = label.split(&vec![train_size, test_size], 0).unwrap();
+    let data_split = data.split(&vec![train_size, test_size], 0).unwrap();
     let train_data = &data_split[0];
     let train_label = &label_split[0];
     let test_data = &data_split[1];
     let test_label = &label_split[1];
-    
-    
+
+
+    train_data.reset_net();
+    train_label.reset_net();
+    test_data.reset_net();
+    test_label.reset_net();
+
+    println!("{:?}", train_data.size());
+    println!("{:?}", train_label.size());
+    println!("{:?}", test_data.size());
+    println!("{:?}", test_label.size());
+
 
     // build the model
-//    let mut m = Module::new();
     let mut rng = StdRng::seed_from_u64(671);
 
-
-
-//    let op1 = m.linear(Some(30), Some(1), true);
+    let mut op1 = Linear::new(Some(30), Some(1), true);
+    op1.set_weight(Var::normal(&mut rng, &[30, 1], 0., 2.));
+    op1.set_bias(Var::normal(&mut rng, &[1, ], 0., 2.));
 //    let weights = op1.get_values().unwrap();
 //    rng.normal_(&weights[0], 0., 1.);
 //    rng.normal_(&weights[1], 0., 1.);
-//    op1.set_values(&weights);
-//
-//
-//    let loss = m.bce_with_logits_loss();
-//    
-//    
-//    let mut opt = SGD::new(0.1);
-//    
+    //    op1.set_values(&weights);
+
+    let output = op1.call(&[&train_data]).unwrap().pop().unwrap();
+
+    //let loss = m.bce_with_logits_loss();
+//    let loss = output.mse_loss(&label).unwrap();
+    
+    let mut opt = SGD::new(0.1);
+    
 //    for i in 0..500 {
 //        let input = m.var_value(train_data.clone());
 //    

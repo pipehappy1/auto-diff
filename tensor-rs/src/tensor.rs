@@ -234,8 +234,11 @@ impl Tensor {
     }
 
     
-    pub fn from_record(&self, row: usize, record: &[f32]) -> Result<(), &'static str> {
-        self.v.borrow_mut().from_record(row, record)
+    pub fn from_record_f32(&self, row: usize, record: &[f32]) -> Result<(), &'static str> {
+        self.v.borrow_mut().from_record_f32(row, record)
+    }
+    pub fn from_record_f64(&self, row: usize, record: &[f64]) -> Result<(), &'static str> {
+        self.v.borrow_mut().from_record_f64(row, record)
     }
     pub fn get_f32(&self, o: &[usize]) -> f32 {
         self.v.borrow().get_f32(o)
@@ -597,33 +600,22 @@ impl Tensor {
     }
 
     // linalg
-    pub fn normalize(&self, mean: &[f32], std: &[f32]) -> Tensor {
+    /// mean and std are all scalars.
+    pub fn normalize(&self, mean: &Tensor, std: &Tensor) -> Tensor {
         if self.size().len() != 2 {
             panic!("fn normalize is for two-dimensional data.");
         }
-        let width = self.size()[1];
-        if width != mean.len() {
-            panic!("input mean has a different size. {}, {}", width, mean.len());
-        }
-        if width != std.len() {
-            panic!("input std has a different size. {}, {}", width, std.len());
-        }
+        //let width = self.size()[1];
+        //if width != mean.len() {
+        //    panic!("input mean has a different size. {}, {}", width, mean.len());
+        //}
+        //if width != std.len() {
+        //    panic!("input std has a different size. {}, {}", width, std.len());
+        //}
         
-        let data_mean = self.mean(Some(&[0]), false);
-        let tmp1 = self.sub(&data_mean).add(&Tensor::from_vec_f32(mean, &[width]));
-        //let tmp1 = Tensor::from_vec_f32(mean, &vec![width]).sub(&data_mean).add(self);
-
-        let data_std = tmp1.std(Some(&[0]), false);
-        //println!("data_std: {:?}, tmp1: {:?}", data_std, tmp1);
-        tmp1.div(&data_std)
+        self.sub(mean).div(std)
     }
-    pub fn normalize_unit(&self) -> Tensor {
-        if self.size().len() != 2 {
-            panic!("fn normalize is for two-dimensional data.");
-        }
-        self.normalize(&vec![0. ; self.size()[self.size().len()-1]],
-                       &vec![1. ; self.size()[self.size().len()-1]])
-    }
+    tensor_method_single_tensor_return!(normalize_unit);
 
     tensor_method_2_option_tensor_return!(lu);
     tensor_method_2_to_1option!(lu_solve);

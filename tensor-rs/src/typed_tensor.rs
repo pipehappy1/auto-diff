@@ -223,10 +223,23 @@ impl TypedTensor {
     pub fn fill_f64(size: &[usize], fill_value: f64) -> TypedTensor {
         TypedTensor::Typef64(GenTensor::fill(fill_value, size))
     }
-    pub fn from_record(&mut self, row: usize, record: &[f32]) -> Result<(), &'static str>{
+    pub fn from_record_f32(&mut self, row: usize, record: &[f32]) -> Result<(), &'static str>{
         match self {
-            TypedTensor::Typef32(v1) => {v1.from_record(row, record)},
-            TypedTensor::Typef64(v1) => {v1.from_record(row, record)},
+            TypedTensor::Typef32(v1) => {v1.from_record_f32(row, record)},
+            TypedTensor::Typef64(v1) => {
+                let new_record: Vec<f64> = record.iter().map(|x| *x as f64).collect();
+                v1.from_record_f64(row, &new_record)
+            },
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
+    pub fn from_record_f64(&mut self, row: usize, record: &[f64]) -> Result<(), &'static str>{
+        match self {
+            TypedTensor::Typef64(v1) => {v1.from_record_f64(row, record)},
+            TypedTensor::Typef32(v1) => {
+                let new_record: Vec<f32> = record.iter().map(|x| *x as f32).collect();
+                v1.from_record_f32(row, &new_record)
+            },
             //_ => {panic!("should have same tensor type!");},
         }
     }

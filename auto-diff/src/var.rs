@@ -111,7 +111,14 @@ impl Var {
     delegate_new_op!(eye, n: usize, m: usize);
     delegate_new_op!(empty, dim: &[usize]);
     
-
+    /// Fill row by row.
+    pub fn from_record_f32(&self, row: usize, record: &[f32]) {
+        self.var.borrow().from_record_f32(row, record)
+    }
+    pub fn from_record_f64(&self, row: usize, record: &[f64]) {
+        self.var.borrow().from_record_f64(row, record)
+    }
+    
     // rand
     delegate_new_op!(rand_usize,
                      rng: &mut StdRng,
@@ -303,6 +310,7 @@ impl Var {
     // linalg
     var_1_to_1!(det);
     var_1_to_1!(inv);
+    var_1_to_1!(normalize_unit);
     
 
 
@@ -316,6 +324,12 @@ impl Var {
         self.var.borrow_mut().set_grad(use_gradient);
     }
 
+    /// Reset net in the background.
+    pub fn reset_net(&self) {
+        self.var.borrow_mut().reset_net();
+    }
+
+    /// The current gradient for the Var.
     pub fn grad(&self) -> Result<Var, AutoDiffError> {
         Ok(Var {
             var: Rc::new(RefCell::new(self.var.borrow().grad()?))
