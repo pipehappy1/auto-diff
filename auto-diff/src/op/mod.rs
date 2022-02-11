@@ -370,4 +370,4 @@ pub mod linalg;
 pub use linalg::{Det, Inv, NormalizeUnit};
 
 pub mod reduction;
-pub use reduction::{Sum};
+pub use reduction::{Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min};

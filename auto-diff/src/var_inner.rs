@@ -14,6 +14,7 @@ use crate::op::{Op, OpTrait,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
                 Cat, Chunk, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, ConditionalSelect, Repeat,
                 Det, Inv, NormalizeUnit,
+                Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min
 };
 use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
@@ -131,6 +132,18 @@ macro_rules! var_inner_more_to_1_with_para {
             let new_one = $b::new($( $arg_name ),*);
             let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
             let mut result = self.called_with(op, inputs)?;
+            Ok(result.remove(0))            
+        }
+    }
+}
+
+macro_rules! var_inner_1_to_1_with_para {
+    ($a:ident, $b:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        pub fn $a(&self, input: Rc<RefCell<VarInner>>,
+        $( $arg_name : $ArgTy ),*) -> Result<VarInner, AutoDiffError> {
+            let new_one = $b::new($( $arg_name ),*);
+            let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+            let mut result = self.called_with(op, &[input])?;
             Ok(result.remove(0))            
         }
     }
@@ -570,6 +583,18 @@ impl VarInner {
     var_inner_1_to_1!(det, Det);
     var_inner_1_to_1!(inv, Inv);
     var_inner_1_to_1!(normalize_unit, NormalizeUnit);
+
+    // reduction
+    var_inner_1_to_1_with_para!(argmax, Argmax, dim: Option<&[usize]>, keepdim: bool);
+    var_inner_1_to_1_with_para!(argmin, Argmin, dim: Option<&[usize]>, keepdim: bool);
+    var_inner_1_to_1_with_para!(logsumexp, Logsumexp, dim: Option<&[usize]>, keepdim: bool);
+    var_inner_1_to_1_with_para!(mean, Mean, dim: Option<&[usize]>, keepdim: bool);
+    var_inner_1_to_1_with_para!(prod, Prod, dim: Option<&[usize]>, keepdim: bool);
+    var_inner_1_to_1_with_para!(std, Std, dim: Option<&[usize]>, keepdim: bool);
+    var_inner_1_to_1_with_para!(sum, Sum, dim: Option<&[usize]>, keepdim: bool);
+    var_inner_1_to_1_with_para!(var, Variance, dim: Option<&[usize]>, keepdim: bool);
+    var_inner_1_to_1_with_para!(max, Max, dim: Option<&[usize]>, keepdim: bool);
+    var_inner_1_to_1_with_para!(min, Min, dim: Option<&[usize]>, keepdim: bool);
 
     pub fn dump_net(&self) -> Rc<RefCell<Net>> {
         self.net.clone()
