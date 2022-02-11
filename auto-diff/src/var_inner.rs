@@ -9,6 +9,7 @@ use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
 use crate::op::{Op, OpTrait,
                 Add, Sub, Mul, Div, Matmul,
+                ELU, ReLU, Sigmoid,
                 MSELoss, BCEWithLogitsLoss, CrossEntropyLoss,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
                 Cat, Chunk, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, ConditionalSelect, Repeat,
@@ -440,7 +441,12 @@ impl VarInner {
     var_inner_2_to_1!(mul, Mul);
     var_inner_2_to_1!(div, Div);
     var_inner_2_to_1!(matmul, Matmul);
+
+    // nonlinear
+    var_inner_1_to_1!(relu, ReLU);
+    var_inner_1_to_1!(sigmoid, Sigmoid);
     
+    // loss
     var_inner_2_to_1!(mse_loss, MSELoss);
     var_inner_2_to_1!(bce_with_logits_loss, BCEWithLogitsLoss);
     var_inner_2_to_1!(cross_entropy_loss, CrossEntropyLoss);

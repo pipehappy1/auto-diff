@@ -368,3 +368,4 @@ pub use index_slicing::{Cat, Chunk, ConditionalSelect, Gather, IndexSelect, Inde
 
 pub mod linalg;
 pub use linalg::{Det, Inv, NormalizeUnit};
+

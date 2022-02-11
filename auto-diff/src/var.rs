@@ -176,7 +176,12 @@ impl Var {
     var_2_to_1!(mul);
     var_2_to_1!(div);
     var_2_to_1!(matmul);
-    
+
+    // nonlinear
+    var_1_to_1!(relu);
+    var_1_to_1!(sigmoid);
+
+    // loss
     var_2_to_1!(mse_loss);
     var_2_to_1!(bce_with_logits_loss);
     var_2_to_1!(cross_entropy_loss);
