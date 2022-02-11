@@ -1,8 +1,10 @@
-use auto_diff::op::{Linear, Op, Sigmoid};
-//use auto_diff::var::{Module, crossentropyloss};
-//use auto_diff::optim::{SGD, Optimizer, MiniBatch};
+use auto_diff::op::{Linear, OpCall};
+use auto_diff::optim::{SGD, MiniBatch};
+use auto_diff::Var;
+use rand::prelude::*;
 
-use tensorboard_rs::summary_writer::SummaryWriter;
+
+//use tensorboard_rs::summary_writer::SummaryWriter;
 
 mod mnist;
 use mnist::{load_images, load_labels};
@@ -25,6 +27,8 @@ fn main() {
     let h = test_size[1];
     let w = test_size[2];
     let test_data = test_img.reshape(&vec![n, h*w]);
+
+    
 
 
     // build the model
@@ -53,14 +57,36 @@ fn main() {
 //        .to(&linear2);
 //    let label = m.var();
 //    
-//    let loss = crossentropyloss(&output, &label);
+    //    let loss = crossentropyloss(&output, &label);
+
+    let mut rng = StdRng::seed_from_u64(671);
+
+    let mut op1 = Linear::new(Some(30), Some(10), true);
+    op1.set_weight(Var::normal(&mut rng, &[30, 10], 0., 1.));
+    op1.set_bias(Var::normal(&mut rng, &[10, ], 0., 1.));
+
+    let mut op2 = Linear::new(Some(10), Some(1), true);
+    op2.set_weight(Var::normal(&mut rng, &[10, 1], 0., 1.));
+    op2.set_bias(Var::normal(&mut rng, &[1, ], 0., 1.));
+
+    //    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
+    let input = train_data.clone();
+    let label = train_label.clone();
+
+    let output1 = op1.call(&[&input]).unwrap().pop().unwrap();
+    let output2 = output1.sigmoid().unwrap();
+    let output = op2.call(&[&output2]).unwrap().pop().unwrap();
+
+    let loss = output.bce_with_logits_loss(&label).unwrap();
+    
+    
 //    
 //    //println!("{}, {}", &train_data, &train_label);
 //    let rng = RNG::new();
 //    let minibatch = MiniBatch::new(rng, 16);
 //
-//    let mut lr = 0.2;
-//    let mut opt = SGD::new(lr);
+    let mut lr = 0.2;
+    let mut opt = SGD::new(lr);
 //    
 //    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
 //    

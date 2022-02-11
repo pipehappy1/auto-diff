@@ -407,6 +407,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
 
     /// Return portion of the image.
     /// Every range of each dim with inclusive start and exclusive end.
+    /// The pixel can be skipped by setting step larger than 1.
     pub fn get_patch(&self, range: &[(usize, usize)], step: Option<&[usize]>) -> GenTensor<T> {
         if range.len() != self.dim.len() {
             panic!("Expect range covers all dimension range: {:?}, dim: {:?}", range, self.dim);

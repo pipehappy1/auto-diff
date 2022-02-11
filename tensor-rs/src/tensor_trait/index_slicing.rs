@@ -49,7 +49,9 @@ pub trait IndexSlicing where Self: Sized {
     /// Transpose
     fn t(&self) -> Self;
 
-    /// 
+    /// Returns a new tensor with the elements of input at the given indices. 
+    /// The input tensor is treated as if it were viewed as a 1-D tensor.
+    /// The result takes the same shape as the indices.
     fn take(&self, index: &[usize]) -> Self;
     //pub fn transpose() {}
     //pub fn unbind() {}
