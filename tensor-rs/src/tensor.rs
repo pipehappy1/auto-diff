@@ -564,6 +564,11 @@ impl Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().mean(dim, keepdim))),
         }
     }
+    pub fn prod(&self, dim: Option<&[usize]>, keepdim: bool) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().prod(dim, keepdim))),
+        }
+    }
     
     //tensor_method_single_tensor_return!(median);
     //tensor_method_single_tensor_return!(mode);

@@ -661,6 +661,13 @@ impl TypedTensor {
             //_ => {panic!("should have same tensor type!");},
         }
     }
+    pub fn prod(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
+        match &self {
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.prod(dim, keepdim))},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.prod(dim, keepdim))},
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
     pub fn sum(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
             TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.sum(dim, keepdim))},

@@ -4,7 +4,7 @@
 
 
 use auto_diff::var::Var;
-use auto_diff::op::{Linear, OpCall, Sigmoid};
+use auto_diff::op::{Linear, OpCall};
 use auto_diff::optim::{SGD};
 use csv;
 use std::collections::{BTreeSet};
@@ -91,48 +91,16 @@ fn main() {
 
     
     // build the model
-//    let mut m = Module::new();
-//    let mut rng = RNG::new();
-    //    rng.set_seed(123);
-
     let mut rng = StdRng::seed_from_u64(671);
 
     let mut op1 = Linear::new(Some(30), Some(10), true);
-    op1.set_weight(Var::normal(&mut rng, &[30, 10], 0., 2.));
-    op1.set_bias(Var::normal(&mut rng, &[10, ], 0., 2.));
+    op1.set_weight(Var::normal(&mut rng, &[30, 10], 0., 1.));
+    op1.set_bias(Var::normal(&mut rng, &[10, ], 0., 1.));
 
     let mut op2 = Linear::new(Some(10), Some(1), true);
-    op2.set_weight(Var::normal(&mut rng, &[10, 1], 0., 2.));
-    op2.set_bias(Var::normal(&mut rng, &[1, ], 0., 2.));
-//
-//    let op1 = m.linear(Some(30), Some(10), true);
-//    let weights = op1.get_values().unwrap();
-//    rng.normal_(&weights[0], 0., 1.);
-//    rng.normal_(&weights[1], 0., 1.);
-//    op1.set_values(&weights);
-//
-//    let op2 = m.linear(Some(10), Some(1), true);
-//    let weights = op2.get_values().unwrap();
-//    rng.normal_(&weights[0], 0., 1.);
-//    rng.normal_(&weights[1], 0., 1.);
-//    op2.set_values(&weights);
-//
-//
-//    let act = m.sigmoid();
-//
-//    let linear1 = op1.clone();
-//    let linear2 = op2.clone();
-//    let block = m.func(
-//        move |x| {
-//            let x1 = act.call(&[&linear1.call(x)]);
-//            linear2.call(&[&x1])
-//        }
-//    );
-//
-//    let loss = m.bce_with_logits_loss();
-//    
-//    let mut opt = SGD::new(0.2);
-//
+    op2.set_weight(Var::normal(&mut rng, &[10, 1], 0., 1.));
+    op2.set_bias(Var::normal(&mut rng, &[1, ], 0., 1.));
+
     //    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
     let input = train_data.clone();
     let label = train_label.clone();
@@ -145,9 +113,9 @@ fn main() {
 
     let mut opt = SGD::new(1.);
 
-    for i in 0..100 {
+    for i in 0..500 {
 
-        println!("{:?}", i);
+        println!("i: {:?}", i);
         input.set(train_data);
         label.set(train_label);
         loss.rerun().unwrap();
@@ -157,7 +125,7 @@ fn main() {
         input.set(test_data);
         label.set(test_label);
         loss.rerun().unwrap();
-        println!("{:?}", loss);
+        println!("loss: {:?}", loss);
 
         //writer.add_scalar("run1/loss", loss.get().get_scale_f32(), i);
         //writer.add_scalar("run1/accuracy", 1.-tsum.get_scale_f32()/(test_size as f32), i);
@@ -165,8 +133,8 @@ fn main() {
 
         let output1 = output.clone();
         let err = output1.sigmoid().unwrap().sub(&test_label.clone()).unwrap().abs().unwrap().sum(None, false).unwrap();
-        println!("{:?}", err);
+        println!("err: {:?}", err);
     }
 
-    println!("{:?}, {:?}", test_label, output.sigmoid());
+    //println!("{:?}, {:?}", test_label, output.sigmoid());
 }

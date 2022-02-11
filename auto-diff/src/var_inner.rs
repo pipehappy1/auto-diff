@@ -139,11 +139,10 @@ macro_rules! var_inner_more_to_1_with_para {
 
 macro_rules! var_inner_1_to_1_with_para {
     ($a:ident, $b:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
-        pub fn $a(&self, input: Rc<RefCell<VarInner>>,
-        $( $arg_name : $ArgTy ),*) -> Result<VarInner, AutoDiffError> {
+        pub fn $a(&self, $( $arg_name : $ArgTy ),*) -> Result<VarInner, AutoDiffError> {
             let new_one = $b::new($( $arg_name ),*);
             let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
-            let mut result = self.called_with(op, &[input])?;
+            let mut result = self.called_with(op, &[])?;
             Ok(result.remove(0))            
         }
     }

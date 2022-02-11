@@ -44,9 +44,9 @@ macro_rules! var_more_to_1_with_para {
 
 macro_rules! var_1_to_1_with_para {
     ($a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
-        pub fn $a(&self, other: &Var, $( $arg_name : $ArgTy ),*) -> Result<Var, AutoDiffError> {
+        pub fn $a(&self, $( $arg_name : $ArgTy ),*) -> Result<Var, AutoDiffError> {
             Ok(Var {
-                var: Rc::new(RefCell::new(self.var.borrow().$a(other.var.clone(), $( $arg_name ),*)?))})
+                var: Rc::new(RefCell::new(self.var.borrow().$a($( $arg_name ),*)?))})
         }
     }
 }
