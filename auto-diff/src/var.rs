@@ -97,7 +97,10 @@ impl Var {
     pub fn set_f64(&self, o: &[usize], v: f64) {
         self.var.borrow_mut().set_f64(o, v);
     }
-    
+
+    pub fn set(&self, o: &Var) {
+        self.var.borrow_mut().set(&mut o.var.borrow());
+    }
 
     //delegate_new_inner_op!(fill, dim: &[usize], fill_value: &);
     delegate_new_op!(fill_f32, size: &[usize], fill_value: f32);
@@ -175,6 +178,8 @@ impl Var {
     var_2_to_1!(matmul);
     
     var_2_to_1!(mse_loss);
+    var_2_to_1!(bce_with_logits_loss);
+    var_2_to_1!(cross_entropy_loss);
 
     //elementwise op
     var_1_to_1!(abs);

@@ -100,27 +100,36 @@ fn main() {
 //    rng.normal_(&weights[1], 0., 1.);
     //    op1.set_values(&weights);
 
-    let output = op1.call(&[&train_data]).unwrap().pop().unwrap();
+    let input = train_data.clone();
+    let label = train_label.clone();
+
+    let output = op1.call(&[&input]).unwrap().pop().unwrap();
 
     //let loss = m.bce_with_logits_loss();
-//    let loss = output.mse_loss(&label).unwrap();
+    println!("o: {:?}", output.size());
+    println!("l: {:?}", train_label.size());
+    let loss = output.bce_with_logits_loss(&label).unwrap();
+
     
-    let mut opt = SGD::new(0.1);
+    let mut opt = SGD::new(1.);
     
-//    for i in 0..500 {
-//        let input = m.var_value(train_data.clone());
-//    
-//        let y = op1.call(&[&input]);
-//        let loss = loss.call(&[&y, &m.var_value(train_label.clone())]);
-//        println!("index: {}, loss: {}", i, loss.get().get_scale_f32());
-//
-//        loss.backward(-1.);
-//        opt.step2(&op1);
-//    
-//        let test_input = m.var_value(test_data.clone());
-//        let y = op1.call(&[&test_input]);
-//        let tsum = y.get().sigmoid().sub(&test_label).sum(None, false);
-//        println!("{}, loss: {}, accuracy: {}", i, loss.get().get_scale_f32(), 1.-tsum.get_scale_f32()/(test_size as f32));
-//    
-//    }
+    for i in 0..100 {
+    
+        println!("{:?}", i);
+        input.set(train_data);
+        label.set(train_label);
+        loss.rerun().unwrap();
+        loss.bp().unwrap();
+        loss.step(&mut opt).unwrap();
+
+        let weight = op1.weight();
+        let bias = op1.bias();
+        //println!("{:?}, {:?}", weight, bias);
+    
+        input.set(test_data);
+        label.set(test_label);
+        loss.rerun().unwrap();
+        println!("{:?}", loss);
+    
+    }
 }

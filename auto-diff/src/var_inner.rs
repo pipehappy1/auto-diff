@@ -9,7 +9,7 @@ use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
 use crate::op::{Op, OpTrait,
                 Add, Sub, Mul, Div, Matmul,
-                MSELoss,
+                MSELoss, BCEWithLogitsLoss, CrossEntropyLoss,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
                 Cat, Chunk, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, ConditionalSelect, Repeat,
                 Det, Inv, NormalizeUnit,
@@ -255,7 +255,6 @@ impl VarInner {
     pub fn set_f64(&mut self, o: &[usize], v: f64) {
         self.net.borrow().get_tensor(self.id).expect("").set_f64(o, v);
     }
-    
 
     //delegate_new_inner_op!(fill, dim: &[usize], fill_value: &);
     pub fn fill_f32(size: &[usize], fill_value: f32) -> VarInner {
@@ -325,6 +324,9 @@ impl VarInner {
     }
     pub(crate) fn set_val(&mut self, val: Tensor) {
         self.net.borrow_mut().set_tensor(self.id, val).expect("");
+    }
+    pub fn set(&mut self, o: &VarInner) {
+        self.set_val(o.val())
     }
 
     pub fn grad(&self) -> Result<VarInner, AutoDiffError> {
@@ -440,6 +442,8 @@ impl VarInner {
     var_inner_2_to_1!(matmul, Matmul);
     
     var_inner_2_to_1!(mse_loss, MSELoss);
+    var_inner_2_to_1!(bce_with_logits_loss, BCEWithLogitsLoss);
+    var_inner_2_to_1!(cross_entropy_loss, CrossEntropyLoss);
 
     // element ops
     var_inner_1_to_1!(abs, Abs);
