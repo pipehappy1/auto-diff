@@ -187,6 +187,13 @@ impl Var {
     var_2_to_1!(matmul);
 
     // nonlinear
+    pub fn elu(&self, alpha: Var) -> Result<Var, AutoDiffError> {
+        Ok(Var {
+            var: Rc::new(RefCell::new(
+                self.var.borrow().elu(
+                    VarInner::new_tensor(alpha.val()))?))
+        })
+    }
     var_1_to_1!(relu);
     var_1_to_1!(sigmoid);
 

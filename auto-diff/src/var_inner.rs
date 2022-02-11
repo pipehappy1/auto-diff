@@ -455,6 +455,12 @@ impl VarInner {
     var_inner_2_to_1!(matmul, Matmul);
 
     // nonlinear
+    pub fn elu(&self, alpha: VarInner) -> Result<VarInner, AutoDiffError> {
+        let new_one = ELU::new(alpha.val());
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+        let mut result = self.called_with(op, &[])?;
+        Ok(result.remove(0))            
+    }
     var_inner_1_to_1!(relu, ReLU);
     var_inner_1_to_1!(sigmoid, Sigmoid);
     

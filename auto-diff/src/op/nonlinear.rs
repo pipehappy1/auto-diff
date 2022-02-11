@@ -1,26 +1,21 @@
 use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 
+
 /// ELU
 pub struct ELU {
     alpha: Tensor,
     handle: OpHandle,
 }
 impl ELU {
-    #[cfg(feature = "use-f32")]
-    pub fn new(alpha: f32) -> ELU {
+
+    pub fn new(alpha: Tensor) -> ELU {
         ELU {
-            alpha: Tensor::from_vec_f32(&[alpha], &[1]),
+            alpha,
             handle: OpHandle::new(),
         }
     }
-    #[cfg(feature = "use-f64")]
-    pub fn new(alpha: f64) -> ELU {
-        ELU {
-            alpha: Tensor::from_vec_f64(&[alpha], &[1]),
-            handle: OpHandle::new(),
-        }
-    }
+
     
     handle_method!();
 }
