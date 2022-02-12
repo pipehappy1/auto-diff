@@ -87,7 +87,7 @@ fn main() {
 
     let loss = output.cross_entropy_loss(&label).unwrap();
     
-    let mut lr = 0.2;
+    let mut lr = 0.1;
     let mut opt = SGD::new(lr);    
 
 //    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
@@ -116,15 +116,16 @@ fn main() {
 
 
         if i % 10 == 0 {
-            input.set(&test_data.clone());
-            label.set(&test_label.clone());
+            let (input_next, label_next) = minibatch.next(&test_data, &test_label).unwrap();        
+            input.set(&input_next);
+            label.set(&label_next);
             loss.rerun().unwrap();
 
             println!("test loss: {:?}", loss);
 
             //let loss_value = loss.get().get_scale_f32();
         
-            let tsum = output.clone().argmax(Some(&[1]), false).eq_t(&test_label).mean(None, false);
+            let tsum = output.clone().argmax(Some(&[1]), false).unwrap().eq_elem(&test_label).unwrap().mean(None, false);
             //let accuracy = tsum.get_scale_f32();
             //println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
             println!("test accuracy: {:?}", tsum);
