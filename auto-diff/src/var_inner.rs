@@ -14,7 +14,8 @@ use crate::op::{Op, OpTrait,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
                 Cat, Chunk, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, ConditionalSelect, Repeat,
                 Det, Inv, NormalizeUnit,
-                Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min
+                Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min,
+                GetPatch,
 };
 use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
@@ -269,7 +270,16 @@ impl VarInner {
         self.net.borrow().get_tensor(self.id).expect("").set_f64(o, v);
     }
 
-    //delegate_new_inner_op!(fill, dim: &[usize], fill_value: &);
+    pub fn fill(size: &[usize], fill_value: Rc<RefCell<VarInner>>) -> VarInner {
+        let mut net = Net::new();
+        let tensor = Tensor::fill(size, &fill_value.borrow().val());
+        let id = net.add_tensor(tensor);
+        VarInner {
+            id,
+            need_grad: true,
+            net: Rc::new(RefCell::new(net)),
+        }
+    }
     pub fn fill_f32(size: &[usize], fill_value: f32) -> VarInner {
         let mut net = Net::new();
         let tensor = Tensor::fill_f32(size, fill_value);
@@ -600,6 +610,9 @@ impl VarInner {
     var_inner_1_to_1_with_para!(var, Variance, dim: Option<&[usize]>, keepdim: bool);
     var_inner_1_to_1_with_para!(max, Max, dim: Option<&[usize]>, keepdim: bool);
     var_inner_1_to_1_with_para!(min, Min, dim: Option<&[usize]>, keepdim: bool);
+
+    // images
+    var_inner_1_to_1_with_para!(get_patch, GetPatch, range: &[(usize, usize)], step: Option<&[usize]>);
 
     pub fn dump_net(&self) -> Rc<RefCell<Net>> {
         self.net.clone()

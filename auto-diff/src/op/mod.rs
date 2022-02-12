@@ -356,6 +356,8 @@ pub use nonlinear::{ELU, ReLU, Sigmoid};
 pub mod convolution;
 pub use convolution::{ Conv2d};
 
+pub mod pooling;
+
 pub mod loss;
 pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};
 
@@ -371,3 +373,6 @@ pub use linalg::{Det, Inv, NormalizeUnit};
 
 pub mod reduction;
 pub use reduction::{Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min};
+
+pub mod image;
+pub use image::{GetPatch, };

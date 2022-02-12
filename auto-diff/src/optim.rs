@@ -7,6 +7,7 @@ use tensor_rs::tensor::Tensor;
 use rand::prelude::StdRng;
 use crate::err::AutoDiffError;
 use super::compute_graph::Net;
+use crate::var::Var;
 
 /// Create random batch view from a large batch.
 pub struct MiniBatch {
@@ -21,7 +22,7 @@ impl MiniBatch {
         }
     }
 
-    pub fn next(&mut self, data: &Tensor, label: &Tensor) -> Result<(Tensor, Tensor), AutoDiffError> {
+    pub fn next(&mut self, data: &Var, label: &Var) -> Result<(Var, Var), AutoDiffError> {
         let sample_size = data.size()[0];
         let sample_size2 = label.size()[0];
 
@@ -29,10 +30,12 @@ impl MiniBatch {
             return Err(AutoDiffError::new(&format!("minibatch needs data and label has the same N {}, {}",
                                                    sample_size, sample_size2)));
         }
-        let index_t = Tensor::rand_usize(&mut self.rng, &[self.size], 0, sample_size);
+        let index_t = Var::rand_usize(&mut self.rng, &[self.size], 0, sample_size);
 
-        let mdata = data.index_select(0, &index_t);
-        let mlabel = label.index_select(0, &index_t);
+        let mdata = data.index_select(0, index_t.clone())?;
+        let mlabel = label.index_select(0, index_t.clone())?;
+        mdata.reset_net();
+        mlabel.reset_net();
         Ok((mdata, mlabel))
     }
 }

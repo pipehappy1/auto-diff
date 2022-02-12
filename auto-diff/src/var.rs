@@ -111,7 +111,12 @@ impl Var {
         self.var.borrow_mut().set(&mut o.var.borrow());
     }
 
-    //delegate_new_inner_op!(fill, dim: &[usize], fill_value: &);
+    pub fn fill(size: &[usize], fill_value: &Var) -> Var {
+        Var {
+            var: Rc::new(RefCell::new(
+                VarInner::fill(size, fill_value.var.clone())))
+        }
+    }
     delegate_new_op!(fill_f32, size: &[usize], fill_value: f32);
     delegate_new_op!(fill_f64, size: &[usize], fill_value: f64);
     delegate_new_op!(zeros, dim: &[usize]);
@@ -349,6 +354,9 @@ impl Var {
     var_1_to_1_with_para!(var, dim: Option<&[usize]>, keepdim: bool);
     var_1_to_1_with_para!(max, dim: Option<&[usize]>, keepdim: bool);
     var_1_to_1_with_para!(min, dim: Option<&[usize]>, keepdim: bool);
+
+    // images
+    var_1_to_1_with_para!(get_patch, range: &[(usize, usize)], step: Option<&[usize]>);
 
 
     // innternal use
