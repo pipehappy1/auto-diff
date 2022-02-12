@@ -236,6 +236,19 @@ impl Var {
     var_1_to_1!(tanh);
     var_1_to_1!(trunc);
 
+    // comparison
+    var_2_to_1!(max_pair);
+    var_2_to_1!(min_pair);
+    var_1_to_1_with_para!(arg_sort, 
+                          dim: usize, descending: bool);
+    var_2_to_1!(eq_elem);
+    var_2_to_1!(equal);
+    var_2_to_1!(ge);
+    var_2_to_1!(gt);
+    var_2_to_1!(le);
+    var_2_to_1!(lt);
+    var_2_to_1!(ne);
+
     // index and slicing
     var_more_to_1_with_para!(cat, dim: usize);
     pub fn chunk(&self, chunks: usize, dim: usize)

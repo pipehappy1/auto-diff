@@ -635,7 +635,15 @@ impl Tensor {
 
     // Comparison Ops
     tensor_method!(all_close);
+    pub fn arg_sort(&self, dim: usize, descending: bool) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().arg_sort(dim, descending))),
+        }
+    }
     tensor_method!(eq_t);
+    pub fn equal(&self, o: &Tensor) -> bool {
+        self.v.borrow().equal(&o.v.borrow())
+    }
     tensor_method!(ge);
     tensor_method!(gt);
     tensor_method!(le);

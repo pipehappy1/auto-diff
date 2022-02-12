@@ -12,6 +12,7 @@ use crate::op::{Op, OpTrait,
                 ELU, ReLU, Sigmoid,
                 MSELoss, BCEWithLogitsLoss, CrossEntropyLoss,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
+                MaxPair, MinPair, ArgSort, EqElem, Equal, Ge, Gt, Le, Lt, Ne,
                 Cat, Chunk, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, ConditionalSelect, Repeat,
                 Det, Inv, NormalizeUnit,
                 Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min,
@@ -507,6 +508,19 @@ impl VarInner {
     var_inner_1_to_1!(tan, Tan);
     var_inner_1_to_1!(tanh, Tanh);
     var_inner_1_to_1!(trunc, Trunc);
+
+    // comparison
+    var_inner_2_to_1!(max_pair, MaxPair);
+    var_inner_2_to_1!(min_pair, MinPair);
+    var_inner_1_to_1_with_para!(arg_sort, ArgSort,
+                                dim: usize, descending: bool);
+    var_inner_2_to_1!(eq_elem, EqElem);
+    var_inner_2_to_1!(equal, Equal);
+    var_inner_2_to_1!(ge, Ge);
+    var_inner_2_to_1!(gt, Gt);
+    var_inner_2_to_1!(le, Le);
+    var_inner_2_to_1!(lt, Lt);
+    var_inner_2_to_1!(ne, Ne);
 
     // index and slicing
     var_inner_more_to_1_with_para!(cat, Cat, dim: usize);

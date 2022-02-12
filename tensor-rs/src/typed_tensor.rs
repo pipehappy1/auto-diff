@@ -691,7 +691,7 @@ impl TypedTensor {
     }
     pub fn min(&self, dim: Option<&[usize]>, keepdim: bool) -> TypedTensor {
         match &self {
-            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.max(dim, keepdim))},
+            TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.min(dim, keepdim))},
             TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.min(dim, keepdim))},
             //_ => {panic!("should have same tensor type!");},
         }
@@ -723,7 +723,30 @@ impl TypedTensor {
     // Comparison Ops
     typed_tensor_method!(all_close);
     // arg_sort
+    pub fn arg_sort(&self, dim: usize, descending: bool)
+                    -> TypedTensor {
+        match (&self) {
+            (TypedTensor::Typef32(v1)) => {
+                TypedTensor::Typef32(v1.arg_sort(dim, descending))
+            },
+            (TypedTensor::Typef64(v1)) => {
+                TypedTensor::Typef64(v1.arg_sort(dim, descending))
+            },
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
     typed_tensor_method!(eq_t);
+    pub fn equal(&self, b: &TypedTensor) -> bool {
+        match (&self, b) {
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(b1)) => {
+                v1.equal(b1)
+            },
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(b1)) => {
+                v1.equal(b1)
+            },
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
     typed_tensor_method!(ge);
     typed_tensor_method!(gt);
     typed_tensor_method!(le);
