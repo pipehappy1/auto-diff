@@ -725,11 +725,11 @@ impl TypedTensor {
     // arg_sort
     pub fn arg_sort(&self, dim: usize, descending: bool)
                     -> TypedTensor {
-        match (&self) {
-            (TypedTensor::Typef32(v1)) => {
+        match &self {
+            TypedTensor::Typef32(v1) => {
                 TypedTensor::Typef32(v1.arg_sort(dim, descending))
             },
-            (TypedTensor::Typef64(v1)) => {
+            TypedTensor::Typef64(v1) => {
                 TypedTensor::Typef64(v1.arg_sort(dim, descending))
             },
             //_ => {panic!("should have same tensor type!");},

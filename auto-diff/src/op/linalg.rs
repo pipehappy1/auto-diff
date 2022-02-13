@@ -43,6 +43,11 @@ impl OpTrait for NormalizeUnit {
     fn set_values(&self, _v: &[Tensor]) {
     }
 }
+impl Default for NormalizeUnit {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 
 pub struct Det {
@@ -85,6 +90,11 @@ impl OpTrait for Det {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+}
+impl Default for Det {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -130,4 +140,8 @@ impl OpTrait for Inv {
     fn set_values(&self, _v: &[Tensor]) {
     }
 }
-
+impl Default for Inv {
+    fn default() -> Self {
+        Self::new()
+    }
+}

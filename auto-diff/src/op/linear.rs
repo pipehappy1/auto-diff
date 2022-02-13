@@ -69,7 +69,7 @@ impl OpCall for Linear {
         
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
         
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 
 

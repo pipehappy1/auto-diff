@@ -108,7 +108,7 @@ impl Var {
     }
 
     pub fn set(&self, o: &Var) {
-        self.var.borrow_mut().set(&mut o.var.borrow());
+        self.var.borrow_mut().set(&o.var.borrow());
     }
 
     pub fn fill(size: &[usize], fill_value: &Var) -> Var {
@@ -272,7 +272,7 @@ impl Var {
     }
     pub fn gather(&self, dim: usize, index: Var)
                   -> Result<Var, AutoDiffError> {
-        let result = self.var.borrow().gather(dim, index.var.clone())?;
+        let result = self.var.borrow().gather(dim, index.var)?;
         Ok(Var {
             var: Rc::new(RefCell::new(result)),
         })
@@ -281,7 +281,7 @@ impl Var {
                         index: Var)
                         -> Result<Var, AutoDiffError> {
         let result = self.var.borrow().index_select(
-            dim, index.var.clone())?;
+            dim, index.var)?;
         Ok(Var {
             var: Rc::new(RefCell::new(result)),
         })
@@ -290,7 +290,7 @@ impl Var {
                         index: Var)
                         -> Result<Var, AutoDiffError> {
         let result = self.var.borrow().index_exclude(
-            dim, index.var.clone())?;
+            dim, index.var)?;
         Ok(Var {
             var: Rc::new(RefCell::new(result)),
         })
@@ -402,17 +402,17 @@ impl Var {
     }
 
     pub fn step(&self, opt: &mut dyn Optimizer) -> Result<(), AutoDiffError> {
-        Ok(self.var.borrow().step(opt)?)
+        self.var.borrow().step(opt)
     }
 
     pub fn rerun(&self) -> Result<(), AutoDiffError> {
-        Ok(self.var.borrow().rerun()?)
+        self.var.borrow().rerun()
     }
 
     pub(crate) fn called_with(&self, op: Op,
                               others: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
-        let mut refs: Vec<Rc<RefCell<VarInner>>> = others.iter().map(|x| x.var.clone()).collect();
-        let mut var_inners = self.var.borrow().called_with(op, &mut refs)?;
+        let refs: Vec<Rc<RefCell<VarInner>>> = others.iter().map(|x| x.var.clone()).collect();
+        let mut var_inners = self.var.borrow().called_with(op, &refs)?;
         let ret: Vec<Var> = var_inners.drain(..).map(|x| Var {
             var: Rc::new(RefCell::new(x))
         }).collect();

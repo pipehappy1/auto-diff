@@ -29,7 +29,7 @@ macro_rules! one_to_1_op_with_paras {
 
                 let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-                Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+                inputs[0].called_with(op, &inputs[1..inputs.len()])
             }
         }
         impl OpTrait for $a {
@@ -90,7 +90,7 @@ macro_rules! many_to_1_op_with_paras {
 
                 let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-                Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+                inputs[0].called_with(op, &inputs[1..inputs.len()])
             }
         }
         impl OpTrait for $a {
@@ -151,7 +151,7 @@ macro_rules! one_to_vec_op_with_paras {
 
                 let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-                Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+                inputs[0].called_with(op, &inputs[1..inputs.len()])
             }
         }
         impl OpTrait for $a {
@@ -230,6 +230,11 @@ macro_rules! new_binary_op {
             fn set_values(&self, _v: &[Tensor]) {
             }
         }
+        impl Default for $a {
+            fn default() -> Self {
+                Self::new()
+            }
+        }
     }
 }
 
@@ -275,6 +280,11 @@ macro_rules! new_element_op {
                 Vec::new()
             }
             fn set_values(&self, _v: &[Tensor]) {
+            }
+        }
+        impl Default for $a {
+            fn default() -> Self {
+                Self::new()
             }
         }
     }

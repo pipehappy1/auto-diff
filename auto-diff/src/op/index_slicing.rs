@@ -63,7 +63,7 @@ impl OpCall for Gather {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for Gather {
@@ -121,7 +121,7 @@ impl OpCall for IndexSelect {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for IndexSelect {
@@ -179,7 +179,7 @@ impl OpCall for IndexExclude {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for IndexExclude {
@@ -237,7 +237,7 @@ impl OpCall for Reshape {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for Reshape {
@@ -299,7 +299,7 @@ impl OpCall for Split {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for Split {
@@ -395,7 +395,7 @@ impl OpCall for Take {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for Take {
@@ -453,7 +453,7 @@ impl OpCall for Permute {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for Permute {
@@ -521,7 +521,7 @@ impl OpCall for ConditionalSelect {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for ConditionalSelect {
@@ -548,6 +548,11 @@ impl OpTrait for ConditionalSelect {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+}
+impl Default for ConditionalSelect {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -580,7 +585,7 @@ impl OpCall for Repeat {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for Repeat {

@@ -1,3 +1,4 @@
+#![allow(clippy::new_without_default)]
 use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 

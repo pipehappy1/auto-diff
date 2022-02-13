@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 
-auto-diff = { path="../auto-diff", version = "0.5.2"}
-auto-diff-macros = { path="../macros", version = "0.5.2" }
+auto-diff = { path="../auto-diff", version = "0.5.3"}
+auto-diff-macros = { path="../macros", version = "0.5.3" }

@@ -141,8 +141,8 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     pub fn add_op(&mut self, id: &TOp) -> Result<TOp, &str> {
         if !self.op.contains(id) {
             self.op.insert(*id);
-            self.forward_op_dt.insert(id.clone(), BTreeSet::new());
-            self.backward_op_dt.insert(id.clone(), BTreeSet::new());
+            self.forward_op_dt.insert(*id, BTreeSet::new());
+            self.backward_op_dt.insert(*id, BTreeSet::new());
             Ok(*id)
         } else {
             Err("op id exists.")
@@ -382,10 +382,10 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
                   op_key_map: BTreeMap<TOp, TOp>) -> Result<(), AutoDiffError> {
 
         for key in other.iter_data() {
-            self.data.insert(data_key_map[&key]);
+            self.data.insert(data_key_map[key]);
         }
         for key in other.iter_op() {
-            self.op.insert(op_key_map[&key]);
+            self.op.insert(op_key_map[key]);
         }
         for (key, value) in other.forward_dt_op.iter() {
             let mut new_set = BTreeSet::new();

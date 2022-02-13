@@ -16,7 +16,7 @@ impl GetPatch {
     pub fn new(range: &[(usize, usize)], step: Option<&[usize]>)
                -> GetPatch{
         let new_range = range.to_vec();
-        let new_step = if let Some(v) = step {Some(v.to_vec())} else {None};
+        let new_step = step.map(|v| v.to_vec());
         GetPatch {
             handle: OpHandle::new(),
             range: new_range,
@@ -41,7 +41,7 @@ impl OpCall for GetPatch {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for GetPatch {
@@ -56,7 +56,7 @@ impl OpTrait for GetPatch {
         1
     }
     fn apply(&self, input: &[Tensor], output: &[Tensor]) {
-        let step = if let Some(v) = &self.step {Some(&v[..])} else {None};
+        let step = self.step.as_ref().map(|v| &v[..]);
         output[0].swap(&input[0].get_patch(&self.range, step));
     }
     fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {

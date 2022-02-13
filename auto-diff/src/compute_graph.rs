@@ -228,7 +228,7 @@ impl Net {
         }
 
         for i in self.graph.iter_data() {
-            self.data_grad.entry(*i).or_insert(Tensor::new());
+            self.data_grad.entry(*i).or_insert_with(Tensor::new);
         }
 
         self.graph
@@ -345,3 +345,8 @@ impl fmt::Debug for Net {
     }
 }
 
+impl Default for Net {
+    fn default() -> Self {
+        Self::new()
+    }
+}

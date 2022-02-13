@@ -1,3 +1,4 @@
+#![allow(clippy::too_many_arguments)]
 use tensor_rs::tensor::{Tensor, PaddingMode};
 use std::cell::{RefCell};
 use std::rc::Rc;
@@ -12,7 +13,7 @@ pub struct Conv1d {
 impl Conv1d {
     pub fn new(alpha: f32) -> Conv1d {
         Conv1d {
-            alpha: alpha,
+            alpha,
             handle: OpHandle::new(),
         }
     }
@@ -128,10 +129,10 @@ impl OpCall for Conv2d {
         let new_one = Conv2d {
             in_channels: self.in_channels,
             out_channels: self.out_channels,
-            kernel_size: self.kernel_size.clone(),
-            stride: self.stride.clone(),
-            padding: self.padding.clone(),
-            dilation: self.dilation.clone(),
+            kernel_size: self.kernel_size,
+            stride: self.stride,
+            padding: self.padding,
+            dilation: self.dilation,
             groups: self.groups,
             bias_option: self.bias_option,
             padding_mode: self.padding_mode,
@@ -146,7 +147,7 @@ impl OpCall for Conv2d {
         
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
         
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 

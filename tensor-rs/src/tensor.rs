@@ -691,24 +691,24 @@ impl Tensor {
     
 
     // conv ops
-    pub fn conv2d(&self, o: &Tensor,
+    pub fn conv2d(&self, weight: &Tensor,
                   stride: (usize, usize),
                   padding: (usize, usize),
                   dilation: (usize, usize),
                   padding_mode: PaddingMode
     ) -> Tensor {
         Tensor {
-            v: Rc::new(RefCell::new(self.v.borrow().conv2d(&o.v.borrow(), stride, padding, dilation, padding_mode))),
+            v: Rc::new(RefCell::new(self.v.borrow().conv2d(&weight.v.borrow(), stride, padding, dilation, padding_mode))),
         }
     }
-    pub fn conv2d_grad(&self, o: &Tensor,
+    pub fn conv2d_grad(&self, weight: &Tensor,
                        stride: (usize, usize),
                        padding: (usize, usize),
                        dilation: (usize, usize),
                        padding_mode: PaddingMode,
                        output_grad: &Tensor
     ) -> (Tensor, Tensor) {
-        let (r1, r2) = self.v.borrow().conv2d_grad(&o.v.borrow(), stride, padding, dilation, padding_mode, &output_grad.v.borrow());
+        let (r1, r2) = self.v.borrow().conv2d_grad(&weight.v.borrow(), stride, padding, dilation, padding_mode, &output_grad.v.borrow());
         (Tensor { v: Rc::new(RefCell::new(r1))},
          Tensor { v: Rc::new(RefCell::new(r2))},
         )

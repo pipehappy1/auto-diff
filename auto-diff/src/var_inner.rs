@@ -91,7 +91,7 @@ macro_rules! var_inner_2_to_1 {
             if self.need_grad {
                 if !Rc::ptr_eq(&self.net, &other.net) {
                     let other_key = self.net.borrow_mut().append(
-                        &mut other.net.borrow_mut(), &[other.id])?[0];
+                        &other.net.borrow(), &[other.id])?[0];
                 
                     other.net = self.net.clone();
                     other.id = other_key;
@@ -400,10 +400,10 @@ impl VarInner {
                               -> Result<Vec<VarInner>, AutoDiffError> {
         if self.need_grad {
             // TODO there may the same net among others.
-            for item in others.iter().map(|x| x.clone()) {
+            for item in others.iter().cloned() {
                 if !Rc::ptr_eq(&self.net, &item.borrow().net) {
                     let other_key = self.net.borrow_mut().append(
-                        &mut item.borrow().net.borrow_mut(), &[item.borrow().id])?[0];
+                        &item.borrow().net.borrow(), &[item.borrow().id])?[0];
             
                     item.borrow_mut().net = self.net.clone();
                     item.borrow_mut().id = other_key;
@@ -534,33 +534,30 @@ impl VarInner {
     pub fn conditional_select(&self, x: Rc<RefCell<VarInner>>, y: Rc<RefCell<VarInner>>) -> Result<VarInner, AutoDiffError> {
         let new_one = ConditionalSelect::new();
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
-        let mut inputs = Vec::new();
-        inputs.push(x.clone());
-        inputs.push(y.clone());
+        let inputs = vec![x, y];
         let mut result = self.called_with(op, &inputs)?;
         Ok(result.remove(0))
     }
     pub fn gather(&self, dim: usize, index: Rc<RefCell<VarInner>>) -> Result<VarInner, AutoDiffError> {
         let new_one = Gather::new(dim);
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
-        let mut inputs = Vec::new();
-        inputs.push(index.clone());
+        let inputs = vec![index];
         let mut result = self.called_with(op, &inputs)?;
         Ok(result.remove(0))
     }
     pub fn index_select(&self, dim: usize, index: Rc<RefCell<VarInner>>) -> Result<VarInner, AutoDiffError> {
         let new_one = IndexSelect::new(dim);
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
-        let mut inputs = Vec::new();
-        inputs.push(index.clone());
+        let inputs = vec![index];
         let mut result = self.called_with(op, &inputs)?;
         Ok(result.remove(0))
     }
-    pub fn index_exclude(&self, dim: usize, index: Rc<RefCell<VarInner>>) -> Result<VarInner, AutoDiffError> {
+    pub fn index_exclude(&self, dim: usize,
+                         index: Rc<RefCell<VarInner>>)
+                         -> Result<VarInner, AutoDiffError> {
         let new_one = IndexExclude::new(dim);
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
-        let mut inputs = Vec::new();
-        inputs.push(index.clone());
+        let inputs = vec![index];
         let mut result = self.called_with(op, &inputs)?;
         Ok(result.remove(0))
     }
@@ -659,7 +656,7 @@ impl fmt::Debug for VarInner {
 
 impl Clone for VarInner {
     fn clone(&self) -> Self {
-        let val = self.val().clone();
+        let val = self.val();
         let mut ret = VarInner::new(&[], &[]);
         ret.set_val(val);
         ret.need_grad = self.need_grad;

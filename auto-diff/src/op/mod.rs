@@ -67,6 +67,11 @@ impl OpHandle {
         }
     }
 }
+impl Default for OpHandle {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 macro_rules! handle_method {
     () => {
@@ -299,7 +304,7 @@ impl OpCall for View {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for View {

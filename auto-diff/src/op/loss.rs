@@ -82,6 +82,11 @@ impl OpTrait for MSELoss {
         Vec::new()
     }
 }
+impl Default for MSELoss {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 
 // CrossEntropyLoss
@@ -125,7 +130,8 @@ impl OpTrait for CrossEntropyLoss {
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
+    fn grad(&self, input: &[Tensor],
+            output_grad: &[Tensor], input_grad: &[Tensor]) {
 
         // exchange sample size and class
         let mut dim_order: Vec<usize> = (0..input[0].size().len()).collect();
@@ -184,6 +190,11 @@ impl OpTrait for CrossEntropyLoss {
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
+    }
+}
+impl Default for CrossEntropyLoss {
+    fn default() -> Self {
+        Self::new()
     }
 }
 // CTCLoss
@@ -266,6 +277,11 @@ impl OpTrait for BCEWithLogitsLoss {
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
+    }
+}
+impl Default for BCEWithLogitsLoss {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

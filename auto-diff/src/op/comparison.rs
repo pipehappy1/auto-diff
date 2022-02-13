@@ -1,3 +1,4 @@
+#![allow(clippy::redundant_closure_call)]
 use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle, OpCall, Op};
 use super::macros::new_binary_op;
@@ -60,7 +61,7 @@ impl OpCall for ArgSort {
 
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-        Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
 impl OpTrait for ArgSort {

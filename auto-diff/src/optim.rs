@@ -33,7 +33,7 @@ impl MiniBatch {
         let index_t = Var::rand_usize(&mut self.rng, &[self.size], 0, sample_size);
 
         let mdata = data.index_select(0, index_t.clone())?;
-        let mlabel = label.index_select(0, index_t.clone())?;
+        let mlabel = label.index_select(0, index_t)?;
         mdata.reset_net();
         mlabel.reset_net();
         Ok((mdata, mlabel))

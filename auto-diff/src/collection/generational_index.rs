@@ -81,7 +81,7 @@ impl<T> GenIndex<T> {
     pub fn len(&self) -> usize {
         self.data.len() - self.available.len()
     }
-    pub fn is_empty(self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
@@ -149,7 +149,7 @@ impl<'a, T> Iterator for GenIndexIter<'a, T> {
             return None;
         }
         if self.gen_index_ref.data.len() == self.index {
-            return None;
+            None
         } else {
             if self.gen_index_ref.available.is_empty() {
                 ret = GenKey::new(self.index,
@@ -170,8 +170,14 @@ impl<'a, T> Iterator for GenIndexIter<'a, T> {
             }
             
             self.index += 1;
-            return Some(ret);
+            Some(ret)
         }
+    }
+}
+
+impl<T> Default for GenIndex<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

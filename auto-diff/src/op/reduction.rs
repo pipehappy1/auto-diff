@@ -1,3 +1,4 @@
+#![allow(clippy::redundant_closure_call)]
 use std::cell::{RefCell};
 use std::rc::Rc;
 
@@ -16,7 +17,7 @@ macro_rules! reduce_macro {
             pub fn new(dim: Option<&[usize]>, keepdim: bool) -> $a{
                 $a{
                     handle: OpHandle::new(),
-                    dim: if let Some(v) = dim {Some(v.to_vec())} else {None},
+                    dim: dim.map(|v| v.to_vec()),
                     keepdim,
                 }
             }
@@ -31,13 +32,13 @@ macro_rules! reduce_macro {
             fn call(&mut self, inputs: &[&crate::var::Var]) -> Result<Vec<crate::var::Var>, AutoDiffError> {
                 let new_one = $a {
                     handle: OpHandle::new(),
-                    dim: if let Some(v) = &self.dim {Some(v.to_vec())} else {None},
+                    dim: self.dim.as_ref().map(|v| v.to_vec()),
                     keepdim: self.keepdim,
                 };
 
                 let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
 
-                Ok(inputs[0].called_with(op, &inputs[1..inputs.len()])?)
+                inputs[0].called_with(op, &inputs[1..inputs.len()])
             }
         }
         impl OpTrait for $a {
