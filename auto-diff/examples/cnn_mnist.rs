@@ -1,10 +1,12 @@
-use tensor_rs::tensor::{Tensor, PaddingMode};
-use auto_diff::op::{Linear, Op, Sigmoid, Conv2d, OpTrait, ReLU, View};
-//use auto_diff::var::{Module, crossentropyloss};
-//use auto_diff::optim::{SGD, Optimizer, MiniBatch};
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use tensor_rs::tensor::{PaddingMode};
+use auto_diff::op::{Linear, OpCall, Conv2d};
+use auto_diff::optim::{SGD, MiniBatch};
+use auto_diff::Var;
+use rand::prelude::*;
+use ::rand::prelude::StdRng;
 
-use tensorboard_rs::summary_writer::SummaryWriter;
+
+//use tensorboard_rs::summary_writer::SummaryWriter;
 
 mod mnist;
 use mnist::{load_images, load_labels};
@@ -19,13 +21,18 @@ fn main() {
     let n = train_size[0];
     let h = train_size[1];
     let w = train_size[2];
-    let train_data = train_img.reshape(&vec![n, 1, h, w]);
+    let train_data = train_img.reshape(&vec![n, 1, h, w]).unwrap();
 
     let test_size = test_img.size();
     let n = test_size[0];
     let h = test_size[1];
     let w = test_size[2];
-    let test_data = test_img.reshape(&vec![n, 1, h, w]);
+    let test_data = test_img.reshape(&vec![n, 1, h, w]).unwrap();
+
+    train_data.reset_net();
+    train_label.reset_net();
+    test_data.reset_net();
+    test_label.reset_net();
 
     let patch_size = 16;
     let class_size = 10;
@@ -86,45 +93,91 @@ fn main() {
 //    let mut lr = 0.01;
 //    let mut opt = SGD::new(lr);
 //    
-//    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
+    //    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
+
+
+    let mut rng = StdRng::seed_from_u64(671);
+
+    let mut op1 = Conv2d::new(1, 32, (3,3), (1,1), (1,1), (1,1), true, PaddingMode::Zeros);
+    op1.set_weight(Var::normal(&mut rng, &op1.weight().size(), 0., 1.));
+    op1.set_bias(Var::normal(&mut rng, &op1.bias().size(), 0., 1.));
+
+    let mut op2 = Conv2d::new(32, 64, (3,3), (2,2), (1,1), (1,1), true, PaddingMode::Zeros);
+    op2.set_weight(Var::normal(&mut rng, &op2.weight().size(), 0., 1.));
+    op2.set_bias(Var::normal(&mut rng, &op2.bias().size(), 0., 1.));
+
+    let mut op3 = Linear::new(Some(14*14*64), Some(14*14), true);
+    op3.set_weight(Var::normal(&mut rng, &[14*14*64, 14*14], 0., 1.));
+    op3.set_bias(Var::normal(&mut rng, &[14*14, ], 0., 1.));
+
+    let mut op4 = Linear::new(Some(14*14), Some(10), true);
+    op4.set_weight(Var::normal(&mut rng, &[14*14, 10], 0., 1.));
+    op4.set_bias(Var::normal(&mut rng, &[10, ], 0., 1.));
+
+//    //println!("{}, {}", &train_data, &train_label);
+    let mut rng = StdRng::seed_from_u64(671);
+    let mut minibatch = MiniBatch::new(rng, 16);
+
+    //    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
+    let (input, label) = minibatch.next(&train_data, &train_label).unwrap();       println!("here0");
+
+    let output1 = op1.call(&[&input]).unwrap().pop().unwrap(); println!("here");
+    let output1_1 = output1.relu().unwrap();  println!("here2");
+    let output2 = op2.call(&[&output1_1]).unwrap().pop().unwrap();  println!("here3");
+    let output2_1 = output2.relu().unwrap().view(&[patch_size, 14*14*64]).unwrap();  println!("her4");
+    let output3 = op3.call(&[&output2_1]).unwrap().pop().unwrap();  println!("here5");
+    let output3_1 = output3.relu().unwrap(); println!("her6");
+    let output = op4.call(&[&output3_1]).unwrap().pop().unwrap();  println!("here7");
+
+    let loss = output.cross_entropy_loss(&label).unwrap();  println!("here8");
+    
+    let mut lr = 0.1;
+    let mut opt = SGD::new(lr);
+
+    println!("{:?}", loss);
+    
 //    
 //
-//    for i in 0..900 {
-//        println!("index: {}", i);
-//        let (mdata, mlabel) = minibatch.next(&train_data, &train_label);
-//        input.set(mdata);
-//        label.set(mlabel);
-//        println!("load data done");
-//        m.forward();
-//        println!("forward done");
-//        m.backward(-1.);
-//        println!("backward done");
-//        opt.step(&m);
-//        println!("update done");
-//
-//
-//        //if i % 10 == 0 {
-//        //    input.set(test_data.clone());
-//        //    label.set(test_label.clone());
-//        //    m.forward();
-//        //
-//        //    let loss_value = loss.get().get_scale_f32();
-//        //
-//        //    let tsum = output.get().argmax(Some(&[1]), false).eq_t(&test_label).mean(None, false);
-//        //    let accuracy = tsum.get_scale_f32();
-//        //    println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
-//        //
-//        //    writer.add_scalar(&"cnn/run1/accuracy".to_string(), accuracy, i);
-//        //    writer.flush();
-//        //}
-//        
-//        println!("{}, loss: {}", i, loss.get().get_scale_f32());
-//        writer.add_scalar(&"cnn/run1/test_loss".to_string(), loss.get().get_scale_f32(), i);
-//        writer.flush();
-//
-//        if i != 0 && i % 300 == 0 {
-//            lr = lr / 3.;
-//            opt = SGD::new(lr);
-//        }
-//    }
+    for i in 1..900 {
+        println!("index: {}", i);
+
+        //let (mdata, mlabel) = minibatch.next(&train_data, &train_label).unwrap();
+        let (input_next, label_next) = minibatch.next(&train_data, &train_label).unwrap();        
+        input.set(&input_next);
+        label.set(&label_next);
+        println!("load data done");
+
+        loss.rerun().unwrap(); println!("rerun");
+        loss.bp().unwrap();    println!("bp");
+        loss.step(&mut opt).unwrap();  println!("step");
+        
+        if i % 10 == 0 {
+        
+            let (input_next, label_next) = minibatch.next(&test_data, &test_label).unwrap();        
+            input.set(&input_next);
+            label.set(&label_next);
+            loss.rerun().unwrap();
+        
+            println!("test loss: {:?}", loss);
+        
+            //let loss_value = loss.get().get_scale_f32();
+        
+            let tsum = output.clone().argmax(Some(&[1]), false).unwrap().eq_elem(&test_label).unwrap().mean(None, false);
+            //let accuracy = tsum.get_scale_f32();
+            //println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
+            println!("test error: {:?}", tsum);
+        
+            //writer.add_scalar(&"cnn/run1/accuracy".to_string(), accuracy, i);
+            //writer.flush();
+        }
+        
+        //println!("{}, loss: {}", i, loss.get().get_scale_f32());
+        //writer.add_scalar(&"cnn/run1/test_loss".to_string(), loss.get().get_scale_f32(), i);
+        //writer.flush();
+        //
+        //if i != 0 && i % 300 == 0 {
+        //    lr = lr / 3.;
+        //    opt = SGD::new(lr);
+        //}
+    }
 }

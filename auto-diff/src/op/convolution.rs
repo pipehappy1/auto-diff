@@ -104,7 +104,23 @@ impl Conv2d {
         }
     }
 
-    handle_method!();
+    pub fn weight(&self) -> &Tensor {
+        &self.weight
+    }
+
+    pub fn set_weight(&self, var: Var) {
+        self.weight.swap(&var.val());
+    }
+    
+    pub fn bias(&self) -> &Tensor {
+        &self.bias
+    }
+    
+    pub fn set_bias(&self, var: Var) {
+        self.bias.swap(&var.val());
+    }
+
+    handle_method!();    
 }
 
 impl OpCall for Conv2d {

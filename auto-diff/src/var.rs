@@ -370,6 +370,7 @@ impl Var {
 
     // images
     var_1_to_1_with_para!(get_patch, range: &[(usize, usize)], step: Option<&[usize]>);
+    var_1_to_1_with_para!(view, new_shape: &[usize]);
 
 
     // innternal use

@@ -8,6 +8,7 @@ use tensor_rs::tensor::{Tensor};
 use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
 use crate::op::{Op, OpTrait,
+                View,
                 Add, Sub, Mul, Div, Matmul,
                 ELU, ReLU, Sigmoid,
                 MSELoss, BCEWithLogitsLoss, CrossEntropyLoss,
@@ -627,6 +628,7 @@ impl VarInner {
 
     // images
     var_inner_1_to_1_with_para!(get_patch, GetPatch, range: &[(usize, usize)], step: Option<&[usize]>);
+    var_inner_1_to_1_with_para!(view, View, new_shape: &[usize]);
 
     pub fn dump_net(&self) -> Rc<RefCell<Net>> {
         self.net.clone()

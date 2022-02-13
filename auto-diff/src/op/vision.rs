@@ -71,3 +71,5 @@ impl OpTrait for GetPatch {
     fn set_values(&self, _v: &[Tensor]) {
     }
 }
+
+
