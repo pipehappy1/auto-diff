@@ -24,7 +24,7 @@ macro_rules! var_2_to_1 {
     ($a:ident) => {
         pub fn $a(&self, other: &Var) -> Result<Var, AutoDiffError> {
             Ok(Var {
-                var: Rc::new(RefCell::new(self.var.borrow().$a(&mut other.var.borrow_mut())?))})
+                var: Rc::new(RefCell::new(self.var.borrow().$a(&other.var.clone())?))})
         }
     }
 }

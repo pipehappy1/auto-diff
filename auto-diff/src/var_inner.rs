@@ -87,14 +87,14 @@ macro_rules! var_inner_1_to_1 {
 
 macro_rules! var_inner_2_to_1 {
     ($a:ident, $b:ident) => {
-        pub fn $a(&self, other: &mut VarInner) -> Result<VarInner, AutoDiffError> {
+        pub fn $a(&self, other: &Rc<RefCell<VarInner>>) -> Result<VarInner, AutoDiffError> {
             if self.need_grad {
-                if !Rc::ptr_eq(&self.net, &other.net) {
+                if !Rc::ptr_eq(&self.net, &other.borrow().net) {
                     let other_key = self.net.borrow_mut().append(
-                        &other.net.borrow(), &[other.id])?[0];
+                        &other.borrow().net.borrow(), &[other.borrow().id])?[0];
                 
-                    other.net = self.net.clone();
-                    other.id = other_key;
+                    other.borrow_mut().net = self.net.clone();
+                    other.borrow_mut().id = other_key;
                 }
                 
                 let ret = VarInner::new_net_tensor(self.net.clone(),
@@ -103,12 +103,12 @@ macro_rules! var_inner_2_to_1 {
                 
                 let op = $b::new();
                 op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
-                           self.net.borrow().get_tensor(other.id)?.ref_copy()],
+                           self.net.borrow().get_tensor(other.borrow().id)?.ref_copy()],
                          &[self.net.borrow().get_tensor(ret.id)?.ref_copy()]);
                 let op = Op::new(Rc::new(RefCell::new(Box::new(op))));
                 let opid = self.net.borrow_mut().add_op(op);
                 
-                self.net.borrow_mut().connect(&[self.id, other.id],
+                self.net.borrow_mut().connect(&[self.id, other.borrow().id],
                                               opid, &[ret.id]);
                 
                 Ok(ret)
@@ -118,7 +118,7 @@ macro_rules! var_inner_2_to_1 {
                                                    Tensor::new());
                 let op = $b::new();
                 op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
-                           other.net.borrow().get_tensor(other.id)?.ref_copy()],
+                           other.borrow().net.borrow().get_tensor(other.borrow().id)?.ref_copy()],
                          &[ret.net.borrow().get_tensor(ret.id)?.ref_copy()]);
                 Ok(ret)
             }
