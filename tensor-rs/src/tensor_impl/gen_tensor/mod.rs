@@ -826,7 +826,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
             panic!("matmul expect matched size {:?}, {:?}", self.dim, o.dim);
         }
         if self.size().len() == 1 && o.size().len() == 1 {
-            panic!("Two vector have not matched size for matmul!");
+            panic!("Two vector have not matched size for matmul! {:?}, {:?}", self.numel(), o.numel());
         }
         let inner = o.dim[0];
         let mut cap = 1;

@@ -62,13 +62,13 @@ mod tests {
 
     #[test]
     fn matmul() {
-        let mut op = Matmul::new();
+        let mut op = Mul::new();
 
-        //for i in 0..10 {
-        //    let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
-        //    let zero2 = zero.clone();
-        //    let good_grad = _gradient_checker(&mut op, &[zero, zero2], None, None, None);
-        //    assert_eq!(good_grad, true);                        
-        //}
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
+            let zero2 = zero.clone();
+            let good_grad = _gradient_checker(&mut op, &[zero, zero2], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
     }
 }
