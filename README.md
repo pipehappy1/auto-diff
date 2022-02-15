@@ -76,7 +76,7 @@ fn main() {
 - Use cudnn and cutensor
 - Stride based tensor
 - Block components inspection by func call
-- Save and load
+- serde
 
 ## Dependence
 
