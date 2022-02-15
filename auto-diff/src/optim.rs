@@ -89,14 +89,14 @@ impl Optimizer for SGD {
 
 #[cfg(test)]
 mod tests {
-    use tensor_rs::tensor::Tensor;
+    use crate::var::Var;
     use super::*;
     use rand::prelude::*;
 
     #[test]
     fn mini_batch() {
-        let data = Tensor::ones(&[10, 3]);
-        let label = Tensor::zeros(&[10]);
+        let data = Var::ones(&[10, 3]);
+        let label = Var::zeros(&[10]);
         
         let mut rng = StdRng::seed_from_u64(671);
         let mut minibatch = MiniBatch::new(rng, 4);

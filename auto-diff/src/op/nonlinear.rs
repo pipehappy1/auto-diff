@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn elu() {
-        let mut op = ELU::new(1.);
+        let mut op = ELU::new(Tensor::from_vec_f64(&[1.], &[1]));
 
         for i in 0..10 {
             let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
