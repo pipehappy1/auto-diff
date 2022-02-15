@@ -350,7 +350,7 @@ one_to_1_op_with_paras!(Squeeze,
 // stack
 many_to_1_op_with_paras!(Stack,
                           "stack",
-                          2,
+                          2, // TODO, this is dependent on the number of input.
                           1,
                           stack,
                           (|input: &[Tensor],

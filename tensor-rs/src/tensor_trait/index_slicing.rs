@@ -18,7 +18,7 @@ pub trait IndexSlicing where Self: Sized {
     
     /// Pick elements on the given dimension by the index given
     /// in index, and gather them in the output.
-    /// A restriction os that self size and index size
+    /// A restriction is that self size and index size
     /// should be the same.
     fn gather(&self, dim: usize, index: &Self) -> Self;
 
