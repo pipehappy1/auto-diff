@@ -15,7 +15,7 @@ use super::macros::{many_to_1_op_with_paras,
 
 many_to_1_op_with_paras!(Cat,
                           "cat",
-                          2,
+                          2, // TODO, this is dependent on the number of input.
                           1,
                           cat,
                           (|input: &[Tensor],
@@ -27,7 +27,9 @@ many_to_1_op_with_paras!(Cat,
 
 one_to_vec_op_with_paras!(Chunk,
                           "chunk",
-                          1,1,chunk,
+                          1,
+			  1, // TODO, this is dependent on the number of output.
+			  chunk,
                           (|input: &[Tensor],
                            output_grad: &[Tensor],
                            input_grad: &[Tensor]| {
