@@ -5,7 +5,7 @@
 
 ## Introduction
 
-This is an auto-difference based learning library.
+This is an auto-difference library for deep neural network.
 
 ## Features
 
