@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::fmt;
 use ::rand::prelude::StdRng;
+//use std::ops::{Add, Div, Neg, Sub, Mul};
 
 use tensor_rs::tensor::{Tensor};
 use crate::op::{Op};
@@ -454,7 +455,14 @@ impl Clone for Var {
     }
 }
 
-
+// Do not overload ops as it takes away the variable.
+//impl Add for Var {
+//    type Output = Self;
+//
+//    fn add(self, other: Self) -> Self {
+//        unimplemented!();
+//    }
+//}
 
 
 
