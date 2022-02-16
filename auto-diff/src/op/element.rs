@@ -10,7 +10,11 @@ new_element_op!(Abs,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+                     input_grad[0].swap(
+                         &input[0].conditional_select(
+                             &input[0].ones_like(),
+                             &input[0].zeros_like())
+                             .mul(&output_grad[0]));
                  }));
 
 new_element_op!(Acos,
