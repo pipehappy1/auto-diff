@@ -85,4 +85,4 @@ fn main() {
 
 ## Contributing
 
-Any contribution is welcome and open an issue by creating a pull request.
+Any contribution is welcome and please open an issue by creating a pull request.
