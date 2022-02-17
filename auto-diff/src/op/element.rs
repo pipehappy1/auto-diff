@@ -23,7 +23,8 @@ new_element_op!(Acos,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+                     let ret = input[0].ones_like().sub(&input[0].mul(&input[0])).sqrt().reciprocal().neg();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Asin,
@@ -32,7 +33,8 @@ new_element_op!(Asin,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+                     let ret = input[0].ones_like().sub(&input[0].mul(&input[0])).sqrt().reciprocal();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Atan,
@@ -41,7 +43,8 @@ new_element_op!(Atan,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+                     let ret = input[0].ones_like().add(&input[0].mul(&input[0])).reciprocal();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Ceil,
@@ -50,7 +53,7 @@ new_element_op!(Ceil,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     input_grad[0].swap(&input[0].zeros_like());
                  }));
 
 new_element_op!(Cos,
@@ -59,7 +62,8 @@ new_element_op!(Cos,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].sin().neg();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Cosh,
@@ -68,7 +72,8 @@ new_element_op!(Cosh,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].sinh();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Exp,
@@ -77,7 +82,8 @@ new_element_op!(Exp,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].exp();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 
@@ -87,7 +93,8 @@ new_element_op!(Expm1,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].exp();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Floor,
@@ -96,7 +103,7 @@ new_element_op!(Floor,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+                     input_grad[0].swap(&input[0].zeros_like());
                  }));
 
 new_element_op!(Frac,
@@ -105,7 +112,7 @@ new_element_op!(Frac,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+                     input_grad[0].swap(&input[0].ones_like());
                  }));
 
 new_element_op!(Log,
@@ -114,7 +121,8 @@ new_element_op!(Log,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].reciprocal();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Log10,
@@ -123,7 +131,8 @@ new_element_op!(Log10,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].reciprocal().div(&input[0].log10_like());
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Log1p,
@@ -132,7 +141,8 @@ new_element_op!(Log1p,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].reciprocal();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Log1pexp,
@@ -141,7 +151,8 @@ new_element_op!(Log1pexp,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].neg().exp().add(&input[0].ones_like()).reciprocal();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Log2,
@@ -150,7 +161,8 @@ new_element_op!(Log2,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].reciprocal().div(&input[0].log2_like());
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Neg,
@@ -159,7 +171,8 @@ new_element_op!(Neg,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].ones_like().neg();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Reciprocal,
@@ -168,7 +181,8 @@ new_element_op!(Reciprocal,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].reciprocal().reciprocal();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Round,
@@ -177,7 +191,8 @@ new_element_op!(Round,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].zeros_like();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Rsqrt,
@@ -186,7 +201,9 @@ new_element_op!(Rsqrt,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].sqrt().reciprocal().div(
+			 &input[0].ones_like().add(&input[0].ones_like()));
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Sigmoid,
@@ -195,7 +212,8 @@ new_element_op!(Sigmoid,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+                     let ret = input[0].sigmoid().mul(&input[0].sigmoid().neg().add(&input[0].ones_like()));
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Sign,
@@ -204,7 +222,8 @@ new_element_op!(Sign,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].zeros_like();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Sin,
@@ -213,7 +232,8 @@ new_element_op!(Sin,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+                     let ret = input[0].cos();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Sinh,
@@ -222,7 +242,8 @@ new_element_op!(Sinh,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].cosh();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Sqrt,
@@ -231,7 +252,9 @@ new_element_op!(Sqrt,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].sqrt().reciprocal().div(
+			 &input[0].ones_like().add(&input[0].ones_like()));
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Tan,
@@ -240,7 +263,8 @@ new_element_op!(Tan,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].tan().square().add(&input[0].ones_like());
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Tanh,
@@ -249,7 +273,8 @@ new_element_op!(Tanh,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].tanh().square().neg().add(&input[0].ones_like());
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
 new_element_op!(Trunc,
@@ -258,5 +283,6 @@ new_element_op!(Trunc,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-                     unimplemented!();
+		     let ret = input[0].zeros_like();
+		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
