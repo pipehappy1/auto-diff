@@ -361,6 +361,18 @@ impl Tensor {
         }
     }
 
+    pub fn log10_like(&self) -> Tensor {
+	Tensor {
+	    v: Rc::new(RefCell::new(self.v.borrow().log10_like())),
+	}
+    }
+
+    pub fn log2_like(&self) -> Tensor {
+	Tensor {
+	    v: Rc::new(RefCell::new(self.v.borrow().log2_like())),
+	}
+    }
+
     
     // Indexing, Slicing, Joining, Mutating Ops
     pub fn cat(&self, tensors: &[Tensor], dim: usize) -> Tensor {

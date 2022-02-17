@@ -286,3 +286,4 @@ new_element_op!(Trunc,
 		     let ret = input[0].zeros_like();
 		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
+

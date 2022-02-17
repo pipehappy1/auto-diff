@@ -338,6 +338,21 @@ impl TypedTensor {
         }
     }
 
+    pub fn log10_like(&self) -> TypedTensor {
+	match &self {
+	    TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.log10_like())},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.log10_like())},
+	    //_ => panic!("other type tensor"),
+	}
+    }
+    pub fn log2_like(&self) -> TypedTensor {
+	match &self {
+	    TypedTensor::Typef32(v1) => {TypedTensor::Typef32(v1.log2_like())},
+            TypedTensor::Typef64(v1) => {TypedTensor::Typef64(v1.log2_like())},
+	    //_ => panic!("other type tensor"),
+	}
+    }
+
     // Indexing, Slicing, Joining, Mutating Ops
     pub fn cat(&self, tensors: &[TypedTensor], dim: usize) -> TypedTensor {
         match &self {
