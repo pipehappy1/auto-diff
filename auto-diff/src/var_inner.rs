@@ -23,63 +23,15 @@ use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
 
 
-//macro_rules! var_inner_1_to_1_with_args {
-//    ($a:ident, $b:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
-//        pub fn $a(&self, $( $arg_name : $ArgTy ),*) -> Result<VarInner, AutoDiffError> {
-//            if self.need_grad {
-//                let ret = VarInner::new_net_tensor(self.net.clone(), Tensor::new());
-//                let op = $b::new($( $arg_name ),*);
-//                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy()],
-//                         &[self.net.borrow().get_tensor(ret.id)?.ref_copy()]);
-//                let op = Op::new(Rc::new(RefCell::new(Box::new(op))));
-//                let opid = self.net.borrow_mut().add_op(op);
-//                
-//                self.net.borrow_mut().connect(&[self.id],
-//                                              opid, &[ret.id]);
-//                
-//                Ok(ret)
-//            } else {
-//                let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())), Tensor::new());
-//                let op = $b::new($( $arg_name ),*);
-//                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy()],
-//                         &[ret.net.borrow().get_tensor(ret.id)?.ref_copy()]);
-//                Ok(ret)
-//            }
-//        }
-//    }
-//}
-
 /// For elementwise ops
 /// var_inner_1_to_1!(abs, Abs);
 macro_rules! var_inner_1_to_1 {
     ($a:ident, $b:ident) => {
         pub fn $a(&self) -> Result<VarInner, AutoDiffError> {
-            if self.need_grad {
-                
-                let ret = VarInner::new_net_tensor(self.net.clone(),
-                                                   self.need_grad,
-                                                   Tensor::new());
-                
-                let op = $b::new();
-                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy()],
-                         &[self.net.borrow().get_tensor(ret.id)?.ref_copy()]);
-                let op = Op::new(Rc::new(RefCell::new(Box::new(op))));
-                let opid = self.net.borrow_mut().add_op(op);
-                
-                self.net.borrow_mut().connect(&[self.id],
-                                              opid, &[ret.id]);
-                
-                Ok(ret)
-            } else {
-                let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())),
-                                                   self.need_grad,
-                                                   Tensor::new());
-                let op = $b::new();
-                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy()],
-                         &[ret.net.borrow().get_tensor(ret.id)?.ref_copy()]);
-                Ok(ret)
-            }
-            
+            let new_one = $b::new();
+            let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+            let mut result = self.called_with(op, &[])?;
+            Ok(result.remove(0))            
         }
     }
 }
@@ -88,41 +40,11 @@ macro_rules! var_inner_1_to_1 {
 macro_rules! var_inner_2_to_1 {
     ($a:ident, $b:ident) => {
         pub fn $a(&self, other: &Rc<RefCell<VarInner>>) -> Result<VarInner, AutoDiffError> {
-            if self.need_grad {
-                if !Rc::ptr_eq(&self.net, &other.borrow().net) {
-                    let other_key = self.net.borrow_mut().append(
-                        &other.borrow().net.borrow(), &[other.borrow().id])?[0];
-                
-                    other.borrow_mut().net = self.net.clone();
-                    other.borrow_mut().id = other_key;
-                }
-                
-                let ret = VarInner::new_net_tensor(self.net.clone(),
-                                                   self.need_grad,
-                                                   Tensor::new());
-                
-                let op = $b::new();
-                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
-                           self.net.borrow().get_tensor(other.borrow().id)?.ref_copy()],
-                         &[self.net.borrow().get_tensor(ret.id)?.ref_copy()]);
-                let op = Op::new(Rc::new(RefCell::new(Box::new(op))));
-                let opid = self.net.borrow_mut().add_op(op);
-                
-                self.net.borrow_mut().connect(&[self.id, other.borrow().id],
-                                              opid, &[ret.id]);
-                
-                Ok(ret)
-            } else {
-                let ret = VarInner::new_net_tensor(Rc::new(RefCell::new(Net::new())),
-                                                   self.need_grad,
-                                                   Tensor::new());
-                let op = $b::new();
-                op.apply(&[self.net.borrow().get_tensor(self.id)?.ref_copy(),
-                           other.borrow().net.borrow().get_tensor(other.borrow().id)?.ref_copy()],
-                         &[ret.net.borrow().get_tensor(ret.id)?.ref_copy()]);
-                Ok(ret)
-            }
-            
+            let new_one = $b::new();
+            let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+            let o_input = vec![other.clone()];
+            let mut result = self.called_with(op, &o_input)?;
+            Ok(result.remove(0))            
         }
     }
 }
