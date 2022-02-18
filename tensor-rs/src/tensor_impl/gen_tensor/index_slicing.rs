@@ -419,7 +419,7 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         }
         let mut data = Vec::with_capacity(self.get_data().len());
         for ((i, j), k) in (self.get_data().iter().zip(x.get_data().iter())).zip(y.get_data().iter()) {
-            if *i > T::zero() {
+            if *i >= T::zero() {
                 data.push(*j);
             } else {
                 data.push(*k);

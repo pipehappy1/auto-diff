@@ -64,8 +64,8 @@ pub trait IndexSlicing where Self: Sized {
     //pub fn condition() {} // this is pytorch where
 
     /// Self is the bool condition, at each position of self,
-    /// select from x if self at the position is true,
-    /// Otherwise , use value from y.
+    /// select from x if self at the position is positive or zero,
+    /// Otherwise , use value from y if self at the position is negative.
     /// The restriction is that, self, x, and y all have the same size.
     fn conditional_select(&self, x: &Self, y: &Self) -> Self;
 
