@@ -12,18 +12,71 @@ use super::macros::{many_to_1_op_with_paras,
                     new_element_op,
                     one_to_1_op_with_paras};
 
+pub struct Cat {
+    handle: OpHandle,
+    dim: usize
+}
+impl Cat {
+    pub fn new(dim: usize) -> Cat {
+        Cat {
+            handle: OpHandle::new(),
+            dim,
+        }
+    }
+    fn get_handle(&self) -> &OpHandle {
+        &self.handle
+    }
+    fn get_handle_mut(&mut self) -> &mut OpHandle {
+        &mut self.handle
+    }
+}
+impl OpCall for Cat {
+    fn call(&mut self, inputs: &[&Var])
+            -> Result<Vec<Var>, AutoDiffError> {
+        let new_one = Cat {
+            handle: OpHandle::new(),
+            dim: self.dim,
+        };
 
-many_to_1_op_with_paras!(Cat,
-                          "cat",
-                          2, // TODO, this is dependent on the number of input.
-                          1,
-                          cat,
-                          (|input: &[Tensor],
-                           output_grad: &[Tensor],
-                           input_grad: &[Tensor]| {
-                               unimplemented!();
-                           }),
-                          dim: usize);
+        let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+
+        inputs[0].called_with(op, &inputs[1..inputs.len()])
+    }
+}
+impl OpTrait for Cat {
+
+    fn get_name(&self) -> String {
+        "cat".to_string()
+    }
+    fn get_input_size(&self) -> usize {
+        1
+    }
+    fn get_output_size(&self) -> usize {
+        1
+    }
+    fn apply(&self, input: &[Tensor], output: &[Tensor]) {
+        output[0].swap(&input[0].cat(input, self.dim));
+    }
+    fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
+        let mut splits = Vec::new();
+        for i in input {
+            splits.push(i.size()[self.dim]);
+        }
+        let result = output_grad[0].split(&splits, self.dim);
+        for i in result {
+            input_grad[0].swap(&i);
+        }
+    }
+    fn get_values(&self) -> Vec<Tensor> {
+        Vec::new()
+    }
+    fn get_grads(&self) -> Vec<Tensor> {
+        Vec::new()
+    }
+    fn set_values(&self, _v: &[Tensor]) {
+    }
+}
+
 
 one_to_vec_op_with_paras!(Chunk,
                           "chunk",
