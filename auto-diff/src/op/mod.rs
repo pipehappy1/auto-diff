@@ -213,9 +213,18 @@ impl Op {
 ///
 /// Verify the gradient implementation is right.
 ///
+/// op: the tested operator.
+/// one_input: test data points.
+/// input_mask: may skip some data point if the element is false.
+/// step: delta that is used for numeric difference.
+/// tolerance: numeric tolerance for equality.
+///
+/// one_input and input_mask should have the same size.
+/// step and tolerance are both scalar.
 pub fn _gradient_checker(op: &mut dyn OpTrait,
                          one_input: &[Tensor], input_mask: Option<&[bool]>,
-                         step: Option<Tensor>, tolerance: Option<Tensor>) -> bool {
+                         step: Option<Tensor>, tolerance: Option<Tensor>)
+			 -> bool {
 
     let x_mask = if let Some(val) = input_mask {val.to_vec()} else {vec![true; one_input.len()]};
     let delta = if let Some(val) = step {val.get_scale_f64()} else {0.01};
@@ -225,17 +234,15 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
     // system output
     let output = Tensor::new();
     op.apply(one_input, &[output.ref_copy()]);
-    //if output.len() > 1 || output[0].numel() > 1 {
-    //    panic!("gradient checker only handle scale output case. {:?}, {:?}", output.len(), output[0].size());
-    //}
-    let output = output.get_scale_f64();
+
+//    let output = output.get_scale_f64();
 
     // get the system gradient
     let input_grad = vec![Tensor::new(); op.get_input_size()];
-    let mut input_grad_ref = Vec::new();
-    for i in &input_grad {
-        input_grad_ref.push(i.ref_copy());
-    }
+//    let mut input_grad_ref = Vec::new();
+//    for i in &input_grad {
+//        input_grad_ref.push(i.ref_copy());
+//    }
     let output_grad = Tensor::from_vec_f64(&[1.], &[1]);
     op.grad(one_input, &[output_grad], &input_grad_ref);
 

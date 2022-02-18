@@ -287,3 +287,20 @@ new_element_op!(Trunc,
 		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::op::_gradient_checker;
+
+    #[test]
+    fn abs() {
+        let mut op = Abs::new();
+
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f64(&vec![(i as f64 - 5.1)], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
+    }
+}
