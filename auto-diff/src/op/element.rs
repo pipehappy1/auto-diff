@@ -13,7 +13,7 @@ new_element_op!(Abs,
                      input_grad[0].swap(
                          &input[0].conditional_select(
                              &input[0].ones_like(),
-                             &input[0].zeros_like())
+                             &input[0].ones_like().neg())
                              .mul(&output_grad[0]));
                  }));
 
@@ -141,7 +141,7 @@ new_element_op!(Log1p,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-		     let ret = input[0].reciprocal();
+		     let ret = input[0].add(&input[0].ones_like()).reciprocal();
 		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
@@ -181,7 +181,7 @@ new_element_op!(Reciprocal,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-		     let ret = input[0].reciprocal().reciprocal();
+		     let ret = input[0].square().reciprocal().neg();
 		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
 
@@ -201,7 +201,8 @@ new_element_op!(Rsqrt,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
                  input_grad: &[Tensor]| {
-		     let ret = input[0].sqrt().reciprocal().div(
+		     let ret = input[0].sqrt().reciprocal().
+                         div(&input[0]).neg().div(
 			 &input[0].ones_like().add(&input[0].ones_like()));
 		     input_grad[0].swap(&ret.mul(&output_grad[0]));
                  }));
@@ -293,14 +294,201 @@ mod tests {
     use super::*;
     use crate::op::_gradient_checker;
 
+    fn test_range_data(op: &mut dyn OpTrait) {
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f64(&vec![(i as f64 / 10.0 - 0.51)], &vec![1]);
+            let good_grad = _gradient_checker(op, &[zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
+    }
+
     #[test]
     fn abs() {
         let mut op = Abs::new();
+        test_range_data(&mut op);
+    }
 
+    #[test]
+    fn acos() {
+        let mut op = Acos::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn asin() {
+        let mut op = Asin::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn atan() {
+        let mut op = Atan::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn ceil() {
+        let mut op = Ceil::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn cos() {
+        let mut op = Cos::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn cosh() {
+        let mut op = Cosh::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn exp() {
+        let mut op = Exp::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn expm1() {
+        let mut op = Expm1::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn floor() {
+        let mut op = Floor::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn frac() {
+        let mut op = Frac::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn log() {
+        let mut op = Log::new();
         for i in 0..10 {
-            let zero = Tensor::from_vec_f64(&vec![(i as f64 - 5.1)], &vec![1]);
+            let zero = Tensor::from_vec_f64(&vec![(i as f64 / 10.0 + 0.51)], &vec![1]);
             let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
             assert_eq!(good_grad, true);                        
         }
+    }
+
+    #[test]
+    fn log10() {
+        let mut op = Log10::new();
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f64(&vec![(i as f64 / 10.0 + 0.51)], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
+    }
+
+    #[test]
+    fn log1p() {
+        let mut op = Log1p::new();
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f64(&vec![(i as f64 / 10.0 - 0.51)], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
+    }
+
+    #[test]
+    fn log1pexp() {
+        let mut op = Log1pexp::new();
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f64(&vec![(i as f64 / 10.0 - 0.51)], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
+    }
+
+    #[test]
+    fn log2() {
+        let mut op = Log2::new();
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f64(&vec![(i as f64 / 10.0 + 0.51)], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
+    }
+
+    #[test]
+    fn neg() {
+        let mut op = Neg::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn reciprocal() {
+        let mut op = Reciprocal::new();
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f64(&vec![(i as f64 / 10.0 + 0.51)], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
+    }
+
+    #[test]
+    fn round() {
+        let mut op = Round::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn rsqrt() {
+        let mut op = Rsqrt::new();
+        for i in 0..10 {
+            let zero = Tensor::from_vec_f64(&vec![(i as f64 / 10.0 + 0.51)], &vec![1]);
+            let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
+            assert_eq!(good_grad, true);                        
+        }
+    }
+
+    #[test]
+    fn sigmoid() {
+        let mut op = Sigmoid::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn sign() {
+        let mut op = Sign::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn sinh() {
+        let mut op = Sinh::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn sqrt() {
+        let mut op = Sqrt::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn tan() {
+        let mut op = Tan::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn tanh() {
+        let mut op = Tanh::new();
+        test_range_data(&mut op);
+    }
+
+    #[test]
+    fn trunc() {
+        let mut op = Trunc::new();
+        test_range_data(&mut op);
     }
 }

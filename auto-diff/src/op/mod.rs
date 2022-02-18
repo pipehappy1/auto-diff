@@ -235,14 +235,14 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
     let output = Tensor::new();
     op.apply(one_input, &[output.ref_copy()]);
 
-//    let output = output.get_scale_f64();
+    let output = output.get_scale_f64();
 
     // get the system gradient
     let input_grad = vec![Tensor::new(); op.get_input_size()];
-//    let mut input_grad_ref = Vec::new();
-//    for i in &input_grad {
-//        input_grad_ref.push(i.ref_copy());
-//    }
+    let mut input_grad_ref = Vec::new();
+    for i in &input_grad {
+        input_grad_ref.push(i.ref_copy());
+    }
     let output_grad = Tensor::from_vec_f64(&[1.], &[1]);
     op.grad(one_input, &[output_grad], &input_grad_ref);
 
@@ -277,8 +277,8 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
 
             let system_gradient = input_grad[index].get_f64(&dimpos);
 
-            //println!("left: {:?}, right: {:?}", scale_gradient, system_gradient);
             if (scale_gradient - system_gradient)*(scale_gradient - system_gradient) > tol {
+                println!("input: {:?}, numeric: {:?}, imple: {:?}", one_input[0], scale_gradient, system_gradient);
                 good_gradient = false;
             }
         }
