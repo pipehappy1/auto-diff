@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4] - 2022-02-21
+- Add more gradient methods.
+
 ## [0.5.3] - 2022-02-14
 - New active syntax is working.
 
