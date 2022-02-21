@@ -1,6 +1,6 @@
 [package]
 name = "auto-diff"
-version = "0.5.3"
+version = "0.5.4"
 authors = ["yguan <yguan@example.com>"]
 edition = "2021"
 description = """
@@ -19,7 +19,7 @@ exclude = ["/dev/**"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tensor-rs = { path = "../tensor-rs", version = "0.5.3" }
+tensor-rs = { path = "../tensor-rs", version = "0.5.4" }
 
 num-traits = "0.2"
 # matrix library
