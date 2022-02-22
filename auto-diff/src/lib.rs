@@ -45,6 +45,7 @@ pub mod optim;
 pub mod err;
 
 pub use var::{Var};
+pub use err::AutoDiffError;
 
 pub(crate) mod compute_graph;
 pub(crate) mod collection;

@@ -7,7 +7,7 @@ use ::rand::prelude::StdRng;
 use tensor_rs::tensor::{Tensor};
 use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
-use crate::op::{Op, OpTrait,
+use crate::op::{Op,
                 View,
                 Add, Sub, Mul, Div, Matmul,
                 ELU, ReLU, Sigmoid,

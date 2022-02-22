@@ -12,6 +12,7 @@ use crate::var_inner::VarInner;
 use crate::compute_graph::{Net};
 
 
+
 macro_rules! var_1_to_1 {
     ($a:ident) => {
         pub fn $a(&self) -> Result<Var, AutoDiffError> {
@@ -465,6 +466,69 @@ impl Clone for Var {
 //}
 
 
+macro_rules! var_f64 {
+    ($a:expr) => {{
+        trait Expand {
+            fn expand(&self) -> Var;
+        }
+        impl Expand for [f64] {
+            fn expand(&self) -> Var {
+                Var::new_f64(&self, &[self.len(), 1])
+            }
+        }
+        impl Expand for [[f64; 1]] {
+            fn expand(&self) -> Var {
+                let mut data = vec![];
+                let mut m = self.len();
+                let mut n = 0;
+                for i in self {
+                    n = i.len();
+                    data.append(&mut i.to_vec());
+                }
+                Var::new_f64(&data, &[m, n])
+            }
+        }
+        impl Expand for [[f64; 2]] {
+            fn expand(&self) -> Var {
+                let mut data = vec![];
+                let mut m = self.len();
+                let mut n = 0;
+                for i in self {
+                    n = i.len();
+                    data.append(&mut i.to_vec());
+                }
+                Var::new_f64(&data, &[m, n])
+            }
+        }
+        impl Expand for [[f64; 3]] {
+            fn expand(&self) -> Var {
+                let mut data = vec![];
+                let mut m = self.len();
+                let mut n = 0;
+                for i in self {
+                    n = i.len();
+                    data.append(&mut i.to_vec());
+                }
+                Var::new_f64(&data, &[m, n])
+            }
+        }
+        impl Expand for [[f64; 4]] {
+            fn expand(&self) -> Var {
+                let mut data = vec![];
+                let mut m = self.len();
+                let mut n = 0;
+                for i in self {
+                    n = i.len();
+                    data.append(&mut i.to_vec());
+                }
+                Var::new_f64(&data, &[m, n])
+            }
+        }
+        $a.expand()
+    }}
+}
+
+
 
 #[cfg(test)]
 mod tests {
@@ -522,5 +586,21 @@ mod tests {
         let output = op1.call(&[&input]).unwrap().pop().unwrap();
         assert_eq!(output, Var::new(&[8.0, 11.0, 14.0, 17.0, 20.0, 8.0, 11.0, 14.0, 17.0, 20.0, 8.0, 11.0, 14.0, 17.0, 20.0],
                                     &vec![3, 5]));
+    }
+
+    #[test]
+    fn test_macro_tensor() {
+        let a = var_f64!([1., 2., 3.,]);
+        assert_eq!(a.size(), [3, 1]);
+        let a = var_f64!([[1., 2.,],
+                          [4., 5.,],
+                          [4., 5.,]]);
+        assert_eq!(a.size(), [3, 2]);
+        let a = var_f64!([[1., 2., 3.,],
+                          [4., 5., 6.,]]);
+        assert_eq!(a.size(), [2, 3]);
+        let a = var_f64!([[1., 2., 3., 7.],
+                          [4., 5., 6., 8.]]);
+        assert_eq!(a.size(), [2, 4]);
     }
 }

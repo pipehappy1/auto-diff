@@ -797,7 +797,7 @@ mod tests {
     fn normalize() {
         let a = Tensor::from_vec_f32(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
         let b = a.normalize_unit();
-        assert_eq!(b, Tensor::from_vec_f32(&vec![-1.2247448, -1.2247448, 0.,0., 1.2247448, 1.2247448], &vec![3, 2]));
+        assert_eq!(b, Tensor::from_vec_f32(&vec![0.10482848, 0.20965695, 0.31448543, 0.4193139, 0.5241424, 0.62897086,], &vec![3, 2]));
     }
 
     // test for basic ops
