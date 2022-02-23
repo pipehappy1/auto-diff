@@ -254,7 +254,30 @@ impl Var {
     var_2_to_1!(ne);
 
     // index and slicing
-    var_more_to_1_with_para!(cat, dim: usize);
+    var_more_to_1_with_para!(
+        /// Concatenates the given sequence of seq tensors
+        /// in the given dimension.
+        /// The input tensor should all have the same size except
+        /// on the given dimension.
+        /// The output tensor will have all the same size as the input
+        /// except the given dimension, which will be the sum of
+        /// the inputs on the given dimension.
+        /// Apply cat on [tensor(5, 3, 2), tensor(5, 7, 2), ]
+        /// will get a tensor(5, 10, 2).
+        ///
+        /// ```
+        /// # use auto_diff::{Var, var_f64, AutoDiffError};
+        /// # fn test_cat() -> Result<(), AutoDiffError> {
+        /// let m1 = Var::empty(&[3, 1]);
+        /// let m2 = Var::empty(&[3, 1]);
+        /// let m3 = Var::empty(&[3, 1]);
+        /// let m4 = m1.cat(&[m2, m3], 1)?;
+        /// assert_eq!(m4.size(), [3, 3]);
+        /// #   Ok(())
+        /// # }
+        /// # test_cat();
+        /// ```
+        cat, dim: usize);
     pub fn chunk(&self, chunks: usize, dim: usize)
                  -> Result<Vec<Var>, AutoDiffError> {
         let mut result = self.var.borrow().chunk(chunks, dim)?;

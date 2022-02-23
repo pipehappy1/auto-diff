@@ -350,7 +350,7 @@ impl VarInner {
                 outputs.push(self.net.borrow().get_tensor(new_output.id)?);
                 ret.push(new_output);
             }
-            
+
             op.apply(&inputs, &outputs);
             let opid = self.net.borrow_mut().add_op(op);
             

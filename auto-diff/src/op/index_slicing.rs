@@ -55,7 +55,11 @@ impl OpTrait for Cat {
         1
     }
     fn apply(&self, input: &[Tensor], output: &[Tensor]) {
-        output[0].swap(&input[0].cat(input, self.dim));
+        let mut new_input = vec![];
+        for i in 1..input.len() {
+            new_input.push(input[i].ref_copy());
+        }
+        output[0].swap(&input[0].cat(&new_input, self.dim));
     }
     fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
         let mut splits = Vec::new();
