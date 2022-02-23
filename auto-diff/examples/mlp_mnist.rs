@@ -74,7 +74,7 @@ fn main() {
     op2.set_bias(Var::normal(&mut rng, &[10, ], 0., 1.));
 
 //    //println!("{}, {}", &train_data, &train_label);
-    let mut rng = StdRng::seed_from_u64(671);
+    let rng = StdRng::seed_from_u64(671);
     let mut minibatch = MiniBatch::new(rng, 16);
 
     //    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
@@ -87,7 +87,7 @@ fn main() {
 
     let loss = output.cross_entropy_loss(&label).unwrap();
     
-    let mut lr = 0.1;
+    let lr = 0.1;
     let mut opt = SGD::new(lr);    
 
 //    let mut writer = SummaryWriter::new(&("./logdir".to_string()));

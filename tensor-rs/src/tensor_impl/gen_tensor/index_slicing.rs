@@ -267,6 +267,9 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
                 new_shape.push(new_shape[i]);
             }
         }
+        if new_shape.len() == 0 {
+            new_shape.push(1);
+        }
         GenTensor::new_raw(self.get_data(), &new_shape)
     }
 
