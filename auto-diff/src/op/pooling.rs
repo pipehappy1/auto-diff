@@ -1,5 +1,5 @@
 use tensor_rs::tensor::Tensor;
-use super::OpTrait;
+use super::{OpTrait, OpHandle};
 
 // MaxPool1d
 // Maxpool2d
