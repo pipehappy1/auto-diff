@@ -10,7 +10,7 @@ use csv;
 use std::collections::{BTreeSet};
 use rand::prelude::*;
 
-use tensorboard_rs::summary_writer::SummaryWriter;
+//use tensorboard_rs::summary_writer::SummaryWriter;
 
 fn main() {
         let mut reader = csv::ReaderBuilder::new()
@@ -18,7 +18,6 @@ fn main() {
         .from_path("examples/data/wdbc.data")
         .expect("Cannot read wdbc.data");
 
-    let mut size = 0;
     let mut id;
     let mut ill;
     let mut ids = BTreeSet::<usize>::new();
@@ -27,7 +26,7 @@ fn main() {
     for record in reader.records() {
         let line = record.expect("");
         id = line[0].trim().parse::<usize>().expect("");
-        ill = line[1].trim().parse::<String>().expect("");
+        //ill = line[1].trim().parse::<String>().expect("");
         //println!("{}, {}", id, ill);
 
         if !ids.contains(&id) {

@@ -544,8 +544,8 @@ mod tests {
         let mut g = Graph::<GenKey, GenKey>::new();
         let data1 = GenKey::new(0,0);
         let data2 = GenKey::new(1,0);
-        g.add_data(&data1);
-        g.add_data(&data2);
+        g.add_data(&data1).expect("");
+        g.add_data(&data2).expect("");
     }
 }
 

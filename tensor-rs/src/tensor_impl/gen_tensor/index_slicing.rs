@@ -19,8 +19,8 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
             }
         }
 
-        let mut cap = 1;
-        let mut new_dim = Vec::new();
+        let mut cap = 1; // total number of elements of the output
+        let mut new_dim = Vec::new(); // size of the output
         let mut outer_size = 1;
         let mut inner_size = 1;
         for (i, item) in total_dim.iter().enumerate() {

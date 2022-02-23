@@ -17,7 +17,6 @@ fn main() {
         .from_path("examples/data/wdbc.data")
         .expect("Cannot read wdbc.data");
 
-    let mut size = 0;
     let mut id;
     let mut ill;
     let mut ids = BTreeSet::<usize>::new();
@@ -26,7 +25,7 @@ fn main() {
     for record in reader.records() {
         let line = record.expect("");
         id = line[0].trim().parse::<usize>().expect("");
-        ill = line[1].trim().parse::<String>().expect("");
+        //ill = line[1].trim().parse::<String>().expect("");
         //println!("{}, {}", id, ill);
 
         if !ids.contains(&id) {
@@ -121,10 +120,6 @@ fn main() {
         loss.rerun().unwrap();
         loss.bp().unwrap();
         loss.step(&mut opt).unwrap();
-
-        let weight = op1.weight();
-        let bias = op1.bias();
-        //println!("{:?}, {:?}", weight, bias);
     
         input.set(test_data);
         label.set(test_label);
@@ -132,4 +127,7 @@ fn main() {
         println!("{:?}", loss);
     
     }
+    let weight = op1.weight();
+    let bias = op1.bias();
+    println!("{:?}, {:?}", weight, bias);
 }

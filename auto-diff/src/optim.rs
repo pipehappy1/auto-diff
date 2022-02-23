@@ -98,7 +98,7 @@ mod tests {
         let data = Var::ones(&[10, 3]);
         let label = Var::zeros(&[10]);
         
-        let mut rng = StdRng::seed_from_u64(671);
+        let rng = StdRng::seed_from_u64(671);
         let mut minibatch = MiniBatch::new(rng, 4);
         let (mdata, mlabel) = minibatch.next(&data, &label).unwrap();
 

@@ -299,13 +299,13 @@ impl Default for BCEWithLogitsLoss {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::op::_gradient_checker;
+//    use crate::op::_gradient_checker;
 
     #[test]
-    fn test_CrossEntropyLoss() {
+    fn test_cross_entropy_loss() {
         let a = Tensor::from_vec_f64(&vec![1., 2., 3., 4., 5., 6., ], &vec![3, 2]);
         let b = Tensor::from_vec_f64(&vec![0., 0., 1., ], &vec![3]);
-        let mut c = CrossEntropyLoss::new();
+        let c = CrossEntropyLoss::new();
         let d = Tensor::new();
         c.apply(&[a.ref_copy(), b.ref_copy()], &[d.ref_copy()]);
         assert!((d.get_scale_f64() - 0.97992826).abs() < 0.001);

@@ -523,7 +523,7 @@ macro_rules! var_f64 {
         impl Expand for [[f64; 1]] {
             fn expand(&self) -> Var {
                 let mut data = vec![];
-                let mut m = self.len();
+                let m = self.len();
                 let mut n = 0;
                 for i in self {
                     n = i.len();
@@ -535,7 +535,7 @@ macro_rules! var_f64 {
         impl Expand for [[f64; 2]] {
             fn expand(&self) -> Var {
                 let mut data = vec![];
-                let mut m = self.len();
+                let m = self.len();
                 let mut n = 0;
                 for i in self {
                     n = i.len();
@@ -547,7 +547,7 @@ macro_rules! var_f64 {
         impl Expand for [[f64; 3]] {
             fn expand(&self) -> Var {
                 let mut data = vec![];
-                let mut m = self.len();
+                let m = self.len();
                 let mut n = 0;
                 for i in self {
                     n = i.len();
@@ -559,7 +559,7 @@ macro_rules! var_f64 {
         impl Expand for [[f64; 4]] {
             fn expand(&self) -> Var {
                 let mut data = vec![];
-                let mut m = self.len();
+                let m = self.len();
                 let mut n = 0;
                 for i in self {
                     n = i.len();

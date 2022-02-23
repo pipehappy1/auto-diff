@@ -58,7 +58,7 @@ pub fn main() {
         //println!("{:?}, {}, {}", first_image.size(), first_image.max(None, None, None), first_image.min(None, None, None));
         let rgb_img = first_image.cat(&vec![first_image.clone(), first_image.clone()], 0).unwrap();
         let rgb_img = rgb_img.permute(&vec![1, 2, 0]).unwrap();
-        let rgb_img = rgb_img.mul(&Var::fill(&vec![1], &Var::new(&[255.], &[1])));
+        let _rgb_img = rgb_img.mul(&Var::fill(&vec![1], &Var::new(&[255.], &[1])));
 //        writer.add_image(&"test_image".to_string(), &rgb_img.get_u8().expect("u8")[..], &vec![3, 28, 28][..], i+32);
     }
     
@@ -66,7 +66,7 @@ pub fn main() {
     //println!("{:?}, {}, {}", first_image.size(), first_image.max(None, None, None), first_image.min(None, None, None));
     let rgb_img = first_image.cat(&vec![first_image.clone(), first_image.clone()], 0).unwrap();
     let rgb_img = rgb_img.permute(&vec![1, 2, 0]).unwrap();
-    let rgb_img = rgb_img.mul(&Var::fill(&vec![1], &Var::new(&[255.], &[1])));
+    let _rgb_img = rgb_img.mul(&Var::fill(&vec![1], &Var::new(&[255.], &[1])));
     //writer.add_image(&"test_image".to_string(), &rgb_img.get_u8().expect("u8")[..], &vec![3, 28, 28][..], 12);
     //writer.flush();
 
@@ -75,7 +75,7 @@ pub fn main() {
     //println!("{:?}, {}, {}", first_image.size(), first_image.max(None, None, None), first_image.min(None, None, None));
     let rgb_img = first_image.cat(&vec![first_image.clone(), first_image.clone()], 0).unwrap();
     let rgb_img = rgb_img.permute(&vec![1, 2, 0]).unwrap();
-    let rgb_img = rgb_img.mul(&Var::fill(&vec![1], &Var::new(&[255.], &[1])));
+    let _rgb_img = rgb_img.mul(&Var::fill(&vec![1], &Var::new(&[255.], &[1])));
     //writer.add_image(&"test_image".to_string(), &rgb_img.get_u8().expect("u8")[..], &vec![3, 28, 28][..], 13);
     //writer.flush();
 
