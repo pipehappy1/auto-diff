@@ -465,7 +465,7 @@ impl Clone for Var {
 //    }
 //}
 
-
+#[macro_export]
 macro_rules! var_f64 {
     ($a:expr) => {{
         trait Expand {
@@ -527,7 +527,6 @@ macro_rules! var_f64 {
         $a.expand()
     }}
 }
-
 
 
 #[cfg(test)]
