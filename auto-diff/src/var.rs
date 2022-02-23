@@ -32,7 +32,9 @@ macro_rules! var_2_to_1 {
 }
 
 macro_rules! var_more_to_1_with_para {
-    ($a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+    ($(#[$attr:meta])*
+     $a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        $(#[$attr])*
         pub fn $a(&self, other: &[Var], $( $arg_name : $ArgTy ),*) -> Result<Var, AutoDiffError> {
             let mut other_input = Vec::new();
             for i in other {
@@ -351,7 +353,26 @@ impl Var {
             var: Rc::new(RefCell::new(result)),
         })
     }
-    var_more_to_1_with_para!(stack, dim: usize);
+    var_more_to_1_with_para!(
+        /// Stack tensor with the same size along a new dimension
+        /// specified by dim.
+        /// The difference from cat is that cat don't create new dimension.
+        ///
+        /// ```
+        /// # use auto_diff::{Var, var_f64, AutoDiffError};
+        /// # fn test_stack() -> Result<(), AutoDiffError> {
+        /// let m1 = var_f64!([[1., 2., ],
+        ///                [3., 4., ]]);
+        /// let m2 = var_f64!([[5., 6., ],
+        ///                [7., 8., ]]);
+        /// let m3 = m1.stack(&[m2], 1)?;
+        /// #   let em = Var::new_f64(&[1.0, 2.0, 5.0, 6.0, 3.0, 4.0, 7.0, 8.0], &[2, 2, 2]);
+        /// #   assert_eq!(m3, em);
+        /// #   Ok(())
+        /// # }
+        /// # test_stack();
+        /// ```
+        stack, dim: usize);
 
     // linalg
     var_1_to_1!(det);
