@@ -8,7 +8,9 @@ use crate::err::AutoDiffError;
 use crate::collection::generational_index::{GenKey};
 use crate::compute_graph::Net;
 
-
+/// Implement operator by this trait
+/// to allow the operator be able to stored
+/// in the computation graph.
 pub trait OpTrait {
     /// A conventional name for the op
     fn get_name(&self) -> String;
@@ -50,7 +52,8 @@ pub trait OpTrait {
     fn get_grads(&self) -> Vec<Tensor>;
 }
 
-/// Ops that first created, then called needs to follow this behavior.
+/// Ops that first created,
+/// then called needs to follow this behavior.
 pub trait OpCall {
     fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError>;
 }
