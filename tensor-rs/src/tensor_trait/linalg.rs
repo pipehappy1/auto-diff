@@ -15,4 +15,5 @@ pub trait LinearAlgbra {
     fn svd(&self) -> Option<[Self::TensorType; 3]>;
     fn inv(&self) -> Option<Self::TensorType>;
     fn pinv(&self) -> Self::TensorType;
+    fn tr(&self) -> Self::TensorType;
 }

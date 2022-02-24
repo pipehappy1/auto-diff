@@ -14,7 +14,9 @@ use crate::compute_graph::{Net};
 
 
 macro_rules! var_1_to_1 {
-    ($a:ident) => {
+    ($(#[$attr:meta])*
+     $a:ident) => {
+        $(#[$attr])*
         pub fn $a(&self) -> Result<Var, AutoDiffError> {
             Ok(Var {
                 var: Rc::new(RefCell::new(self.var.borrow().$a()?))})
@@ -23,7 +25,9 @@ macro_rules! var_1_to_1 {
 }
 
 macro_rules! var_2_to_1 {
-    ($a:ident) => {
+    ($(#[$attr:meta])*
+     $a:ident) => {
+        $(#[$attr])*
         pub fn $a(&self, other: &Var) -> Result<Var, AutoDiffError> {
             Ok(Var {
                 var: Rc::new(RefCell::new(self.var.borrow().$a(&other.var.clone())?))})
@@ -47,7 +51,9 @@ macro_rules! var_more_to_1_with_para {
 }
 
 macro_rules! var_1_to_1_with_para {
-    ($a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+    ($(#[$attr:meta])*
+     $a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        $(#[$attr])*
         pub fn $a(&self, $( $arg_name : $ArgTy ),*) -> Result<Var, AutoDiffError> {
             Ok(Var {
                 var: Rc::new(RefCell::new(self.var.borrow().$a($( $arg_name ),*)?))})
@@ -56,7 +62,9 @@ macro_rules! var_1_to_1_with_para {
 }
 
 macro_rules! delegate_new_op {
-    ($a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+    ($(#[$attr:meta])*
+     $a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        $(#[$attr])*
         pub fn $a($( $arg_name : $ArgTy ),*) -> Var {
             Var {
                 var: Rc::new(RefCell::new(VarInner::$a($( $arg_name ),*)))
@@ -129,7 +137,9 @@ impl Var {
     //delegate_new_inner_op!(range, start: f32, end: f32, step: Option<f32>);
     //delegate_new_inner_op!(linspace, start: f32, end: f32, steps: usize);
     //delegate_new_inner_op!(logspace, start: f32, end: f32, steps: usize, base: f32);
-    delegate_new_op!(eye, n: usize, m: usize);
+    delegate_new_op!(
+        /// Identity matrix
+        eye, n: usize, m: usize);
     delegate_new_op!(empty, dim: &[usize]);
     
     /// Fill row by row.
@@ -401,6 +411,7 @@ impl Var {
     var_1_to_1!(det);
     var_1_to_1!(inv);
     var_1_to_1!(normalize_unit);
+    var_1_to_1!(tr);
 
     // reduction
     var_1_to_1_with_para!(argmax, dim: Option<&[usize]>, keepdim: bool);

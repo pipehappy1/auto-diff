@@ -328,6 +328,10 @@ where T: num_traits::Float {
         s.set_diag(&GenTensor::new_raw(&diag_v, &[diag_v.len()]));
         v.matmul(&s).matmul(&u.t())
     }
+
+    fn tr(&self) -> Self::TensorType {
+        self.get_diag().sum(None, false)
+    }
 }
 
 

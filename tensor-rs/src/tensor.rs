@@ -643,6 +643,7 @@ impl Tensor {
     tensor_method_3_option_tensor_return!(svd);
     tensor_method_1_option_tensor_return!(inv);
     tensor_method_single_tensor_return!(pinv);
+    tensor_method_single_tensor_return!(tr);
 
 
     // Comparison Ops

@@ -387,7 +387,7 @@ pub mod index_slicing;
 pub use index_slicing::{Cat, Chunk, ConditionalSelect, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, Repeat};
 
 pub mod linalg;
-pub use linalg::{Det, Inv, NormalizeUnit};
+pub use linalg::{Det, Inv, NormalizeUnit, Tr};
 
 pub mod reduction;
 pub use reduction::{Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min};

@@ -734,6 +734,8 @@ impl TypedTensor {
     typed_tensor_method_single_same_option_3_return!(svd);
     typed_tensor_method_single_same_option_1_return!(inv);
     typed_tensor_method_single_tensor_return!(pinv);
+    typed_tensor_method_single_tensor_return!(tr);
+
     
     // Comparison Ops
     typed_tensor_method!(all_close);
