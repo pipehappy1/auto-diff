@@ -308,6 +308,22 @@ impl TypedTensor {
             //_ => {panic!("should have same tensor type!");},
         }
     }
+    pub fn set_patch(&self, o: &TypedTensor,
+                     range: &[(usize, usize)], step: Option<&[usize]>) -> TypedTensor {
+        match (self, o) {
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
+                let mut v = v1.clone();
+                v.set_patch(&v2, range, step);
+                TypedTensor::Typef32(v)
+            },
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
+                let mut v = v1.clone();
+                v.set_patch(&v2, range, step);
+                TypedTensor::Typef64(v)
+            },
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
 
     /// convert itself to f32
     pub fn to_gentensorf32(_i: &TypedTensor) -> TypedTensor {

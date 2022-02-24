@@ -181,6 +181,13 @@ impl Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().get_patch(range, step)))
         }
     }
+    pub fn set_patch(&self, other: &Tensor,
+                     range: &[(usize, usize)], step: Option<&[usize]>) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().set_patch(
+                &other.v.borrow(), range, step)))
+        }
+    }
 
     pub fn same_shape(&self, o: &Tensor) -> bool {
         let a = self.size();

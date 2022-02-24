@@ -61,6 +61,17 @@ macro_rules! var_1_to_1_with_para {
     }
 }
 
+macro_rules! var_2_to_1_with_para {
+    ($(#[$attr:meta])*
+     $a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        $(#[$attr])*
+        pub fn $a(&self, other: &Var, $( $arg_name : $ArgTy ),*) -> Result<Var, AutoDiffError> {
+            Ok(Var {
+                var: Rc::new(RefCell::new(self.var.borrow().$a(&other.var.clone(), $( $arg_name ),*)?))})
+        }
+    }
+}
+
 macro_rules! delegate_new_op {
     ($(#[$attr:meta])*
      $a:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
@@ -426,7 +437,43 @@ impl Var {
     var_1_to_1_with_para!(min, dim: Option<&[usize]>, keepdim: bool);
 
     // images
-    var_1_to_1_with_para!(get_patch, range: &[(usize, usize)], step: Option<&[usize]>);
+    var_1_to_1_with_para!(
+        /// Get a portion of the tensor and return it.
+        ///
+        /// ```
+        /// # use auto_diff::{Var, var_f64, AutoDiffError};
+        /// # fn test_get_patch() -> Result<(), AutoDiffError> {
+        /// let m1 = var_f64!([[1., 2., 3.],
+        ///                    [4., 5., 6.],
+        ///                    [7., 8., 9.]]);
+        /// let m2 = var_f64!([[4., 5.],
+        ///                    [7., 8.]]);
+        /// assert_eq!(m1.get_patch(&[(1, 3), (0, 2)], None)?, m2);
+        /// #   Ok(())
+        /// # }
+        /// # test_get_patch();
+        /// ```
+        get_patch, range: &[(usize, usize)], step: Option<&[usize]>);
+    var_2_to_1_with_para!(
+        /// Set a portion of the tensor.
+        ///
+        /// ```
+        /// # use auto_diff::{Var, var_f64, AutoDiffError};
+        /// # fn test_set_patch() -> Result<(), AutoDiffError> {
+        /// let m1 = var_f64!([[1., 2., 3.],
+        ///                    [4., 5., 6.],
+        ///                    [7., 8., 9.]]);
+        /// let m2 = var_f64!([[10., 11.],
+        ///                    [12., 13.]]);
+        /// let m3 = var_f64!([[1.,   2., 3.],
+        ///                    [10., 11., 6.],
+        ///                    [12., 13., 9.]]);
+        /// assert_eq!(m1.set_patch(&m2, &[(1, 3), (0, 2)], None)?, m3);
+        /// #   Ok(())
+        /// # }
+        /// # test_set_patch();
+        /// ```
+        set_patch, range: &[(usize, usize)], step: Option<&[usize]>);
     var_1_to_1_with_para!(view, new_shape: &[usize]);
 
 

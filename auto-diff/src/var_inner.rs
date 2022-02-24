@@ -17,7 +17,7 @@ use crate::op::{Op,
                 Cat, Chunk, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, ConditionalSelect, Repeat,
                 Det, Inv, NormalizeUnit, Tr,
                 Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min,
-                GetPatch,
+                GetPatch, SetPatch,
 };
 use crate::err::AutoDiffError;
 use crate::optim::Optimizer;
@@ -68,6 +68,19 @@ macro_rules! var_inner_1_to_1_with_para {
             let new_one = $b::new($( $arg_name ),*);
             let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
             let mut result = self.called_with(op, &[])?;
+            Ok(result.remove(0))            
+        }
+    }
+}
+
+macro_rules! var_inner_2_to_1_with_para {
+    ($a:ident, $b:ident, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+        pub fn $a(&self, other: &Rc<RefCell<VarInner>>,
+                  $( $arg_name : $ArgTy ),*)
+                  -> Result<VarInner, AutoDiffError> {
+            let new_one = $b::new($( $arg_name ),*);
+            let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
+            let mut result = self.called_with(op, &[other.clone()])?;
             Ok(result.remove(0))            
         }
     }
@@ -548,6 +561,7 @@ impl VarInner {
 
     // images
     var_inner_1_to_1_with_para!(get_patch, GetPatch, range: &[(usize, usize)], step: Option<&[usize]>);
+    var_inner_2_to_1_with_para!(set_patch, SetPatch, range: &[(usize, usize)], step: Option<&[usize]>);
     var_inner_1_to_1_with_para!(view, View, new_shape: &[usize]);
 
     pub fn dump_net(&self) -> Rc<RefCell<Net>> {

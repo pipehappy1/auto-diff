@@ -393,5 +393,5 @@ pub mod reduction;
 pub use reduction::{Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min};
 
 pub mod vision;
-pub use vision::{GetPatch, };
+pub use vision::{GetPatch, SetPatch};
 
