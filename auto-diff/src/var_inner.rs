@@ -9,7 +9,7 @@ use crate::compute_graph::{Net};
 use crate::collection::generational_index::{GenKey};
 use crate::op::{Op,
                 View,
-                Add, Sub, Mul, Div, Matmul,
+                Add, Sub, Mul, Div, Matmul, Outer,
                 ELU, ReLU, Sigmoid,
                 MSELoss, BCEWithLogitsLoss, CrossEntropyLoss,
                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
@@ -400,6 +400,7 @@ impl VarInner {
     var_inner_2_to_1!(mul, Mul);
     var_inner_2_to_1!(div, Div);
     var_inner_2_to_1!(matmul, Matmul);
+    var_inner_2_to_1!(outer, Outer);
 
     // nonlinear
     pub fn elu(&self, alpha: VarInner) -> Result<VarInner, AutoDiffError> {

@@ -360,7 +360,7 @@ impl OpTrait for View {
 pub mod macros;
 
 pub mod local;
-pub use local::{Add, Sub, Mul, Div, Matmul};
+pub use local::{Add, Sub, Mul, Div, Matmul, Outer};
 
 pub mod linear;
 pub use linear::Linear;

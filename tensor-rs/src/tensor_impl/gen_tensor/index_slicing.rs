@@ -259,12 +259,13 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
 
     fn squeeze(&self, dim: Option<usize>) -> Self {
         let mut new_shape = Vec::new();
-        for i in 0..new_shape.len() {
-            if (new_shape[i] == 1 && dim.is_some() && i == dim.unwrap()) ||
-                (new_shape[i] == 1 && dim.is_none()) {
+        let size = self.size();
+        for i in 0..size.len() {
+            if (size[i] == 1 && dim.is_some() && i == dim.unwrap()) ||
+                (size[i] == 1 && dim.is_none()) {
                 continue
             } else {
-                new_shape.push(new_shape[i]);
+                new_shape.push(size[i]);
             }
         }
         if new_shape.len() == 0 {
@@ -545,5 +546,12 @@ mod tests {
         let b = a.repeat(&[4, 2]);
         println!("{:?}", b);
         assert_eq!(b, GenTensor::<f32>::new_raw(&[1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3., 1., 2., 3. ], &[4, 6]));
+    }
+
+    #[test]
+    fn squeeze() {
+        let a = GenTensor::<f64>::new_raw(&[1., 2., 3.], &[3, 1]);
+        let b = a.squeeze(None);
+        println!("{:?}", b);
     }
 }

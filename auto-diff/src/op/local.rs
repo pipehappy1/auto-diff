@@ -55,6 +55,14 @@ new_binary_op!(Matmul, "matmul",
                })
 );
 
+new_binary_op!(Outer, "outer",
+               (|a:&[Tensor], b:&[Tensor]|
+                b[0].swap(&a[0].outer(&a[1], None))),
+               (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
+                   unimplemented!();
+               })
+);
+
 #[cfg(test)]
 mod tests {
     use super::*;

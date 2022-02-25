@@ -215,6 +215,23 @@ impl Var {
     var_2_to_1!(mul);
     var_2_to_1!(div);
     var_2_to_1!(matmul);
+    var_2_to_1!(
+        /// Outer product
+        /// ```
+        /// # use auto_diff::{Var, var_f64, AutoDiffError};
+        /// # fn test_outer() -> Result<(), AutoDiffError> {
+        /// let v1 = Var::new_f64(&[1., 2., 3.], &[3]);
+        /// let v2 = Var::new_f64(&[4., 5., 6.], &[3]);
+        /// let v3 = v1.outer(&v2)?;
+        /// let em = var_f64!([[4.,   5.,  6.],
+        ///                    [8.,  10., 12.],
+        ///                    [12., 15., 18.]]);
+        /// assert_eq!(v3, em);
+        /// #   Ok(())
+        /// # }
+        /// # test_outer();
+        /// ```
+        outer);
 
     // nonlinear
     pub fn elu(&self, alpha: Var) -> Result<Var, AutoDiffError> {
@@ -693,6 +710,8 @@ mod tests {
     fn test_macro_tensor() {
         let a = var_f64!([1., 2., 3.,]);
         assert_eq!(a.size(), [3, 1]);
+        let a1 = a.squeeze(None).unwrap();
+        println!("{:?}", a1.size());
         let a = var_f64!([[1., 2.,],
                           [4., 5.,],
                           [4., 5.,]]);
