@@ -1,10 +1,10 @@
 use crate::tensor_impl::gen_tensor::GenTensor;
 use crate::tensor_trait::index_slicing::IndexSlicing;
 use crate::tensor::PaddingMode;
-#[cfg(feature = "use-blas")]
+#[cfg(feature = "use-blas-lapack")]
 use super::blas::BlasAPI;
 
-#[cfg(feature = "use-blas")]
+#[cfg(feature = "use-blas-lapack")]
 macro_rules! blas_conv {
     ($a:ty, $b: ident) => {
         pub fn $b(
@@ -180,10 +180,10 @@ macro_rules! blas_conv {
     }
 }
 
-#[cfg(feature = "use-blas")]
+#[cfg(feature = "use-blas-lapack")]
 blas_conv!(f32, gemm_conv_f32);
 
-#[cfg(feature = "use-blas")]
+#[cfg(feature = "use-blas-lapack")]
 blas_conv!(f64, gemm_conv_f64);
 
 
@@ -195,7 +195,7 @@ mod tests {
 
     // gemm_conv
     #[test]
-    #[cfg(feature = "use-blas")]
+    #[cfg(feature = "use-blas-lapack")]
     fn test_gemm_conv() {
         {
             let data = GenTensor::<f32>::arange(30).reshape(&vec![2, 3, 5]);

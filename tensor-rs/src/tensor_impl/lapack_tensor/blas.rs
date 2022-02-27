@@ -1,5 +1,5 @@
 
-#[cfg(feature = "use-blas")]
+#[cfg(feature = "use-blas-lapack")]
 use blas::*;
 use std::marker::PhantomData;
 
@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 pub struct BlasAPI<T> {
     d: PhantomData<T>,
 }
-#[cfg(feature = "use-blas")]
+#[cfg(feature = "use-blas-lapack")]
 impl BlasAPI<f32> {
     // level 1
     pub fn rotg() {unimplemented!();}
@@ -141,7 +141,7 @@ impl BlasAPI<f32> {
 }
 
 
-#[cfg(feature = "use-blas")]
+#[cfg(feature = "use-blas-lapack")]
 impl BlasAPI<f64> {
     pub fn axpy(n: usize, alpha: f64, x: &[f64], incx: usize, y: &mut [f64], incy: usize) {
         unsafe {
@@ -187,7 +187,7 @@ impl BlasAPI<f64> {
 }
 
 
-#[cfg(all(test, feature = "use-blas"))]
+#[cfg(all(test, feature = "use-blas-lapack"))]
 mod tests {
     use super::*;
     

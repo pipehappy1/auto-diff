@@ -47,6 +47,8 @@ csv = "1.1"
 
 tensorboard-rs = "0.2.2"
 
+openblas-src = { version = "0.10" }
+
 [features]
 
 default = ["use-f64"]

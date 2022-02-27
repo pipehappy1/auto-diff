@@ -1,10 +1,13 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput, BenchmarkId};
 use std::iter;
 
-use tensor_rs::tensor::gen_tensor::*;
+use tensor_rs::tensor_impl::gen_tensor::*;
+use tensor_rs::tensor_impl::lapack_tensor::*;
 use tensor_rs::tensor::PaddingMode;
-use tensor_rs::tensor::index_slicing::IndexSlicing;
-use tensor_rs::tensor::convolution::{Convolution, gemm_conv_f32};
+use tensor_rs::tensor_trait::index_slicing::IndexSlicing;
+use tensor_rs::tensor_trait::convolution::Convolution;
+use tensor_rs::tensor_impl::lapack_tensor::convolution::gemm_conv_f32;
+
 
 extern crate ndarray;
 extern crate ndarray_linalg;

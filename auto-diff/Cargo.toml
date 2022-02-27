@@ -33,7 +33,7 @@ rand_distr = "0.4"
 criterion = "0.3"
 
 # one backend
-openblas-src = "0.9" # or another backend of your choice
+openblas-src = "0.10" # or another backend of your choice
 
 # for examples
 csv = "1.1"

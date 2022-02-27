@@ -6,6 +6,6 @@ pub mod linalg;
 pub mod reduction;
 pub mod blas;
 
-//#[cfg(feature = "use-blas")]
-//use crate::tensor::blas::BlasAPI;
+//#[cfg(feature = "use-blas-lapack")]
+//use ::blas::BlasAPI;
 
