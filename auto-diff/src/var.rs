@@ -144,6 +144,7 @@ impl Var {
     delegate_new_op!(fill_f64, size: &[usize], fill_value: f64);
     delegate_new_op!(zeros, dim: &[usize]);
     delegate_new_op!(ones, dim: &[usize]);
+    delegate_new_op!(twos, dim: &[usize]);
     //delegate_new_inner_op!(arange, end: usize);
     //delegate_new_inner_op!(range, start: f32, end: f32, step: Option<f32>);
     //delegate_new_inner_op!(linspace, start: f32, end: f32, steps: usize);

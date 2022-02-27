@@ -239,6 +239,7 @@ impl VarInner {
     }
     delegate_new_inner_op!(zeros, dim: &[usize]);
     delegate_new_inner_op!(ones, dim: &[usize]);
+    delegate_new_inner_op!(twos, dim: &[usize]);
     //delegate_new_inner_op!(arange, end: usize);
     //delegate_new_inner_op!(range, start: f32, end: f32, step: Option<f32>);
     //delegate_new_inner_op!(linspace, start: f32, end: f32, steps: usize);
@@ -334,15 +335,34 @@ impl VarInner {
                               others: &[Rc<RefCell<VarInner>>])
                               -> Result<Vec<VarInner>, AutoDiffError> {
         if self.need_grad {
-            // TODO there may the same net among others.
+            let mut other_var_by_networks: Vec<Vec<Rc<RefCell<VarInner>>>> = vec![];
             for item in others.iter().cloned() {
                 if !Rc::ptr_eq(&self.net, &item.borrow().net) {
-                    let other_key = self.net.borrow_mut().append(
-                        &item.borrow().net.borrow(), &[item.borrow().id])?[0];
-            
-                    item.borrow_mut().net = self.net.clone();
-                    item.borrow_mut().id = other_key;
+                    let mut existing_net = false;
+                    for set in &mut other_var_by_networks {
+                        if Rc::ptr_eq(&item.borrow().net, &set[0].borrow().net) {
+                            set.push(item.clone());
+                            existing_net = true;
+                            break;
+                        }
+                    }
+                    if ! existing_net {
+                        other_var_by_networks.push(vec![item.clone()]);
+                    }
                 }
+            }
+            for set in other_var_by_networks {
+                let mut old_ids = vec![];
+                for item in &set {
+                    old_ids.push(item.borrow().id.clone());
+                }
+                let other_key = self.net.borrow_mut().append(
+                    &set[0].borrow().net.borrow(), &old_ids)?;
+                for (index, item) in set.iter().enumerate() {
+                    item.borrow_mut().net = self.net.clone();
+                    item.borrow_mut().id = other_key[index];
+                }
+
             }
             
             let mut input_id = vec![self.id];
