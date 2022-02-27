@@ -300,6 +300,10 @@ impl Tensor {
             v: Rc::new(RefCell::new(TypedTensor::ones_f32(dim))),
         }
     }
+    pub fn twos(dim: &[usize]) -> Tensor {
+        let a = Self::ones(dim);
+        a.add(&a)
+    }
     // ones_like
     tensor_method_single_tensor_return!(ones_like);
     // range
