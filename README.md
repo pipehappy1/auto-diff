@@ -10,6 +10,12 @@
 
 This is an auto-difference library for deep neural network.
 
+Try **auto-diff** by adding the following to your Cargo.toml:
+```
+[dependencies]
+auto-diff = "0.5"
+```
+
 ## Features
 
 - A type less tensor.
