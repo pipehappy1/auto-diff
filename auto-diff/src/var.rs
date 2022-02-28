@@ -215,7 +215,25 @@ impl Var {
     var_2_to_1!(sub);
     var_2_to_1!(mul);
     var_2_to_1!(div);
-    var_2_to_1!(matmul);
+    var_2_to_1!(
+        /// Matrix/inner/dot product
+        /// ```
+        /// # use auto_diff::{Var, var_f64, AutoDiffError};
+        /// # fn test_matmul() -> Result<(), AutoDiffError> {
+        /// let v1 = var_f64!([[1., 2., 3.],
+        ///                    [4., 5., 6.]]);
+        /// let v2 = var_f64!([[11., 12., 13.],
+        ///                    [14., 15., 16.],
+        ///                    [17., 18., 19.]]);
+        /// let v3 = v1.matmul(&v2)?;
+        /// let em = var_f64!([[90.0, 96.0, 102.0],
+        ///                    [216.0, 231.0, 246.0]]);
+        /// assert_eq!(v3, em);
+        /// #   Ok(())
+        /// # }
+        /// # test_matmul();
+        /// ```
+        matmul);
     var_2_to_1!(
         /// Outer product
         /// ```
