@@ -36,9 +36,6 @@
 //!
 
 
-extern crate ndarray;
-extern crate ndarray_linalg;
-
 pub mod var;
 pub mod op;
 pub mod optim;

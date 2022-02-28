@@ -213,7 +213,7 @@ mod tests {
 
     #[test]
     fn test_copy() {
-        let mut v1 = [1., 2.];
+        let v1 = [1., 2.];
         let mut v2 = [3., 4.];
         BlasAPI::<f32>::copy(2, &v1, 1, &mut v2, 1);
         println!("{:?}, {:?}", v1, v2);
@@ -223,12 +223,12 @@ mod tests {
 
     #[test]
     fn test_blas_axpy() {
-        let mut v1 = [1., 2.];
+        let v1 = [1., 2.];
         let mut v2 = [1., 2.];
         BlasAPI::<f32>::axpy(2, 1., &v1, 1, &mut v2, 1);
         println!("{:?}", v2);
 
-        let mut v1 = [1., 2.];
+        let v1 = [1., 2.];
         let mut v2 = [1., 2.];
         BlasAPI::<f64>::axpy(2, 1., &v1, 1, &mut v2, 1);
         println!("{:?}", v2);
@@ -236,9 +236,9 @@ mod tests {
 
     #[test]
     fn test_dot() {
-        let mut v1 = [1., 2.];
-        let mut v2 = [3., 4.];
-        let mut v3 = [5., 6.];
+        let v1 = [1., 2.];
+        let v2 = [3., 4.];
+        let v3 = [5., 6.];
         let result = BlasAPI::<f32>::dsdot(2, &v1, &v2, 1, &v3, 1);
         println!("{:?}", result);
         assert_eq!(result, 40.);
@@ -246,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_nrm2() {
-        let mut v1 = [1., 2.];
+        let v1 = [1., 2.];
         let result = BlasAPI::<f32>::nrm2(2, &v1, 1);
         println!("{:?}", result);
         assert_eq!(result, 2.236068);
@@ -254,8 +254,8 @@ mod tests {
 
     #[test]
     fn test_gemv() {
-        let mut v1 = [1., 2., 3., 4., 5., 6.,];
-        let mut v2 = [3., 4.];
+        let v1 = [1., 2., 3., 4., 5., 6.,];
+        let v2 = [3., 4.];
         let mut v3 = [5., 6., 7.];
         BlasAPI::<f32>::gemv(false, 3, 2, 1., &v1, 3, &v2, 1, 1., &mut v3, 1);
         println!("{:?}", v3);
@@ -264,8 +264,8 @@ mod tests {
 
     #[test]
     fn test_blas_gemm() {
-        let mut v1 = [1., 2., 3., 4., 5., 6., 7., 8.];
-        let mut v2 = [1., 2., 3., 4., 5., 6.,];
+        let v1 = [1., 2., 3., 4., 5., 6., 7., 8.];
+        let v2 = [1., 2., 3., 4., 5., 6.,];
         let mut v3 = [0.; 12];
         BlasAPI::<f32>::gemm(false, false, 4, 3, 2, 1., &v1, 4, &v2, 2, 1., &mut v3, 4);
         println!("{:?}", v3);

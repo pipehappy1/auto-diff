@@ -39,10 +39,6 @@ csv = "1.1"
 [features]
 
 [[bench]]
-name = "my_benchmark"
-harness = false
-
-[[bench]]
 name = "tensor_benchmark"
 harness = false
 
