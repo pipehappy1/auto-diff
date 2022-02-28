@@ -3,6 +3,8 @@
 [![crates.io version](https://img.shields.io/crates/v/auto-diff.svg)](https://crates.io/crates/auto-diff)
 [![License](https://img.shields.io/crates/l/auto-diff.svg)](https://github.com/pipehappy1/auto-diff/blob/master/LICENSE.txt)
 [![example workflow](https://github.com/pipehappy1/auto-diff/actions/workflows/rust.yml/badge.svg)](https://github.com/pipehappy1/auto-diff/actions)
+[![doc badge](https://docs.rs/auto-diff/badge.svg)](https://docs.rs/auto-diff)
+
 
 ## Introduction
 
