@@ -27,5 +27,5 @@ jobs:
       run: cargo run --verbose --example linear_regression
       working-directory: auto-diff
     - name: Run benchmark
-      run: cargo bench --verbose
+      run: cargo bench --bench elemwise_benchmark  --verbose
       working-directory: benches
