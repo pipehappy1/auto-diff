@@ -2,7 +2,7 @@ use crate::tensor_impl::gen_tensor::GenTensor;
 use crate::tensor_trait::index_slicing::IndexSlicing;
 use crate::tensor::PaddingMode;
 #[cfg(feature = "use-blas-lapack")]
-use super::blas::BlasAPI;
+use super::blas_api::BlasAPI;
 
 #[cfg(feature = "use-blas-lapack")]
 macro_rules! blas_conv {
