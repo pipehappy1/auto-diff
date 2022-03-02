@@ -6,15 +6,15 @@
 mod tests {
 
     extern crate openblas_src;
-    use tensor_rs::tensor_impl::lapack_tensor::blas::BlasAPI;
+    use tensor_rs::tensor_impl::lapack_tensor::blas_api::BlasAPI;
     use tensor_rs::tensor::Tensor;
 
     #[test]
     fn test_gemm1() {
 
     for _i in 0..100000 {
-        let mut v1: Vec<f32> = (0..128*256).map(|x| x as f32).collect();
-        let mut v2: Vec<f32> = (0..128*256).map(|x| x as f32).collect();
+        let v1: Vec<f32> = (0..128*256).map(|x| x as f32).collect();
+        let v2: Vec<f32> = (0..128*256).map(|x| x as f32).collect();
         let mut v3: [f32; 65536] = [0.; 65536];
 
         let trans = false;
