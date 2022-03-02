@@ -5,3 +5,4 @@ pub mod index_slicing;
 pub mod linalg;
 pub mod reduction;
 pub mod blas_api;
+pub mod lapack_api;

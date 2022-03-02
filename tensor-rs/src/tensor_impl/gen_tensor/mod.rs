@@ -16,8 +16,8 @@ pub mod rand;
 /// Naive tensor implementation, single thread
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct GenTensor<T> {
-    d: Vec<T>,
-    dim: Vec<usize>,
+    d: Vec<T>, // GenTensor is stored in row major, 
+    dim: Vec<usize>, // higher/outer dimension is on the lower index.
 }
 impl<T> GenTensor<T> where T: num_traits::Float {
 
