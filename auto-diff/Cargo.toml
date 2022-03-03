@@ -26,16 +26,19 @@ num-traits = "0.2"
 rand = "0.8"
 rand_distr = "0.4"
 
+# one backend
+openblas-src = "0.10" # or another backend of your choice
+
 [dev-dependencies]
 criterion = "0.3"
 
-# one backend
-openblas-src = "0.10" # or another backend of your choice
+
 
 # for examples
 csv = "1.1"
 
 tensorboard-rs = "0.2.2"
+
 
 [features]
 
