@@ -14,11 +14,15 @@ use super::tensor_trait::compare_tensor::CompareTensor;
 use super::tensor_trait::elemwise::ElemwiseTensorOp;
 use super::tensor_trait::index_slicing::IndexSlicing;
 use super::tensor_trait::convolution::{Convolution};
-#[cfg(feature = "use-blas-lapack")]
-use super::tensor_impl::lapack_tensor::convolution::{gemm_conv_f32, gemm_conv_f64};
 use super::tensor_trait::reduction::ReduceTensor;
 use super::tensor_trait::linalg::LinearAlgbra;
 use super::tensor_trait::rand::Random;
+
+#[cfg(feature = "use-blas-lapack")]
+use super::tensor_impl::lapack_tensor::convolution::{gemm_conv_f32, gemm_conv_f64};
+#[cfg(feature = "use-blas-lapack")]
+use crate::tensor_impl::lapack_tensor::elemwise::{add_f32, add_f64,
+                                                  sub_f32, sub_f64,};
 
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub enum TypedTensor {
@@ -639,8 +643,48 @@ impl TypedTensor {
     // assert_eq!(m3.get(&vec![0,0]), 2.);
     // assert_eq!(m3.get(&vec![1,1]), 8.);
     // ```
-    typed_tensor_method!(add);
-    typed_tensor_method!(sub);
+    pub fn add(&self, o: &TypedTensor) -> TypedTensor {
+        match (&self, o) {
+            #[cfg(not(feature = "use-blas-lapack"))]
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.add(v2))},
+            #[cfg(not(feature = "use-blas-lapack"))]
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.add(v2))},
+              
+            #[cfg(feature = "use-blas-lapack")]
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
+                TypedTensor::Typef32(add_f32(&v1, &v2))
+            },
+            #[cfg(feature = "use-blas-lapack")]
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
+                TypedTensor::Typef64(add_f64(&v1, &v2))
+            },
+              
+            #[cfg(feature = "use-cuda")]
+            (TypedTensor::Cudaf32(v1), TypedTensor::Cudaf32(v2)) => {TypedTensor::Cudaf32(v1.add(v2))},
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
+    pub fn sub(&self, o: &TypedTensor) -> TypedTensor {
+        match (&self, o) {
+            #[cfg(not(feature = "use-blas-lapack"))]
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.sub(v2))},
+            #[cfg(not(feature = "use-blas-lapack"))]
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.sub(v2))},
+              
+            #[cfg(feature = "use-blas-lapack")]
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
+                TypedTensor::Typef32(sub_f32(&v1, &v2))
+            },
+            #[cfg(feature = "use-blas-lapack")]
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
+                TypedTensor::Typef64(sub_f64(&v1, &v2))
+            },
+              
+            #[cfg(feature = "use-cuda")]
+            (TypedTensor::Cudaf32(v1), TypedTensor::Cudaf32(v2)) => {TypedTensor::Cudaf32(v1.sub(v2))},
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
     typed_tensor_method!(mul);
     typed_tensor_method!(div);
 
