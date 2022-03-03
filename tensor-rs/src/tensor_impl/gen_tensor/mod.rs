@@ -767,9 +767,10 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// assert_eq!(m3.get(&vec![0,0]), 2.);
     /// assert_eq!(m3.get(&vec![1,1]), 8.);
     /// ```
+    #[cfg(not(feature = "use-blas-lapack"))]
     pub fn add(&self, o: &GenTensor<T>) -> GenTensor<T> {
         self._right_broadcast(o, |x, y| *x + *y)
-     }
+    }
     pub fn sub(&self, o: &GenTensor<T>) -> GenTensor<T> {
         self._right_broadcast(o, |x, y| *x - *y)
     }
@@ -950,7 +951,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         
     }
 
-    #[cfg(not(feature = "use-blas"))]
+    #[cfg(not(feature = "use-blas-lapack"))]
     pub fn squared_error(t1: &Self, t2: &Self) -> GenTensor<T> {
         let mut ret = GenTensor {
             d: Vec::with_capacity(t1.d.len()),
@@ -1271,11 +1272,17 @@ impl<T> Clone for GenTensor<T> where T: num_traits::Float {
     }
 }
 
-#[cfg(feature = "use-blas")]
-use crate::tensor_impl::lapack_tensor::blas::BlasAPI;
+#[cfg(feature = "use-blas-lapack")]
+use crate::tensor_impl::lapack_tensor::blas_api::BlasAPI;
+#[cfg(feature = "use-blas-lapack")]
+use crate::tensor_impl::lapack_tensor::elemwise::{add_f32, add_f64};
 
-#[cfg(feature = "use-blas")]
+#[cfg(feature = "use-blas-lapack")]
 impl GenTensor<f32> {
+    pub fn add(&self, o: &GenTensor<f32>) -> GenTensor<f32> {
+        add_f32(self, o)
+    }
+    
     pub fn squared_error(t1: &Self, t2: &Self) -> GenTensor<f32> {
         let mut v2 = t2.d.to_vec();
         BlasAPI::<f32>::axpy(t1.d.len(), -1., &t1.d, 1, &mut v2, 1);
@@ -1290,8 +1297,12 @@ impl GenTensor<f32> {
         ret
     }
 }
-#[cfg(feature = "use-blas")]
+#[cfg(feature = "use-blas-lapack")]
 impl GenTensor<f64> {
+    pub fn add(&self, o: &GenTensor<f64>) -> GenTensor<f64> {
+        add_f64(self, o)
+    }
+    
     pub fn squared_error(t1: &Self, t2: &Self) -> GenTensor<f64> {
         let mut v2 = t2.d.to_vec();
         BlasAPI::<f64>::axpy(t1.d.len(), -1., &t1.d, 1, &mut v2, 1);

@@ -29,7 +29,10 @@ impl BlasAPI<f32> {
             scopy(n as i32, x, incx as i32, y, incy as i32);
         }
     }
-    pub fn axpy(n: usize, alpha: f32, x: &[f32], incx: usize, y: &mut [f32], incy: usize) {
+    pub fn axpy(n: usize,
+                alpha: f32,
+                x: &[f32], incx: usize,
+                y: &mut [f32], incy: usize) {
         unsafe {
             saxpy(n as i32, alpha, x, incx as i32, y, incy as i32);
         }

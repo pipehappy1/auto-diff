@@ -88,15 +88,15 @@ impl LapackAPI<f64> {
 
 #[cfg(all(test, feature = "use-blas-lapack"))]
 mod tests {
-    use super::*;
+    //use super::*;
 
     #[test]
     fn test_svd() {
-        let mut v1 = [1., 2.];
-        let mut v2 = [3., 4.];
+        let v1 = [1., 2.];
+        let v2 = [3., 4.];
         //LapackAPI::<f32>::svd(2, &mut v1, 1, &mut v2, 1);
         println!("{:?}, {:?}", v1, v2);
-        assert_eq!(v1, [3., 4.]);
-        assert_eq!(v2, [1., 2.]);
+        assert_eq!(v1, [1., 2.]);
+        assert_eq!(v2, [3., 4.]);
     }
 }

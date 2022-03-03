@@ -14,7 +14,7 @@ use super::tensor_trait::compare_tensor::CompareTensor;
 use super::tensor_trait::elemwise::ElemwiseTensorOp;
 use super::tensor_trait::index_slicing::IndexSlicing;
 use super::tensor_trait::convolution::{Convolution};
-#[cfg(feature = "use-blas")]
+#[cfg(feature = "use-blas-lapack")]
 use super::tensor_impl::lapack_tensor::convolution::{gemm_conv_f32, gemm_conv_f64};
 use super::tensor_trait::reduction::ReduceTensor;
 use super::tensor_trait::linalg::LinearAlgbra;
@@ -827,9 +827,9 @@ impl TypedTensor {
                   padding_mode: PaddingMode) -> TypedTensor {
         match (self, filter) {
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
-                #[cfg(not(feature = "use-blas"))]
+                #[cfg(not(feature = "use-blas-lapack"))]
                 return TypedTensor::Typef32(v1.conv2d(v2, stride, padding, dilation, padding_mode));
-                #[cfg(feature = "use-blas")]
+                #[cfg(feature = "use-blas-lapack")]
                 return TypedTensor::Typef32(gemm_conv_f32(v1, v2,
                                                           &[stride.0, stride.1],
                                                           &[padding.0, padding.1],
@@ -837,9 +837,9 @@ impl TypedTensor {
                                                           padding_mode));
             },
             (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
-                #[cfg(not(feature = "use-blas"))]
+                #[cfg(not(feature = "use-blas-lapack"))]
                 return TypedTensor::Typef64(v1.conv2d(v2, stride, padding, dilation, padding_mode));
-                #[cfg(feature = "use-blas")]
+                #[cfg(feature = "use-blas-lapack")]
                 return TypedTensor::Typef64(gemm_conv_f64(v1, v2,
                                                           &[stride.0, stride.1],
                                                           &[padding.0, padding.1],
