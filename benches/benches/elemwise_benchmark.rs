@@ -3,6 +3,7 @@ use std::iter;
 
 use auto_diff::Var;
 use tensor_rs::tensor_impl::gen_tensor::GenTensor;
+use tensor_rs::tensor::Tensor;
 
 extern crate ndarray;
 extern crate ndarray_linalg;
@@ -11,7 +12,7 @@ extern crate openblas_src; // or another backend of your choice
 //use ndarray;
 
 fn elemwise_benchmark(c: &mut Criterion) {
-    let ss = vec![10, 20, 30, 50, 70, 128];
+    let ss = vec![10, 20, 30, 50,];
 
     let mut group = c.benchmark_group("elemwise");
     for size in ss.iter() {
