@@ -206,6 +206,8 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         Ok(())
     }
 
+    /// stride() returns a vector contains steps
+    /// for each dimension on linear storage.
     /// Right dimension changes fastest.
     /// Right dimension has the stride 1.
     ///
@@ -839,7 +841,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     /// matrix multiplication of two tensor
     /// This is also for dot/inner product.
     pub fn matmul(&self, o: &GenTensor<T>) -> GenTensor<T> {
-        if self.dim[self.dim.len()-1] != o.dim[0] {
+        if self.size()[self.size().len()-1] != o.size()[0] {
             panic!("matmul expect matched size {:?}, {:?}", self.dim, o.dim);
         }
         if self.size().len() == 1 && o.size().len() == 1 {
@@ -945,9 +947,6 @@ impl<T> GenTensor<T> where T: num_traits::Float {
                 dim,
             }
         }
-        
-        
-        
     }
 
     #[cfg(not(feature = "use-blas-lapack"))]

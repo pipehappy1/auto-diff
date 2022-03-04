@@ -10,6 +10,7 @@ use auto_diff::optim::{SGD};
 use csv;
 use std::collections::{BTreeSet};
 use rand::prelude::*;
+extern crate openblas_src;
 
 fn main() {
     let mut reader = csv::ReaderBuilder::new()

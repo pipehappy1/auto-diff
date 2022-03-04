@@ -4,6 +4,7 @@ use auto_diff::optim::{SGD};
 use auto_diff::op::Linear;
 use auto_diff::op::OpCall;
 use auto_diff::err::AutoDiffError;
+extern crate openblas_src;
 
 fn main() {
 
@@ -41,6 +42,4 @@ fn main() {
         let bias = op1.bias();
         println!("{:?}, {:?}", weight, bias);
     }
-
-    
 }

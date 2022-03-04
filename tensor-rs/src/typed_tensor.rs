@@ -23,6 +23,9 @@ use super::tensor_impl::lapack_tensor::convolution::{gemm_conv_f32, gemm_conv_f6
 #[cfg(feature = "use-blas-lapack")]
 use crate::tensor_impl::lapack_tensor::elemwise::{add_f32, add_f64,
                                                   sub_f32, sub_f64,};
+#[cfg(feature = "use-blas-lapack")]
+use crate::tensor_impl::lapack_tensor::{matmul_f64, matmul_f32};
+
 
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub enum TypedTensor {
@@ -687,9 +690,29 @@ impl TypedTensor {
     }
     typed_tensor_method!(mul);
     typed_tensor_method!(div);
-
+    pub fn matmul(&self, o: &TypedTensor) -> TypedTensor {
+        match (&self, o) {
+            #[cfg(not(feature = "use-blas-lapack"))]
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.sub(v2))},
+            #[cfg(not(feature = "use-blas-lapack"))]
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.sub(v2))},
+              
+            #[cfg(feature = "use-blas-lapack")]
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
+                TypedTensor::Typef32(matmul_f32(&v1, &v2))
+            },
+            #[cfg(feature = "use-blas-lapack")]
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
+                TypedTensor::Typef64(matmul_f64(&v1, &v2))
+            },
+              
+            #[cfg(feature = "use-cuda")]
+            (TypedTensor::Cudaf32(v1), TypedTensor::Cudaf32(v2)) => {TypedTensor::Cudaf32(v1.sub(v2))},
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
     typed_tensor_method!(mm);
-    typed_tensor_method!(matmul);
+    
     pub fn outer(&self, o: &TypedTensor, avg: Option<bool>) -> TypedTensor {
         match (&self, o) {
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {

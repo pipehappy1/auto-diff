@@ -4,7 +4,7 @@ use auto_diff::optim::{SGD, MiniBatch};
 use auto_diff::Var;
 use rand::prelude::*;
 use ::rand::prelude::StdRng;
-
+extern crate openblas_src;
 
 //use tensorboard_rs::summary_writer::SummaryWriter;
 

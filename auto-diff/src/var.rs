@@ -217,8 +217,9 @@ impl Var {
     var_2_to_1!(div);
     var_2_to_1!(
         /// Matrix/inner/dot product
-        /// ```
+        /// 
         /// # use auto_diff::{Var, var_f64, AutoDiffError};
+        /// # extern crate openblas_src;
         /// # fn test_matmul() -> Result<(), AutoDiffError> {
         /// let v1 = var_f64!([[1., 2., 3.],
         ///                    [4., 5., 6.]]);
@@ -232,7 +233,7 @@ impl Var {
         /// #   Ok(())
         /// # }
         /// # test_matmul();
-        /// ```
+        /// 
         matmul);
     var_2_to_1!(
         /// Outer product
@@ -322,8 +323,9 @@ impl Var {
         /// Apply cat on [tensor(5, 3, 2), tensor(5, 7, 2), ]
         /// will get a tensor(5, 10, 2).
         ///
-        /// ```
+        /// 
         /// # use auto_diff::{Var, var_f64, AutoDiffError};
+        /// # extern crate openblas_src;
         /// # fn test_cat() -> Result<(), AutoDiffError> {
         /// let m1 = Var::empty(&[3, 1]);
         /// let m2 = Var::empty(&[3, 1]);
@@ -333,7 +335,7 @@ impl Var {
         /// #   Ok(())
         /// # }
         /// # test_cat();
-        /// ```
+        /// 
         cat, dim: usize);
     pub fn chunk(&self, chunks: usize, dim: usize)
                  -> Result<Vec<Var>, AutoDiffError> {
@@ -671,6 +673,7 @@ macro_rules! var_f64 {
 mod tests {
     use super::*;
     use crate::op::OpCall;
+    extern crate openblas_src;
 
     #[test]
     fn mul() {

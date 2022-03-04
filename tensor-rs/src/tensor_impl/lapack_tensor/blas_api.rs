@@ -99,11 +99,11 @@ impl BlasAPI<f32> {
     pub fn spr2 () {unimplemented!();}
 
     // level 3
-    pub fn gemm(transa: bool, transb: bool, m: usize, n: usize, k: usize,
-            alpha: f32, a: &[f32], lda: usize,
-            b: &[f32], ldb: usize,
-            beta: f32, c: &mut [f32], ldc: usize,
-    ) {
+    pub fn gemm(transa: bool, transb: bool,
+                m: usize, n: usize, k: usize,
+                alpha: f32, a: &[f32], lda: usize,
+                b: &[f32], ldb: usize, beta: f32,
+                c: &mut [f32], ldc: usize) {
         let mut transa_flag = [0; 1];
         if !transa {
             'N'.encode_utf8(&mut transa_flag);
@@ -152,10 +152,11 @@ impl BlasAPI<f64> {
         }
     }
     
-    pub fn gemm(transa: bool, transb: bool, m: usize, n: usize, k: usize,
-            alpha: f64, a: &[f64], lda: usize,
-            b: &[f64], ldb: usize,
-            beta: f64, c: &mut [f64], ldc: usize,) {
+    pub fn gemm(transa: bool, transb: bool,
+                m: usize, n: usize, k: usize,
+                alpha: f64, a: &[f64], lda: usize,
+                b: &[f64], ldb: usize, beta: f64,
+                c: &mut [f64], ldc: usize,) {
         let mut transa_flag = [0; 1];
         if !transa {
             'N'.encode_utf8(&mut transa_flag);

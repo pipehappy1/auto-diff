@@ -25,14 +25,26 @@ macro_rules! blas_add {
             } else if x.numel() == y.numel() {
                 real_x = x.get_data();
             } else {
-                panic!("x and y need the same size.");
+                if x.numel() < y.numel() {
+                    panic!("right-hand broadcast only.");
+                }
+                if x.size().len() <= y.size().len() {
+                    panic!("unmatched dimension. {}, {}", x.size().len(), y.size().len());
+                }
+                for i in 0..y.size().len() {
+                    if y.size()[y.size().len()-i-1] != x.size()[x.size().len()-i-1] {
+                        panic!("unmatched size.");
+                    }
+                }
+                real_x = x.get_data();
+                real_y = real_y.repeat(x.numel()/y.numel());                
             }
             
             BlasAPI::<$a>::axpy(real_size,
                                 1.0 as $a,
                                 real_x, 1,
                                 &mut real_y, 1);
-            GenTensor::<$a>::new_move(real_y, y.size().clone())
+            GenTensor::<$a>::new_move(real_y, x.size().clone())
         }
     }
 }

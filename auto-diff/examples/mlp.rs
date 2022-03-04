@@ -9,6 +9,7 @@ use auto_diff::optim::{SGD};
 use csv;
 use std::collections::{BTreeSet};
 use rand::prelude::*;
+extern crate openblas_src;
 
 //use tensorboard_rs::summary_writer::SummaryWriter;
 
