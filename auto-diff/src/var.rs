@@ -110,6 +110,14 @@ impl Var {
         }
     }
 
+    /// Where it needs a assign operator,
+    /// we should use this ref_copy.
+    /// If a hard copy is necessary, then call clone().
+    pub fn ref_copy(other: &Var) -> Var {
+        Var {
+            var: other.var.clone(),
+        }
+    }
 
     pub fn size(&self) -> Vec<usize> {
         self.var.borrow().size()
@@ -537,6 +545,7 @@ impl Var {
         })
     }
 
+    /// Apply back propagation to get numerical gradient.
     pub fn bp(&self) -> Result<(), AutoDiffError> {
         self.var.borrow().bp()?;
 
@@ -547,6 +556,7 @@ impl Var {
         self.var.borrow().step(opt)
     }
 
+    /// Run the computation graph again.
     pub fn rerun(&self) -> Result<(), AutoDiffError> {
         self.var.borrow().rerun()
     }
@@ -561,11 +571,12 @@ impl Var {
         Ok(ret)
     }
 
-    pub fn dump_net(&self) -> Rc<RefCell<Net>> {
+    pub(crate) fn dump_net(&self) -> Rc<RefCell<Net>> {
         self.var.borrow().dump_net()
     }
 }
 
+// Test for equal
 impl PartialEq for Var {
     fn eq(&self, other: &Self) -> bool {
         self.var.borrow().val().eq(&other.var.borrow().val())
