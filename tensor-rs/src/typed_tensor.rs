@@ -693,9 +693,9 @@ impl TypedTensor {
     pub fn matmul(&self, o: &TypedTensor) -> TypedTensor {
         match (&self, o) {
             #[cfg(not(feature = "use-blas-lapack"))]
-            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.sub(v2))},
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {TypedTensor::Typef32(v1.matmul(v2))},
             #[cfg(not(feature = "use-blas-lapack"))]
-            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.sub(v2))},
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {TypedTensor::Typef64(v1.matmul(v2))},
               
             #[cfg(feature = "use-blas-lapack")]
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
@@ -707,7 +707,7 @@ impl TypedTensor {
             },
               
             #[cfg(feature = "use-cuda")]
-            (TypedTensor::Cudaf32(v1), TypedTensor::Cudaf32(v2)) => {TypedTensor::Cudaf32(v1.sub(v2))},
+            (TypedTensor::Cudaf32(v1), TypedTensor::Cudaf32(v2)) => {TypedTensor::Cudaf32(v1.matmul(v2))},
             _ => {panic!("should have same tensor type!");},
         }
     }
