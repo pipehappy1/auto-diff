@@ -51,7 +51,7 @@ openblas-src = { version = "0.10" }
 
 [features]
 
-default = ["use-f64", "use-blas-lapack"]
+default = ["use-f64", "use-blas-lapack"] #
 
 use-f32 = []
 use-f64 = []

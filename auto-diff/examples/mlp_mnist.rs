@@ -35,6 +35,11 @@ fn main() {
     test_data.reset_net();
     test_label.reset_net();
 
+    assert_eq!(train_data.size(), [60000, 784]);
+    assert_eq!(train_label.size(), [60000]);
+    assert_eq!(test_data.size(), [10000, 784]);
+    assert_eq!(test_label.size(), [10000]);
+
 
     // build the model
 //    let mut m = Module::new();
@@ -85,7 +90,6 @@ fn main() {
     let output2 = output1.sigmoid().unwrap();
     let output = op2.call(&[&output2]).unwrap().pop().unwrap();
 
-
     let loss = output.cross_entropy_loss(&label).unwrap();
     
     let lr = 0.1;
@@ -102,7 +106,7 @@ fn main() {
         label.set(&label_next);
         println!("load data done");
 
-        println!("dump net: {:?}", loss.dump_net().borrow());
+        //println!("dump net: {:?}", loss.dump_net().borrow());
         loss.rerun().unwrap();
         loss.bp().unwrap();
         loss.step(&mut opt).unwrap();

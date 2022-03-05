@@ -89,7 +89,7 @@ impl Default for MSELoss {
 }
 
 
-// CrossEntropyLoss
+/// CrossEntropyLoss
 pub struct CrossEntropyLoss {
     handle: OpHandle,
 }

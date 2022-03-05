@@ -592,6 +592,7 @@ impl Var {
         Ok(ret)
     }
 
+    /// For debug.
     pub fn dump_net(&self) -> Rc<RefCell<Net>> {
         self.var.borrow().dump_net()
     }

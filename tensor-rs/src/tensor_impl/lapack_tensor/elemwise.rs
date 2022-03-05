@@ -92,7 +92,8 @@ macro_rules! blas_sub {
                     panic!("right-hand broadcast only.");
                 }
                 if x.size().len() <= y.size().len() {
-                    panic!("unmatched dimension. {}, {}", x.size().len(), y.size().len());
+                    panic!("unmatched dimension and right-hand broadcast only. {}, {}",
+			   x.size().len(), y.size().len());
                 }
                 for i in 0..y.size().len() {
                     if y.size()[y.size().len()-i-1] != x.size()[x.size().len()-i-1] {
@@ -106,7 +107,7 @@ macro_rules! blas_sub {
                                     -1.0 as $a,
                                     &real_y_vec, 1,
                                     &mut real_x_vec, 1);
-                return GenTensor::<$a>::new_move(real_x_vec, y.size().clone());
+                return GenTensor::<$a>::new_move(real_x_vec, x.size().clone());
             }
         }
     }
@@ -131,6 +132,18 @@ mod tests {
         let c = add_f32(&a, &b);
         let em = GenTensor::<f32>::new_raw(&[2.0, 2.0, 2.0, 2.0, 2.0, 2.0], &[1, 2, 3]);
         assert_eq!(c, em);
+
+	let a = GenTensor::<f64>::ones(&[1, 2, 3]);
+        let b = GenTensor::<f64>::ones(&[1, 2, 3]);
+        let c = add_f64(&a, &b);
+        let em = GenTensor::<f64>::new_raw(&[2.0, 2.0, 2.0, 2.0, 2.0, 2.0], &[1, 2, 3]);
+        assert_eq!(c, em);
+
+	let a = GenTensor::<f64>::ones(&[1, 2, 3]);
+        let b = GenTensor::<f64>::ones(&[3]);
+        let c = add_f64(&a, &b);
+        let em = GenTensor::<f64>::new_raw(&[2.0, 2.0, 2.0, 2.0, 2.0, 2.0], &[1, 2, 3]);
+        assert_eq!(c, em);
     }
 
     #[test]
@@ -140,6 +153,18 @@ mod tests {
         let b = GenTensor::<f32>::ones(&[1, 2, 3]);
         let c = sub_f32(&a, &b);
         let em = GenTensor::<f32>::new_raw(&[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], &[1, 2, 3]);
+        assert_eq!(c, em);
+
+	let a = GenTensor::<f64>::ones(&[1, 2, 3]);
+        let b = GenTensor::<f64>::ones(&[1, 2, 3]);
+        let c = sub_f64(&a, &b);
+        let em = GenTensor::<f64>::new_raw(&[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], &[1, 2, 3]);
+        assert_eq!(c, em);
+
+	let a = GenTensor::<f64>::ones(&[1, 2, 3]);
+        let b = GenTensor::<f64>::ones(&[3]);
+        let c = sub_f64(&a, &b);
+        let em = GenTensor::<f64>::new_raw(&[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], &[1, 2, 3]);
         assert_eq!(c, em);
     }
 }
