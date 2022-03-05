@@ -132,7 +132,7 @@ fn main() {
         //writer.flush();
 
         let output1 = output.clone();
-        let err = output1.sigmoid().unwrap().sub(&test_label.clone()).unwrap().abs().unwrap().sum(None, false).unwrap();
+        let err = (output1.sigmoid().unwrap() - test_label.clone()).abs().unwrap().sum(None, false).unwrap();
         println!("err: {:?}", err);
     }
 

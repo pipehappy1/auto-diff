@@ -331,7 +331,7 @@ impl fmt::Debug for Net {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Dumping Net:")?;
         for i in self.data.iter_key() {
-            writeln!(f, "id: {:?}  data: {:?}", i, self.data.get(&i))?;
+            writeln!(f, "id: {:?}  data: {:?}", i, self.data.get(&i)?)?;
         }
         writeln!(f, "data_grad")?;
         for (k, v) in self.data_grad.iter() {

@@ -101,14 +101,8 @@ fn main() {
         input.set(&input_next);
         label.set(&label_next);
         println!("load data done");
-        
-//        m.forward();
-//        println!("forward done");
-//        m.backward(-1.);
-//        println!("backward done");
-//        opt.step(&m);
-        //        println!("update done");
 
+        println!("dump net: {:?}", loss.dump_net().borrow());
         loss.rerun().unwrap();
         loss.bp().unwrap();
         loss.step(&mut opt).unwrap();

@@ -948,8 +948,8 @@ impl fmt::Display for TypedTensor {
 impl fmt::Debug for TypedTensor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TypedTensor::Typef32(v) => write!(f, "typef32: {}", v),
-            TypedTensor::Typef64(v) => write!(f, "typef64: {}", v),
+            TypedTensor::Typef32(v) => write!(f, "typef32: {:?}", v),
+            TypedTensor::Typef64(v) => write!(f, "typef64: {:?}", v),
             //_ => panic!("Other case"),
         }
     }

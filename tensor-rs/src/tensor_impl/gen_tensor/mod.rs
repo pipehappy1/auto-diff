@@ -1226,7 +1226,10 @@ impl fmt::Display for GenTensor<f64> {
 
 impl fmt::Debug for GenTensor<f32> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.dim.len() == 2 {
+        if self.numel() > 30 {
+            writeln!(f, "size: {:?}", self.dim)?;
+            write!(f, "data: {:?}", &self.d[..30])
+        } else if self.dim.len() == 2 {
             write!(f, "[")?;
             for i in 0..self.dim[0] {
                 write!(f, "[")?;
@@ -1244,7 +1247,10 @@ impl fmt::Debug for GenTensor<f32> {
 }
 impl fmt::Debug for GenTensor<f64> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.dim.len() == 2 {
+        if self.numel() > 30 {
+            writeln!(f, "size: {:?}", self.dim)?;
+            write!(f, "data: {:?}", &self.d[..30])
+        } else if self.dim.len() == 2 {
             write!(f, "[")?;
             for i in 0..self.dim[0] {
                 write!(f, "[")?;

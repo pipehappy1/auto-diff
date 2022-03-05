@@ -37,7 +37,7 @@ macro_rules! blas_add {
                     }
                 }
                 real_x = x.get_data();
-                real_y = real_y.repeat(x.numel()/y.numel());                
+                real_y = real_y.repeat(x.numel()/y.numel());
             }
             
             BlasAPI::<$a>::axpy(real_size,
@@ -63,29 +63,51 @@ macro_rules! blas_sub {
             x: &GenTensor<$a>,
             y: &GenTensor<$a>,
         ) -> GenTensor<$a> {
-            let real_y;
-            let mut real_x = x.get_data().clone();
-            let mut real_size = y.numel();
-            let real_y_vec;
-            if y.numel() == 1 && x.numel() > 1 {
-                real_y_vec = vec![y.get_data()[0]; x.numel()];
-                real_y = &real_y_vec;
-                real_size = x.numel();
-            } else if y.numel() > 1 && x.numel() == 1 {
-                real_y = y.get_data();
-                real_x = vec![real_x[0]; y.numel()];
-                real_size = y.numel();
-            } else if y.numel() == x.numel() {
-                real_y = y.get_data();
+            if x.numel() == 1 && y.numel() > 1 {
+                let mut real_x_vec = vec![x.get_data()[0]; y.numel()];
+                let real_size = y.numel();
+                BlasAPI::<$a>::axpy(real_size,
+                                    -1.0 as $a,
+                                    y.get_data(), 1,
+                                    &mut real_x_vec, 1);
+                return GenTensor::<$a>::new_move(real_x_vec, y.size().clone());
+            } else if x.numel() > 1 && y.numel() == 1 {
+                let mut real_x_vec = x.get_data().clone();
+                let real_size = x.numel();
+                BlasAPI::<$a>::axpy(real_size,
+                                    -1.0 as $a,
+                                    y.get_data(), 1,
+                                    &mut real_x_vec, 1);
+                return GenTensor::<$a>::new_move(real_x_vec, y.size().clone());
+            } else if x.size() == y.size() {
+                let mut real_x_vec = x.get_data().clone();
+                let real_size = x.numel();
+                BlasAPI::<$a>::axpy(real_size,
+                                    -1.0 as $a,
+                                    y.get_data(), 1,
+                                    &mut real_x_vec, 1);
+                return GenTensor::<$a>::new_move(real_x_vec, y.size().clone());
             } else {
-                panic!("x and y need the same size.");
+                if x.numel() < y.numel() {
+                    panic!("right-hand broadcast only.");
+                }
+                if x.size().len() <= y.size().len() {
+                    panic!("unmatched dimension. {}, {}", x.size().len(), y.size().len());
+                }
+                for i in 0..y.size().len() {
+                    if y.size()[y.size().len()-i-1] != x.size()[x.size().len()-i-1] {
+                        panic!("unmatched size.");
+                    }
+                }
+                let mut real_x_vec = x.get_data().clone();
+                let real_y_vec = y.get_data().repeat(x.numel()/y.numel());
+                let real_size = x.numel();
+                BlasAPI::<$a>::axpy(real_size,
+                                    -1.0 as $a,
+                                    &real_y_vec, 1,
+                                    &mut real_x_vec, 1);
+                return GenTensor::<$a>::new_move(real_x_vec, y.size().clone());
             }
-            
-            BlasAPI::<$a>::axpy(real_size,
-                                -1.0 as $a,
-                                real_y, 1,
-                                &mut real_x, 1);
-            GenTensor::<$a>::new_move(real_x, x.size().clone())
         }
     }
 }

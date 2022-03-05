@@ -11,7 +11,7 @@ fn main() {
     fn func(input: &Var) -> Result<Var, AutoDiffError> {
         let input = input.clone();
         input.set_grad(false);
-        let result = input.matmul(&Var::new(&vec![2., 3.], &vec![2, 1]))?.add(&Var::new(&vec![1.], &vec![1]))?;
+        let result = input.matmul(&Var::new(&vec![2., 3.], &vec![2, 1]))? + Var::new(&vec![1.], &vec![1]);
         result.set_grad(true);
         Ok(result)
     }

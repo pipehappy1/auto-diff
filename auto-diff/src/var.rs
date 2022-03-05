@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::fmt;
 use ::rand::prelude::StdRng;
-//use std::ops::{Add, Div, Neg, Sub, Mul};
+use std::ops::{Add, Div, Neg, Sub, Mul};
 
 use tensor_rs::tensor::{Tensor};
 use crate::op::{Op};
@@ -113,9 +113,9 @@ impl Var {
     /// Where it needs a assign operator,
     /// we should use this ref_copy.
     /// If a hard copy is necessary, then call clone().
-    pub fn ref_copy(other: &Var) -> Var {
+    pub fn ref_copy(self: &Var) -> Var {
         Var {
-            var: other.var.clone(),
+            var: self.var.clone(),
         }
     }
 
@@ -218,11 +218,27 @@ impl Var {
         Self::uniform_f64(rng, dim, from, to)
     }
 
-
-    var_2_to_1!(add);
-    var_2_to_1!(sub);
-    var_2_to_1!(mul);
-    var_2_to_1!(div);
+    pub fn _add(&self, other: &Var) -> Var {
+        Var {
+            var: Rc::new(RefCell::new(self.var.borrow().add(&other.var).expect("never fail.")))
+        }
+    }
+    pub fn _sub(&self, other: &Var) -> Var {
+        Var {
+            var: Rc::new(RefCell::new(self.var.borrow().sub(&other.var).expect("never fail.")))
+        }
+    }
+    pub fn _mul(&self, other: &Var) -> Var {
+        Var {
+            var: Rc::new(RefCell::new(self.var.borrow().mul(&other.var).expect("never fail.")))
+        }
+    }
+    pub fn _div(&self, other: &Var) -> Var {
+        Var {
+            var: Rc::new(RefCell::new(self.var.borrow().div(&other.var).expect("never fail.")))
+        }
+    }
+    
     var_2_to_1!(
         /// Matrix/inner/dot product
         /// 
@@ -295,6 +311,11 @@ impl Var {
     var_1_to_1!(log1pexp);
     var_1_to_1!(log2);
     var_1_to_1!(neg);
+    pub fn _neg(&self) -> Var {
+        Var {
+            var: Rc::new(RefCell::new(self.var.borrow().neg().expect("never fail.")))
+        }
+    }
     var_1_to_1!(reciprocal);
     var_1_to_1!(round);
     var_1_to_1!(rsqrt);
@@ -571,7 +592,7 @@ impl Var {
         Ok(ret)
     }
 
-    pub(crate) fn dump_net(&self) -> Rc<RefCell<Net>> {
+    pub fn dump_net(&self) -> Rc<RefCell<Net>> {
         self.var.borrow().dump_net()
     }
 }
@@ -607,14 +628,48 @@ impl Clone for Var {
     }
 }
 
-// Do not overload ops as it takes away the variable.
-//impl Add for Var {
-//    type Output = Self;
-//
-//    fn add(self, other: Self) -> Self {
-//        unimplemented!();
-//    }
-//}
+// Operator overloading
+impl Add for Var {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        self._add(&other)
+    }
+}
+
+impl Sub for Var {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self {
+        self._sub(&other)
+    }
+}
+
+impl Mul for Var {
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self {
+        self._mul(&other)
+    }
+}
+
+impl Div for Var {
+    type Output = Self;
+
+    fn div(self, other: Self) -> Self {
+        self._div(&other)
+    }
+}
+
+impl Neg for Var {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        self._neg()
+    }
+}
+
+
 
 #[macro_export]
 macro_rules! var_f64 {
@@ -690,7 +745,7 @@ mod tests {
     fn mul() {
         let a = Var::new(&[2., 3., 4., 5.], &[2, 2]);
         let b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
-        let c = a.mul(&b).unwrap();
+        let c = a.ref_copy() * b.ref_copy();
         assert_eq!(c, Var::new(&[2., 6., 12., 20.], &[2, 2]));
         c.bp().unwrap();
         assert_eq!(a.grad().unwrap(), Var::new(&[1., 2., 3., 4.], &[2, 2]));
@@ -701,8 +756,8 @@ mod tests {
     fn test_mul_repeat_vars() {
         let a = Var::new(&[2., 3., 4., 5.], &[2, 2]);
         let b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
-        let c = a.mul(&b).unwrap();
-        let d = c.mul(&b).unwrap(); // repeat vars
+        let c = a * b.ref_copy();
+        let d = c * b; // repeat vars
         assert_eq!(d, Var::new(&[2., 12., 36., 80.], &[2, 2]));
     }
 
@@ -712,7 +767,7 @@ mod tests {
         let b = Var::new(&[1., 2., 3., 4.], &[2, 2]);
     
         fn my_mul(a: &Var, b: &Var) -> Var {
-            a.mul(b).unwrap()
+            a.ref_copy() * b.ref_copy()
         }
         let c = my_mul(&a, &b);
         assert_eq!(c, Var::new(&[2., 6., 12., 20.], &[2, 2]));
