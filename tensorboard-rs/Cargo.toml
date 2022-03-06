@@ -25,8 +25,6 @@ gethostname = "0.2.1"
 
 image = "0.23.4"
 
-auto-diff = "0.3.4"
-
 [dev-dependencies]
 protobuf-codegen = "2.14"
 

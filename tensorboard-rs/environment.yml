@@ -1,0 +1,6 @@
+name: tensorboardrs
+dependencies:
+  - numpy
+  - pandas
+  - tensorboard
+  
