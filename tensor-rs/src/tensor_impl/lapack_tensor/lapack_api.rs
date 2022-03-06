@@ -10,6 +10,18 @@ pub struct LapackAPI<T> {
 
 #[cfg(feature = "use-blas-lapack")]
 impl LapackAPI<f32> {
+    /// = 'A':  all M columns of U and all N rows of V**T are
+    ///         returned in the arrays U and VT;
+    /// = 'S':  the first min(M,N) columns of U and the first
+    ///         min(M,N) rows of V**T are returned in the arrays U
+    ///         and VT;
+    /// = 'O':  If M >= N, the first N columns of U are overwritten
+    ///         on the array A and all rows of V**T are returned in
+    ///         the array VT;
+    ///         otherwise, all columns of U are returned in the
+    ///         array U and the first M rows of V**T are overwritten
+    ///         in the array A;
+    /// = 'N':  no columns of U or rows of V**T are computed.
     pub fn gesdd(jobz: &char, m: usize, n: usize, 
                  a: &mut [f32], lda: usize, 
                  s: &mut [f32], 
@@ -88,15 +100,25 @@ impl LapackAPI<f64> {
 
 #[cfg(all(test, feature = "use-blas-lapack"))]
 mod tests {
-    //use super::*;
+    use super::*;
 
     #[test]
     fn test_svd() {
-        let v1 = [1., 2.];
-        let v2 = [3., 4.];
-        //LapackAPI::<f32>::svd(2, &mut v1, 1, &mut v2, 1);
-        println!("{:?}, {:?}", v1, v2);
-        assert_eq!(v1, [1., 2.]);
-        assert_eq!(v2, [3., 4.]);
+        let mut m: Vec<f64> = vec![4., 12., -16., 12., 37., -43., -16., -43., 98.];
+	let mut s = vec![0. ; 9];
+	let mut u = vec![0. ; 9];
+	let mut vt = vec![0. ; 9];
+	let mut info: i32 = 0;
+        LapackAPI::<f64>::gesdd(&'S', 3, 3,
+				&mut m, 3,
+				&mut s,
+				&mut u, 3,
+				&mut vt, 3,
+				&mut info);
+        //println!("{:?}, {:?}, {:?}", u, s, vt);
+        let es: Vec<f64> = vec![123.47723179013161, 15.503963229407585, 0.018804980460810704];
+        assert!((s[0] - es[0]).abs() < 1e-6);
+	assert!((s[5] - es[1]).abs() < 1e-6);
+	assert!((s[8] - es[2]).abs() < 1e-1);
     }
 }
