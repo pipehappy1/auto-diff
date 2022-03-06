@@ -25,6 +25,8 @@ use crate::tensor_impl::lapack_tensor::elemwise::{add_f32, add_f64,
                                                   sub_f32, sub_f64,};
 #[cfg(feature = "use-blas-lapack")]
 use crate::tensor_impl::lapack_tensor::{matmul_f64, matmul_f32};
+#[cfg(feature = "use-blas-lapack")]
+use crate::tensor_impl::lapack_tensor::linalg::{svd_f64, svd_f32};
 
 
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
@@ -133,31 +135,31 @@ macro_rules! typed_tensor_method_single_same_option_2_return {
     }
 }
 
-macro_rules! typed_tensor_method_single_same_option_3_return {
-    ($a:ident) => {
-        pub fn $a(&self) -> Option<[TypedTensor; 3]> {
-            match &self {
-                TypedTensor::Typef32(v1) => {
-                    v1.$a().map(|[r1, r2, r3]| [TypedTensor::Typef32(r1),
-                                                TypedTensor::Typef32(r2),
-                                                TypedTensor::Typef32(r3),])
-                },
-                TypedTensor::Typef64(v1) => {
-                    v1.$a().map(|[r1, r2, r3]| [TypedTensor::Typef64(r1),
-                                                TypedTensor::Typef64(r2),
-                                                TypedTensor::Typef64(r3),])
-                },
-                #[cfg(feature = "use-cuda")]
-                TypedTensor::Cudaf32(v1) => {
-                    v1.$a().map(|[r1, r2, r3]| [TypedTensor::Cudaf32(r1),
-                                                TypedTensor::Cudaf32(r2),
-                                                TypedTensor::Cudaf32(r3),])
-                },
-                //_ => {panic!("should have same tensor type!");},
-            }
-        }
-    }
-}
+//macro_rules! typed_tensor_method_single_same_option_3_return {
+//    ($a:ident) => {
+//        pub fn $a(&self) -> Option<[TypedTensor; 3]> {
+//            match &self {
+//                TypedTensor::Typef32(v1) => {
+//                    v1.$a().map(|[r1, r2, r3]| [TypedTensor::Typef32(r1),
+//                                                TypedTensor::Typef32(r2),
+//                                                TypedTensor::Typef32(r3),])
+//                },
+//                TypedTensor::Typef64(v1) => {
+//                    v1.$a().map(|[r1, r2, r3]| [TypedTensor::Typef64(r1),
+//                                                TypedTensor::Typef64(r2),
+//                                                TypedTensor::Typef64(r3),])
+//                },
+//                #[cfg(feature = "use-cuda")]
+//                TypedTensor::Cudaf32(v1) => {
+//                    v1.$a().map(|[r1, r2, r3]| [TypedTensor::Cudaf32(r1),
+//                                                TypedTensor::Cudaf32(r2),
+//                                                TypedTensor::Cudaf32(r3),])
+//                },
+//                //_ => {panic!("should have same tensor type!");},
+//            }
+//        }
+//    }
+//}
 
 
 
@@ -814,7 +816,43 @@ impl TypedTensor {
     typed_tensor_method_single_same_option_2_return!(eigen);
     typed_tensor_method_single_same_option_1_return!(cholesky);
     typed_tensor_method_single_same_option_1_return!(det);
-    typed_tensor_method_single_same_option_3_return!(svd);
+    pub fn svd(&self) -> Option<[TypedTensor; 3]> {
+        match &self {
+	    #[cfg(not(feature = "use-blas-lapack"))]
+            TypedTensor::Typef32(v1) => {
+                v1.svd().map(|[r1, r2, r3]| [TypedTensor::Typef32(r1),
+                                            TypedTensor::Typef32(r2),
+                                            TypedTensor::Typef32(r3),])
+            },
+	    #[cfg(not(feature = "use-blas-lapack"))]
+            TypedTensor::Typef64(v1) => {
+                v1.svd().map(|[r1, r2, r3]| [TypedTensor::Typef64(r1),
+                                            TypedTensor::Typef64(r2),
+                                            TypedTensor::Typef64(r3),])
+            },
+	    #[cfg(feature = "use-blas-lapack")]
+            TypedTensor::Typef32(v1) => {
+		let (u, s, v) = svd_f32(v1);
+		Some([TypedTensor::Typef32(u),
+                      TypedTensor::Typef32(s),
+                      TypedTensor::Typef32(v),])
+            },
+            #[cfg(feature = "use-blas-lapack")]
+            TypedTensor::Typef64(v1) => {
+		let (u, s, v) = svd_f64(v1);
+		Some([TypedTensor::Typef64(u),
+                      TypedTensor::Typef64(s),
+                      TypedTensor::Typef64(v),])
+            },
+            #[cfg(feature = "use-cuda")]
+            TypedTensor::Cudaf32(v1) => {
+                v1.svd().map(|[r1, r2, r3]| [TypedTensor::Cudaf32(r1),
+                                            TypedTensor::Cudaf32(r2),
+                                            TypedTensor::Cudaf32(r3),])
+            },
+            //_ => {panic!("should have same tensor type!");},
+        }
+    }
     typed_tensor_method_single_same_option_1_return!(inv);
     typed_tensor_method_single_tensor_return!(pinv);
     typed_tensor_method_single_tensor_return!(tr);

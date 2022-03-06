@@ -105,7 +105,7 @@ mod tests {
     #[test]
     fn test_svd() {
         let mut m: Vec<f64> = vec![4., 12., -16., 12., 37., -43., -16., -43., 98.];
-	let mut s = vec![0. ; 9];
+	let mut s = vec![0. ; 3];
 	let mut u = vec![0. ; 9];
 	let mut vt = vec![0. ; 9];
 	let mut info: i32 = 0;
@@ -115,10 +115,10 @@ mod tests {
 				&mut u, 3,
 				&mut vt, 3,
 				&mut info);
-        //println!("{:?}, {:?}, {:?}", u, s, vt);
+        println!("{:?}, {:?}, {:?}", u, s, vt);
         let es: Vec<f64> = vec![123.47723179013161, 15.503963229407585, 0.018804980460810704];
         assert!((s[0] - es[0]).abs() < 1e-6);
-	assert!((s[5] - es[1]).abs() < 1e-6);
-	assert!((s[8] - es[2]).abs() < 1e-1);
+	assert!((s[1] - es[1]).abs() < 1e-6);
+	assert!((s[2] - es[2]).abs() < 1e-1);
     }
 }
