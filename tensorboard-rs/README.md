@@ -20,8 +20,3 @@ Write TensorBoard events in Rust.
 	writer.flush();
 ```
 
-### Install tensorboard ###
-
-```sh,no_run
-conda env create -f environment.yml
-```
