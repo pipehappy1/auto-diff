@@ -1,6 +1,6 @@
 [package]
 name = "auto-diff"
-version = "0.5.5"
+version = "0.5.6"
 authors = ["yguan <yguan@example.com>"]
 edition = "2021"
 description = """
@@ -19,7 +19,7 @@ exclude = ["/dev/**"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tensor-rs = { path = "../tensor-rs", version = "0.5.5" }
+tensor-rs = { path = "../tensor-rs", version = "0.5.6" }
 
 num-traits = "0.2"
 
@@ -35,7 +35,7 @@ openblas-src = "0.10" # or another backend of your choice
 # for examples
 csv = "1.1"
 
-tensorboard-rs = { path = "../tensorboard-rs", version = "0.5.5"}
+tensorboard-rs = { path = "../tensorboard-rs", version = "0.5.6"}
 
 [features]
 
