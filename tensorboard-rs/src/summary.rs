@@ -1,5 +1,5 @@
-use crate::proto::summary::{Summary, Summary_Value, Summary_Image, SummaryMetadata, SummaryMetadata_PluginData, HistogramProto};
-use crate::proto::layout::{Layout, Category};
+use tensorboard_proto::summary::{Summary, Summary_Value, Summary_Image, SummaryMetadata, SummaryMetadata_PluginData, HistogramProto};
+use tensorboard_proto::layout::{Layout, Category};
 use protobuf::RepeatedField;
 
 use image::{RgbImage, DynamicImage, ImageOutputFormat};

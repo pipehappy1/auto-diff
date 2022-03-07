@@ -8,7 +8,7 @@ use protobuf::Message;
 use std::thread::{spawn, JoinHandle};
 use std::sync::mpsc::{channel, Sender};
 
-use crate::proto::event::Event;
+use tensorboard_proto::event::Event;
 use crate::record_writer::RecordWriter;
 
 enum EventSignal {

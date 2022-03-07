@@ -4,14 +4,14 @@ use std::collections::HashMap;
 use protobuf::Message;
 use protobuf::RepeatedField;
 use crate::event_file_writer::EventFileWriter;
-use crate::proto::event::{Event, TaggedRunMetadata};
-use crate::proto::summary::{Summary};
-use crate::proto::graph::{GraphDef, };
-use crate::proto::node_def::{NodeDef, };
-use crate::proto::versions::{VersionDef, };
-use crate::proto::attr_value::{AttrValue, };
-use crate::proto::tensor_shape::{TensorShapeProto, };
-use crate::proto::step_stats::{RunMetadata, };
+use tensorboard_proto::event::{Event, TaggedRunMetadata};
+use tensorboard_proto::summary::{Summary};
+use tensorboard_proto::graph::{GraphDef, };
+use tensorboard_proto::node_def::{NodeDef, };
+use tensorboard_proto::versions::{VersionDef, };
+use tensorboard_proto::attr_value::{AttrValue, };
+use tensorboard_proto::tensor_shape::{TensorShapeProto, };
+use tensorboard_proto::step_stats::{RunMetadata, };
 use crate::summary::{scalar, image, histogram_raw};
 
 
