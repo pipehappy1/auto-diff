@@ -3,7 +3,6 @@ use tensorboard_proto::layout::{Layout, Category};
 use protobuf::RepeatedField;
 
 use image::{RgbImage, DynamicImage, ImageOutputFormat};
-use std::io::Write;
 
 pub fn scalar(name: &str, scalar_value: f32) -> Summary {
 
@@ -78,7 +77,7 @@ pub fn image(tag: &str, data: &[u8], dim: &[usize]) -> Summary {
     summary
 }
 
-pub fn custom_scalars(layout: f32) {
+pub fn custom_scalars(_layout: f32) {
     let mut layout = Layout::new();
     let value = Category::new();
     let values = RepeatedField::from(vec![value]);

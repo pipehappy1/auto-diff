@@ -9,8 +9,8 @@ use tensorboard_proto::summary::{Summary};
 use tensorboard_proto::graph::{GraphDef, };
 use tensorboard_proto::node_def::{NodeDef, };
 use tensorboard_proto::versions::{VersionDef, };
-use tensorboard_proto::attr_value::{AttrValue, };
-use tensorboard_proto::tensor_shape::{TensorShapeProto, };
+//use tensorboard_proto::attr_value::{AttrValue, };
+//use tensorboard_proto::tensor_shape::{TensorShapeProto, };
 use tensorboard_proto::step_stats::{RunMetadata, };
 use crate::summary::{scalar, image, histogram_raw};
 

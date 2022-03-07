@@ -7,7 +7,7 @@ pub fn main() {
 
     let stop_image = "./examples/stop.jpg";
     let img = open(stop_image).expect("");
-    let img = img.into_rgb();
+    let img = img.into_rgb8();
     let (width, height) = img.dimensions();
 
     

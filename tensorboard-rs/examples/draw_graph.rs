@@ -1,12 +1,12 @@
 use tensorboard_rs::summary_writer::SummaryWriter;
-use tensorboard_rs::proto::event::{Event, TaggedRunMetadata};
-use tensorboard_rs::proto::summary::{Summary};
-use tensorboard_rs::proto::graph::{GraphDef, };
-use tensorboard_rs::proto::node_def::{NodeDef, };
-use tensorboard_rs::proto::versions::{VersionDef, };
-use tensorboard_rs::proto::attr_value::{AttrValue, };
-use tensorboard_rs::proto::tensor_shape::{TensorShapeProto, };
-use tensorboard_rs::proto::step_stats::{RunMetadata, };
+//use tensorboard_proto::event::{Event, TaggedRunMetadata};
+//use tensorboard_proto::summary::{Summary};
+//use tensorboard_proto::graph::{GraphDef, };
+use tensorboard_proto::node_def::{NodeDef, };
+//use tensorboard_proto::versions::{VersionDef, };
+use tensorboard_proto::attr_value::{AttrValue, };
+//use tensorboard_proto::tensor_shape::{TensorShapeProto, };
+//use tensorboard_proto::step_stats::{RunMetadata, };
 use protobuf::RepeatedField;
 use std::collections::HashMap;
 
