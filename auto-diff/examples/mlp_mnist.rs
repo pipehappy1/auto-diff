@@ -6,7 +6,7 @@ use ::rand::prelude::StdRng;
 extern crate openblas_src;
 
 
-//use tensorboard_rs::summary_writer::SummaryWriter;
+use tensorboard_rs::summary_writer::SummaryWriter;
 
 mod mnist;
 use mnist::{load_images, load_labels};
@@ -83,7 +83,7 @@ fn main() {
     let rng = StdRng::seed_from_u64(671);
     let mut minibatch = MiniBatch::new(rng, 16);
 
-    //    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
+    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
     let (input, label) = minibatch.next(&train_data, &train_label).unwrap();        
 
     let output1 = op1.call(&[&input]).unwrap().pop().unwrap();
@@ -95,12 +95,9 @@ fn main() {
     let lr = 0.1;
     let mut opt = SGD::new(lr);    
 
-//    let mut writer = SummaryWriter::new(&("./logdir".to_string()));
-//    
-//    
+    
     for i in 0..900 {
         println!("index: {}", i);
-        //let (mdata, mlabel) = minibatch.next(&train_data, &train_label).unwrap();
         let (input_next, label_next) = minibatch.next(&train_data, &train_label).unwrap();        
         input.set(&input_next);
         label.set(&label_next);
@@ -112,6 +109,7 @@ fn main() {
         loss.step(&mut opt).unwrap();
 
         println!("loss: {:?}", loss);
+	writer.add_scalar(&"mlp_mnist/train_loss".to_string(), f64::try_from(loss.clone()).unwrap() as f32, i);
 
 
         if i % 10 == 0 {

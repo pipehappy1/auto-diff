@@ -3,6 +3,7 @@ use std::rc::Rc;
 use std::fmt;
 use ::rand::prelude::StdRng;
 use std::ops::{Add, Div, Neg, Sub, Mul};
+use std::convert::TryFrom;
 
 use tensor_rs::tensor::{Tensor};
 use crate::op::{Op};
@@ -125,17 +126,17 @@ impl Var {
     pub fn numel(&self) -> usize {
         self.var.borrow().numel()
     }
-    pub fn get_f32(&self, o: &[usize]) -> f32 {
+    pub fn get_f32(&self, o: &[usize]) -> Result<f32, AutoDiffError> {
         self.var.borrow().get_f32(o)
     }
-    pub fn set_f32(&self, o: &[usize], v: f32) {
-        self.var.borrow_mut().set_f32(o, v);
+    pub fn set_f32(&self, o: &[usize], v: f32) -> Result<(), AutoDiffError> {
+        self.var.borrow_mut().set_f32(o, v)
     }
-    pub fn get_f64(&self, o: &[usize]) -> f64 {
+    pub fn get_f64(&self, o: &[usize]) -> Result<f64, AutoDiffError> {
         self.var.borrow().get_f64(o)
     }
-    pub fn set_f64(&self, o: &[usize], v: f64) {
-        self.var.borrow_mut().set_f64(o, v);
+    pub fn set_f64(&self, o: &[usize], v: f64) -> Result<(), AutoDiffError> {
+        self.var.borrow_mut().set_f64(o, v)
     }
 
     pub fn set(&self, o: &Var) {
@@ -667,6 +668,24 @@ impl Neg for Var {
 
     fn neg(self) -> Self {
         self._neg()
+    }
+}
+
+impl TryFrom<Var> for f32 {
+    type Error = AutoDiffError;
+
+    fn try_from(value: Var) -> Result<Self, Self::Error> {
+	let index = vec![0; value.size().len()];
+	value.get_f32(&index)
+    }
+}
+
+impl TryFrom<Var> for f64 {
+    type Error = AutoDiffError;
+
+    fn try_from(value: Var) -> Result<Self, Self::Error> {
+	let index = vec![0; value.size().len()];
+	value.get_f64(&index)
     }
 }
 

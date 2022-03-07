@@ -1,6 +1,6 @@
 [package]
 name = "tensorboard-rs"
-version = "0.2.4"
+version = "0.5.5"
 authors = ["yguan <yguan@example.com>"]
 edition = "2021"
 description = """

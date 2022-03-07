@@ -35,7 +35,7 @@ openblas-src = "0.10" # or another backend of your choice
 # for examples
 csv = "1.1"
 
-tensorboard-rs = "0.2.2"
+tensorboard-rs = { path = "../tensorboard-rs", version = "0.5.5"}
 
 [features]
 

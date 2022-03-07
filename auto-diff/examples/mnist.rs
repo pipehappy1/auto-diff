@@ -80,5 +80,5 @@ pub fn main() {
     //writer.flush();
 
     let l = load_labels("examples/data/mnist/train-labels-idx1-ubyte");
-    println!("{}, {}", l.get_f32(&vec![0]), l.get_f32(&vec![10]));
+    println!("{}, {}", l.get_f32(&vec![0]).unwrap(), l.get_f32(&vec![10]).unwrap());
 }

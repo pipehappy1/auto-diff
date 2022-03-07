@@ -194,17 +194,30 @@ impl VarInner {
     pub fn numel(&self) -> usize {
         self.net.borrow().get_tensor(self.id).expect("").numel()
     }
-    pub fn get_f32(&self, o: &[usize]) -> f32 {
-        self.net.borrow().get_tensor(self.id).expect("").get_f32(o)
+    fn check_index(v: &VarInner, o: &[usize]) -> Result<(), AutoDiffError> {
+	if v.size().len() != o.len() {
+	    return Err(AutoDiffError::new(
+		&format!("Index for get() should have the same len. t: {:?}, index: {:?}",
+			 v.size(), o.len())));
+	} else {
+	    Ok(())
+	}
     }
-    pub fn set_f32(&mut self, o: &[usize], v: f32) {
-        self.net.borrow().get_tensor(self.id).expect("").set_f32(o, v);
+    pub fn get_f32(&self, o: &[usize]) -> Result<f32, AutoDiffError> {
+	Self::check_index(&self, o)?;
+        Ok(self.net.borrow().get_tensor(self.id)?.get_f32(o))
     }
-    pub fn get_f64(&self, o: &[usize]) -> f64 {
-        self.net.borrow().get_tensor(self.id).expect("").get_f64(o)
+    pub fn set_f32(&mut self, o: &[usize], v: f32) -> Result<(), AutoDiffError> {
+	Self::check_index(&self, o)?;
+        Ok(self.net.borrow().get_tensor(self.id)?.set_f32(o, v))
     }
-    pub fn set_f64(&mut self, o: &[usize], v: f64) {
-        self.net.borrow().get_tensor(self.id).expect("").set_f64(o, v);
+    pub fn get_f64(&self, o: &[usize]) -> Result<f64, AutoDiffError> {
+	Self::check_index(&self, o)?;
+        Ok(self.net.borrow().get_tensor(self.id)?.get_f64(o))
+    }
+    pub fn set_f64(&mut self, o: &[usize], v: f64) -> Result<(), AutoDiffError>{
+	Self::check_index(&self, o)?;
+        Ok(self.net.borrow().get_tensor(self.id)?.set_f64(o, v))
     }
 
     pub fn fill(size: &[usize], fill_value: Rc<RefCell<VarInner>>) -> VarInner {
