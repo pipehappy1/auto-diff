@@ -6,6 +6,8 @@ cargo publish
 cd ../auto-diff/tensor-rs
 cargo publish
 
+sleep 2
+
 cd ../auto-diff
 cargo publish
 
