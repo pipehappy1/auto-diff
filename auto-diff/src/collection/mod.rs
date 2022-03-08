@@ -1,2 +1,3 @@
 pub mod generational_index;
-pub mod graph;
+pub mod directed_graph;
+pub mod undirected_graph;

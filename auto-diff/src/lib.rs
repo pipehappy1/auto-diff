@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
+//#![no_std]
 //! An auto-difference library
 //! =============================================================
 //!
@@ -44,6 +45,6 @@ pub mod err;
 pub use var::{Var};
 pub use err::AutoDiffError;
 
-pub(crate) mod compute_graph;
-pub(crate) mod collection;
-pub(crate) mod var_inner;
+pub mod compute_graph;
+pub mod collection;
+pub mod var_inner;

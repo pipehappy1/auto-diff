@@ -3,7 +3,7 @@ use std::collections::{BTreeSet, BTreeMap};
 use std::fmt;
 
 use crate::collection::generational_index::{GenIndex, GenKey};
-use crate::collection::graph::Graph;
+use crate::collection::directed_graph::Graph;
 use tensor_rs::tensor::Tensor;
 use crate::op::Op;
 use crate::err::AutoDiffError;

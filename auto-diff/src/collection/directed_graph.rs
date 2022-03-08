@@ -1,5 +1,5 @@
-/// A directed graph implementation with interleave op node and data node
-/// and all the edges are data node.
+//! A directed graph implementation with interleave op node and data node
+//! and all the edges are data node.
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use crate::err::AutoDiffError;

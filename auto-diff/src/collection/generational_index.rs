@@ -1,7 +1,7 @@
-/// A generational index implementation.
-/// A generational index is a map-a-like container, which
-/// invalidate index/key when the item is removed,
-/// even the container itself don't have the access to that index/key.
+//! A generational index implementation.
+//! A generational index is a map-a-like container, which
+//! invalidate index/key when the item is removed,
+//! even the container itself don't have the access to that index/key.
 use std::fmt;
 
 use crate::err::AutoDiffError;
