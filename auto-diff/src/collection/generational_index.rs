@@ -148,7 +148,7 @@ impl<'a, T> GenIndexIter<'a, T> {
 impl<'a, T> Iterator for GenIndexIter<'a, T> {
     type Item = GenKey;
     
-    fn next(&mut self) -> Option<GenKey> {
+    fn next(&mut self) -> Option<GenKey> { // TODO: don't return Option<GenKey>, return Option<&GenKey>
         let ret: GenKey;
         if self.gen_index_ref.data.is_empty() {
             return None;

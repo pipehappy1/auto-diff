@@ -5,8 +5,12 @@ use std::fmt;
 use crate::err::AutoDiffError;
 use super::generational_index::GenKey;
 
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+
 /// Graph
-pub struct Graph<TData, TOp> {
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
+pub struct Graph<TData: Ord, TOp: Ord> {
     data: BTreeSet<TData>,
     op: BTreeSet<TOp>,
     forward_dt_op: BTreeMap<TData, BTreeSet<TOp>>,
@@ -441,6 +445,19 @@ impl fmt::Debug for Graph<GenKey, GenKey> {
         writeln!(f, "op 2 dt: {:?}", self.forward_op_dt)
     }
 }
+
+impl<T1: Ord, T2: Ord> PartialEq for Graph<T1, T2> {
+    fn eq(&self, other: &Self) -> bool {
+	self.data.eq(&other.data) &&
+	    self.op.eq(&other.op) &&
+	    self.forward_dt_op.eq(&other.forward_dt_op) &&
+	    self.forward_op_dt.eq(&other.forward_op_dt) &&
+	    self.backward_dt_op.eq(&other.backward_dt_op) &&
+	    self.backward_op_dt.eq(&other.backward_op_dt)
+    }
+}
+
+impl<T1: Ord, T2: Ord> Eq for Graph<T1, T2> {}
 
 
 #[cfg(test)]
