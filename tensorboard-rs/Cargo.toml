@@ -21,13 +21,14 @@ exclude = ["/dev/**"]
 [dependencies]
 protobuf = "2.14"
 
-tensorboard-proto = { path = "../../tensorboard-proto", version = "0.5.6" }
+#tensorboard-proto = { path = "../../tensorboard-proto", version = "0.5.6" }
+tensorboard-proto = { version = "0.5.6" }
 
 gethostname = "0.2.1"
 
 image = "0.23.4"
 
-#[dev-dependencies]
+[dev-dependencies]
 #protobuf-codegen = "2.14"
 
 
