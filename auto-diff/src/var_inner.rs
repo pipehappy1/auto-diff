@@ -204,20 +204,22 @@ impl VarInner {
 	}
     }
     pub fn get_f32(&self, o: &[usize]) -> Result<f32, AutoDiffError> {
-	Self::check_index(&self, o)?;
+	Self::check_index(self, o)?;
         Ok(self.net.borrow().get_tensor(self.id)?.get_f32(o))
     }
     pub fn set_f32(&mut self, o: &[usize], v: f32) -> Result<(), AutoDiffError> {
-	Self::check_index(&self, o)?;
-        Ok(self.net.borrow().get_tensor(self.id)?.set_f32(o, v))
+	Self::check_index(self, o)?;
+	self.net.borrow().get_tensor(self.id)?.set_f32(o, v);
+        Ok(())
     }
     pub fn get_f64(&self, o: &[usize]) -> Result<f64, AutoDiffError> {
-	Self::check_index(&self, o)?;
+	Self::check_index(self, o)?;
         Ok(self.net.borrow().get_tensor(self.id)?.get_f64(o))
     }
     pub fn set_f64(&mut self, o: &[usize], v: f64) -> Result<(), AutoDiffError>{
-	Self::check_index(&self, o)?;
-        Ok(self.net.borrow().get_tensor(self.id)?.set_f64(o, v))
+	Self::check_index(self, o)?;
+	self.net.borrow().get_tensor(self.id)?.set_f64(o, v);
+        Ok(())
     }
 
     pub fn fill(size: &[usize], fill_value: Rc<RefCell<VarInner>>) -> VarInner {
@@ -367,7 +369,7 @@ impl VarInner {
             for set in other_var_by_networks {
                 let mut old_ids = vec![];
                 for item in &set {
-                    old_ids.push(item.borrow().id.clone());
+                    old_ids.push(item.borrow().id);
                 }
                 let other_key = self.net.borrow_mut().append(
                     &set[0].borrow().net.borrow(), &old_ids)?;

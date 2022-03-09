@@ -62,7 +62,7 @@ impl EventFileWriter {
         });
         
         let mut ret = EventFileWriter {
-            logdir: logdir,
+            logdir,
             writer: tx,
             child: Some(child),
         };

@@ -1,3 +1,4 @@
+#![allow(clippy::too_many_arguments)]
 use tensorboard_proto::summary::{Summary, Summary_Value, Summary_Image, SummaryMetadata, SummaryMetadata_PluginData, HistogramProto};
 use tensorboard_proto::layout::{Layout, Category};
 use protobuf::RepeatedField;

@@ -1,3 +1,4 @@
+#![allow(clippy::too_many_arguments)]
 use std::path::{PathBuf, Path};
 use std::time::SystemTime;
 use std::collections::HashMap;

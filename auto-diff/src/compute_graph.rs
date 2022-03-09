@@ -55,9 +55,8 @@ impl Net {
             Err(v) => {Err(v)}
         }
     }
-    pub fn set_tensor(&mut self, id: GenKey, val: Tensor) -> Result<(), ()> {
-        self.data.replace(&id, val)?;
-        Ok(())
+    pub fn set_tensor(&mut self, id: GenKey, val: Tensor) -> Result<(), AutoDiffError> {
+        self.data.replace(&id, val)
     }
 
     /// Insert operator into the network.

@@ -171,26 +171,26 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     ///
     /// Decouple input variable and op
     ///
-    pub fn decouple_data_func(&mut self, var: &TData, func: &TOp) -> Result<(), ()> {
+    pub fn decouple_data_func(&mut self, var: &TData, func: &TOp) -> Result<(), AutoDiffError> {
         if self.data.contains(var) && self.op.contains(func) {
             self.forward_dt_op.get_mut(var).expect("").remove(func);
             self.backward_op_dt.get_mut(func).expect("").remove(var);
             Ok(())
         } else {
-            Err(())
+            Err(AutoDiffError::new("invalid var or func"))
         }
     }
 
     ///
     /// Decouple op and output variable
     ///
-    pub fn decouple_func_data(&mut self, func: &TOp, var: &TData) -> Result<(), ()> {
+    pub fn decouple_func_data(&mut self, func: &TOp, var: &TData) -> Result<(), AutoDiffError> {
         if self.data.contains(var) && self.op.contains(func) {
             self.forward_op_dt.get_mut(func).expect("").remove(var);
             self.backward_dt_op.get_mut(var).expect("").remove(func);
             Ok(())
         } else {
-            Err(())
+            Err(AutoDiffError::new("invalid var or func"))
         }
     }
 

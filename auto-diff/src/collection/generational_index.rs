@@ -102,23 +102,23 @@ impl<T> GenIndex<T> {
     }
 
     /// Remove an item from the list.
-    pub fn remove(&mut self, index: &GenKey) -> Result<(), ()> {
+    pub fn remove(&mut self, index: &GenKey) -> Result<(), AutoDiffError> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             self.generation[index.id] += 1;
             self.available.push(index.id);
             Ok(())
         } else {
-            Err(())
+            Err(AutoDiffError::new(&format!("index is not valid! {}", index)))
         }
     }
 
     /// Replace the item of the index with a new one.
-    pub fn replace(&mut self, index: &GenKey, val: T) -> Result<(), ()> {
+    pub fn replace(&mut self, index: &GenKey, val: T) -> Result<(), AutoDiffError> {
         if index.id < self.data.len() && self.generation[index.id] == index.gen {
             self.data[index.id] = val;
             Ok(())
         } else {
-            Err(())
+            Err(AutoDiffError::new(&format!("index is not valid! {}", index)))
         }
     }
 

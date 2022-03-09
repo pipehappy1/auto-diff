@@ -56,8 +56,8 @@ impl OpTrait for Cat {
     }
     fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         let mut new_input = vec![];
-        for i in 1..input.len() {
-            new_input.push(input[i].ref_copy());
+        for item in input.iter().skip(1) {
+            new_input.push(item.ref_copy());
         }
         output[0].swap(&input[0].cat(&new_input, self.dim));
     }
