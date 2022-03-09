@@ -734,6 +734,15 @@ impl Tensor {
          Tensor { v: Rc::new(RefCell::new(r2))},
         )
     }
+
+    pub fn inner(&self) -> Rc<RefCell<TypedTensor>> {
+	self.v.clone()
+    }
+    pub fn set_inner(tt: TypedTensor) -> Tensor {
+	Tensor {
+	    v: Rc::new(RefCell::new(tt))
+	}
+    }
 }
 
 impl fmt::Display for Tensor {
