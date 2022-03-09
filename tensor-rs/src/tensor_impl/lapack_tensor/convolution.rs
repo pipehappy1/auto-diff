@@ -47,9 +47,7 @@ macro_rules! blas_conv {
                 let output_dim = (padded_dim[i] - dilation[i]*(filter_dim[2+i]-1)-1)/stride[i] + 1;
                 output_size.push(output_dim);
             }
-            let mut output_tensor_size = Vec::new();
-            output_tensor_size.push(sample_size);
-            output_tensor_size.push(out_channels);
+            let mut output_tensor_size = vec![sample_size, out_channels];
             output_tensor_size.append(&mut output_size.clone()); // output_size moved.
             let output_inner_size = output_size.iter().product::<usize>();
             //println!("output_size: {:?}", output_size);
@@ -57,8 +55,8 @@ macro_rules! blas_conv {
             //println!("{:?}", output_tensor_size);
                 
             let conv_size = filter_dim.iter().product::<usize>()/out_channels; // this is Cin xd1xd2xd3...
-	    let mut data_block = vec![0.; conv_size];
-	    let mut filter_block = vec![0.; conv_size];
+	    //let mut data_block = vec![0.; conv_size];
+	    //let mut filter_block = vec![0.; conv_size];
         
             //println!("sample_size*output_inner_size*conv_size: {:?}", sample_size*output_inner_size*conv_size);
             let mut columned_data = Vec::<$a>::with_capacity(sample_size*output_inner_size*conv_size);
@@ -163,9 +161,7 @@ macro_rules! blas_conv {
             //println!("columned_result: {:?}", columned_result);
         
             let mut result_dim = output_tensor_size.to_vec();
-            let tmp = result_dim[0];
-            result_dim[0] = result_dim[1];
-            result_dim[1] = tmp;
+	    result_dim.swap(0, 1);
             let mut result = GenTensor::<$a>::new_move(columned_result.to_vec(),
                                                         result_dim);
             let mut permute_dim: Vec<usize> = (0..output_tensor_size.len()).collect();

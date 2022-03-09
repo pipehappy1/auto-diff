@@ -1,3 +1,4 @@
+#![allow(clippy::too_many_arguments)]
 #[cfg(feature = "use-blas-lapack")]
 use lapack::*;
 use std::marker::PhantomData;

@@ -260,15 +260,15 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
     fn squeeze(&self, dim: Option<usize>) -> Self {
         let mut new_shape = Vec::new();
         let size = self.size();
-        for i in 0..size.len() {
-            if (size[i] == 1 && dim.is_some() && i == dim.unwrap()) ||
-                (size[i] == 1 && dim.is_none()) {
+	for (i, item) in size.iter().enumerate() {    
+            if (*item == 1 && dim.is_some() && i == dim.unwrap()) ||
+                (*item == 1 && dim.is_none()) {
                 continue
             } else {
-                new_shape.push(size[i]);
+                new_shape.push(*item);
             }
         }
-        if new_shape.len() == 0 {
+        if new_shape.is_empty() {
             new_shape.push(1);
         }
         GenTensor::new_raw(self.get_data(), &new_shape)

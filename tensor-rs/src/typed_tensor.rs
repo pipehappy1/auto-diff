@@ -322,12 +322,12 @@ impl TypedTensor {
         match (self, o) {
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
                 let mut v = v1.clone();
-                v.set_patch(&v2, range, step);
+                v.set_patch(v2, range, step);
                 TypedTensor::Typef32(v)
             },
             (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
                 let mut v = v1.clone();
-                v.set_patch(&v2, range, step);
+                v.set_patch(v2, range, step);
                 TypedTensor::Typef64(v)
             },
             _ => {panic!("should have same tensor type!");},
@@ -657,11 +657,11 @@ impl TypedTensor {
               
             #[cfg(feature = "use-blas-lapack")]
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
-                TypedTensor::Typef32(add_f32(&v1, &v2))
+                TypedTensor::Typef32(add_f32(v1, v2))
             },
             #[cfg(feature = "use-blas-lapack")]
             (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
-                TypedTensor::Typef64(add_f64(&v1, &v2))
+                TypedTensor::Typef64(add_f64(v1, v2))
             },
               
             #[cfg(feature = "use-cuda")]
@@ -678,11 +678,11 @@ impl TypedTensor {
               
             #[cfg(feature = "use-blas-lapack")]
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
-                TypedTensor::Typef32(sub_f32(&v1, &v2))
+                TypedTensor::Typef32(sub_f32(v1, v2))
             },
             #[cfg(feature = "use-blas-lapack")]
             (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
-                TypedTensor::Typef64(sub_f64(&v1, &v2))
+                TypedTensor::Typef64(sub_f64(v1, v2))
             },
               
             #[cfg(feature = "use-cuda")]
@@ -701,11 +701,11 @@ impl TypedTensor {
               
             #[cfg(feature = "use-blas-lapack")]
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {
-                TypedTensor::Typef32(matmul_f32(&v1, &v2))
+                TypedTensor::Typef32(matmul_f32(v1, v2))
             },
             #[cfg(feature = "use-blas-lapack")]
             (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2)) => {
-                TypedTensor::Typef64(matmul_f64(&v1, &v2))
+                TypedTensor::Typef64(matmul_f64(v1, v2))
             },
               
             #[cfg(feature = "use-cuda")]
