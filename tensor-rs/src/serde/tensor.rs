@@ -37,7 +37,7 @@ impl<'de> Deserialize<'de> for Tensor {
                     where E: de::Error, {
                         match value {
                             "v" => Ok(Field::V),
-                            _ => Err(de::Error::unknown_field(value, FIELDS)),
+                            _ => Err(de::Error::unknown_field(value, &FIELDS)),
                         }
                     }
                 }
@@ -80,8 +80,8 @@ impl<'de> Deserialize<'de> for Tensor {
             }
         }
 
-        const FIELDS: &'static [&'static str] = &["v"];
-        deserializer.deserialize_struct("Duration", FIELDS, TensorVisitor)
+        const FIELDS: [&str; 1] = ["v"];
+        deserializer.deserialize_struct("Duration", &FIELDS, TensorVisitor)
     }
 }
 

@@ -4,9 +4,13 @@
 //! even the container itself don't have the access to that index/key.
 use std::fmt;
 
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+
 use crate::err::AutoDiffError;
 
 /// GenKey index used for generational index.
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Ord, PartialOrd, Copy, Clone)]
 pub struct GenKey {
     id: usize,
@@ -29,6 +33,7 @@ impl fmt::Display for GenKey {
 /// The data is stored in a read-only manner,
 /// Use RefCell to get mutability.
 /// Not secure, no index validity check.
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct GenIndex<T> {
     data: Vec<T>,
     generation: Vec<usize>,
@@ -178,6 +183,33 @@ impl<'a, T> Iterator for GenIndexIter<'a, T> {
 impl<T> Default for GenIndex<T> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl<T: PartialEq> PartialEq for GenIndex<T> {
+    fn eq(&self, other: &Self) -> bool {
+	if self.len() != other.len() {
+	    return false;
+	} else {
+	    for (self_key, other_key) in
+		self.iter_key().zip(other.iter_key()) {
+		    if ! self.get(&self_key).expect("GenIndex bad").eq(
+			other.get(&other_key).expect("GenIndex bad")) {
+			return false;
+		    }
+		}
+	    return true;
+	}
+    }
+}
+
+impl<T: Eq> Eq for GenIndex<T> {}
+
+impl<T: fmt::Debug> fmt::Debug for GenIndex<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+	writeln!(f, "generation: {:?}", self.generation)?;
+	writeln!(f, "available: {:?}", self.available)?;
+	writeln!(f, "data: {:?}", self.data)
     }
 }
 

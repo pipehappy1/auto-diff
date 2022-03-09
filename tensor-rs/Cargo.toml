@@ -20,9 +20,6 @@ exclude = ["/dev/**"]
 
 [dependencies]
 num-traits = "0.2"
-# matrix library
-ndarray = "0.12"
-ndarray-linalg = "0.11"
 
 rand = "0.8"
 rand_distr = "0.4"
@@ -52,7 +49,7 @@ serde-pickle = {version = "0.6"}
 
 [features]
 
-default = ["use-f64", "use-blas-lapack"] #
+default = ["use-f64", "use-blas-lapack", "use-serde"] #
 
 use-f32 = []
 use-f64 = []

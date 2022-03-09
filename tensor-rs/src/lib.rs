@@ -27,9 +27,6 @@
 //! ------------
 
 
-//extern crate ndarray;
-//extern crate ndarray_linalg;
-
 pub mod tensor;
 pub mod quaternion;
 pub mod typed_tensor;

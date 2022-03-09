@@ -2,7 +2,6 @@
 //! A general tensor type.
 //! 
 
-// extern crate ndarray;
 // Default value type is f32.
 // Right dimension of the tensor changes fastest.
 use std::rc::Rc;

@@ -48,3 +48,5 @@ pub use err::AutoDiffError;
 pub mod compute_graph;
 pub mod collection;
 pub mod var_inner;
+#[cfg(feature = "use-serde")]
+pub mod serde;
