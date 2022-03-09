@@ -34,8 +34,8 @@ macro_rules! one_to_1_op_with_paras {
         }
         impl OpTrait for $a {
      
-            fn get_name(&self) -> String {
-                ($b).to_string()
+            fn get_name(&self) -> &'static str {
+                ($b)
             }
             fn get_input_size(&self) -> usize {
                 $is
@@ -95,8 +95,8 @@ macro_rules! many_to_1_op_with_paras {
         }
         impl OpTrait for $a {
      
-            fn get_name(&self) -> String {
-                ($b).to_string()
+            fn get_name(&self) -> &'static str {
+                ($b)
             }
             fn get_input_size(&self) -> usize {
                 $is
@@ -156,8 +156,8 @@ macro_rules! one_to_vec_op_with_paras {
         }
         impl OpTrait for $a {
      
-            fn get_name(&self) -> String {
-                ($b).to_string()
+            fn get_name(&self) -> &'static str {
+                ($b)
             }
             fn get_input_size(&self) -> usize {
                 $is
@@ -206,8 +206,8 @@ macro_rules! new_binary_op {
         }
         impl OpTrait for $a {
      
-            fn get_name(&self) -> String {
-                ($b).to_string()
+            fn get_name(&self) -> &'static str {
+                ($b)
             }
             fn get_input_size(&self) -> usize {
                 2
@@ -258,8 +258,8 @@ macro_rules! new_element_op {
         }
         impl OpTrait for $a {
      
-            fn get_name(&self) -> String {
-                ($b).to_string()
+            fn get_name(&self) -> &'static str {
+                ($b)
             }
             fn get_input_size(&self) -> usize {
                 2

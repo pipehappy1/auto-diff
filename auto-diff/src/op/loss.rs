@@ -29,8 +29,8 @@ impl MSELoss {
 impl OpTrait for MSELoss {
 
     
-    fn get_name(&self) -> String {
-        "MSE".to_string()
+    fn get_name(&self) -> &'static str {
+        "MSE"
     }
     fn get_input_size(&self) -> usize {
         2
@@ -102,8 +102,8 @@ impl CrossEntropyLoss {
     handle_method!();
 }
 impl OpTrait for CrossEntropyLoss {
-    fn get_name(&self) -> String {
-        "CrossEntropyLoss".to_string()
+    fn get_name(&self) -> &'static str {
+        "CrossEntropyLoss"
     }
     fn get_input_size(&self) -> usize {
         2
@@ -224,8 +224,8 @@ impl BCEWithLogitsLoss {
 }
 impl OpTrait for BCEWithLogitsLoss {
     
-    fn get_name(&self) -> String {
-        "BCEWithLogitsLoss".to_string()
+    fn get_name(&self) -> &'static str {
+        "BCEWithLogitsLoss"
     }
     fn get_input_size(&self) -> usize {
         2

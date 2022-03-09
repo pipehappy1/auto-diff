@@ -45,8 +45,8 @@ impl OpCall for Cat {
 }
 impl OpTrait for Cat {
 
-    fn get_name(&self) -> String {
-        "cat".to_string()
+    fn get_name(&self) -> &'static str {
+        "cat"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -127,8 +127,8 @@ impl OpCall for Gather {
 }
 impl OpTrait for Gather {
 
-    fn get_name(&self) -> String {
-        "gather".to_string()
+    fn get_name(&self) -> &'static str {
+        "gather"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -185,8 +185,8 @@ impl OpCall for IndexSelect {
 }
 impl OpTrait for IndexSelect {
 
-    fn get_name(&self) -> String {
-        "index_select".to_string()
+    fn get_name(&self) -> &'static str {
+        "index_select"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -243,8 +243,8 @@ impl OpCall for IndexExclude {
 }
 impl OpTrait for IndexExclude {
 
-    fn get_name(&self) -> String {
-        "index_exclude".to_string()
+    fn get_name(&self) -> &'static str {
+        "index_exclude"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -301,8 +301,8 @@ impl OpCall for Reshape {
 }
 impl OpTrait for Reshape {
 
-    fn get_name(&self) -> String {
-        "reshape".to_string()
+    fn get_name(&self) -> &'static str {
+        "reshape"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -363,8 +363,8 @@ impl OpCall for Split {
 }
 impl OpTrait for Split {
 
-    fn get_name(&self) -> String {
-        "split".to_string()
+    fn get_name(&self) -> &'static str {
+        "split"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -459,8 +459,8 @@ impl OpCall for Take {
 }
 impl OpTrait for Take {
 
-    fn get_name(&self) -> String {
-        "take".to_string()
+    fn get_name(&self) -> &'static str {
+        "take"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -517,8 +517,8 @@ impl OpCall for Permute {
 }
 impl OpTrait for Permute {
 
-    fn get_name(&self) -> String {
-        "permute".to_string()
+    fn get_name(&self) -> &'static str {
+        "permute"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -585,8 +585,8 @@ impl OpCall for ConditionalSelect {
 }
 impl OpTrait for ConditionalSelect {
 
-    fn get_name(&self) -> String {
-        "conditional_select".to_string()
+    fn get_name(&self) -> &'static str {
+        "conditional_select"
     }
     fn get_input_size(&self) -> usize {
         3
@@ -649,8 +649,8 @@ impl OpCall for Repeat {
 }
 impl OpTrait for Repeat {
 
-    fn get_name(&self) -> String {
-        "repeat".to_string()
+    fn get_name(&self) -> &'static str {
+        "repeat"
     }
     fn get_input_size(&self) -> usize {
         1

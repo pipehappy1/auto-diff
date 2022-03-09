@@ -20,8 +20,8 @@ impl Conv1d {
     handle_method!();
 }
 impl OpTrait for Conv1d {
-    fn get_name(&self) -> String {
-        "Conv1d".to_string()
+    fn get_name(&self) -> &'static str {
+        "Conv1d"
     }
     fn get_input_size(&self) -> usize {
         2
@@ -152,8 +152,8 @@ impl OpCall for Conv2d {
 }
 
 impl OpTrait for Conv2d {
-    fn get_name(&self) -> String {
-        "Conv2d".to_string()
+    fn get_name(&self) -> &'static str {
+        "Conv2d"
     }
     fn get_input_size(&self) -> usize {
         1

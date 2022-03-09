@@ -66,8 +66,8 @@ impl OpCall for ArgSort {
 }
 impl OpTrait for ArgSort {
 
-    fn get_name(&self) -> String {
-        "arg_sort".to_string()
+    fn get_name(&self) -> &'static str {
+        "arg_sort"
     }
     fn get_input_size(&self) -> usize {
         1

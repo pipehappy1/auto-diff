@@ -13,7 +13,7 @@ use crate::compute_graph::Net;
 /// in the computation graph.
 pub trait OpTrait {
     /// A conventional name for the op
-    fn get_name(&self) -> String;
+    fn get_name(&self) -> &'static str;
 
     /// The number of input needs by this op.
     fn get_input_size(&self) -> usize;
@@ -118,7 +118,7 @@ impl Op {
 //    }
 
     pub fn get_name(&self) -> String {
-        self.inner_op.borrow().get_name()
+        self.inner_op.borrow().get_name().to_string()
     }
     pub fn get_input_size(&self) -> usize {
         self.inner_op.borrow().get_input_size()
@@ -318,8 +318,8 @@ impl OpCall for View {
     }
 }
 impl OpTrait for View {
-    fn get_name(&self) -> String {
-        "View".to_string()
+    fn get_name(&self) -> &'static str {
+        "View"
     }
     fn get_input_size(&self) -> usize {
         1

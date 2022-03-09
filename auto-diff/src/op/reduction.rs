@@ -43,8 +43,8 @@ macro_rules! reduce_macro {
         }
         impl OpTrait for $a {
      
-            fn get_name(&self) -> String {
-                ($b).to_string()
+            fn get_name(&self) -> &'static str {
+                ($b)
             }
             fn get_input_size(&self) -> usize {
                 1

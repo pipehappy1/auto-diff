@@ -21,8 +21,8 @@ impl ELU {
     handle_method!();
 }
 impl OpTrait for ELU {
-    fn get_name(&self) -> String {
-        "ELU".to_string()
+    fn get_name(&self) -> &'static str {
+        "ELU"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -84,8 +84,8 @@ impl ReLU {
     handle_method!();
 }
 impl OpTrait for ReLU {
-    fn get_name(&self) -> String {
-        "ReLU".to_string()
+    fn get_name(&self) -> &'static str {
+        "ReLU"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -140,8 +140,8 @@ impl Sigmoid {
 }
 impl OpTrait for Sigmoid {
     
-    fn get_name(&self) -> String {
-        "Sigmoid".to_string()
+    fn get_name(&self) -> &'static str {
+        "Sigmoid"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -202,8 +202,8 @@ impl Sine {
     handle_method!();
 }
 impl OpTrait for Sine {
-    fn get_name(&self) -> String {
-        "Sine".to_string()
+    fn get_name(&self) -> &'static str {
+        "Sine"
     }
     fn get_input_size(&self) -> usize {
         1

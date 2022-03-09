@@ -79,8 +79,8 @@ impl OpTrait for Linear {
 
     
 
-    fn get_name(&self) -> String {
-        "Linear".to_string()
+    fn get_name(&self) -> &'static str {
+        "Linear"
     }
 
     fn get_input_size(&self) -> usize {
@@ -227,8 +227,8 @@ impl OpCall for BiLinear {
 }
 
 impl OpTrait for BiLinear {
-    fn get_name(&self) -> String {
-        "BiLinear".to_string()
+    fn get_name(&self) -> &'static str {
+        "BiLinear"
     }
 
     fn get_input_size(&self) -> usize {
