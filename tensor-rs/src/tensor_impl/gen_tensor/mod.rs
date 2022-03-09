@@ -2,9 +2,6 @@
 use std::fmt;
 use std::cmp;
 
-#[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
-
 pub mod compare_tensor;
 pub mod convolution;
 pub mod elemwise;
@@ -12,6 +9,9 @@ pub mod index_slicing;
 pub mod linalg;
 pub mod reduction;
 pub mod rand;
+
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
 
 /// Naive tensor implementation, single thread
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
@@ -1469,23 +1469,5 @@ mod tests {
         let b = GenTensor::<f32>::new_raw(&vec![2., 3., 10., 6.], &vec![2,2]);
         let c = a.ne(&b);
         assert_eq!(c, GenTensor::<f32>::new_raw(&vec![1., 0., 0., 1.], &vec![2,2]));
-    }
-    
-
-}
-
-
-#[cfg(all(test, feature = "use-serde"))]
-mod test_for_serde {
-    use super::*;
-
-    #[test]
-    fn test_serde() {
-        let m1 = GenTensor::<f32>::new_raw(&vec![1.,2.,3.,4.,5.,6.], &vec![3,2]);
-
-        let serialized = serde_pickle::to_vec(&m1, true).unwrap();
-        let deserialized = serde_pickle::from_slice(&serialized).unwrap();
-        //println!("{:?}", deserialized);
-        assert_eq!(m1, deserialized);
     }
 }

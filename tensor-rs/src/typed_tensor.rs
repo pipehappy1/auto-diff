@@ -171,7 +171,7 @@ impl Default for TypedTensor {
 
 impl TypedTensor {
     pub fn new() -> TypedTensor {
-        // Default value type is f32.
+        // Default value type is f64.
         TypedTensor::Typef64(GenTensor::new())
     }
 

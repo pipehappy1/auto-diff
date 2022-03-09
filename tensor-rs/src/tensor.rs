@@ -10,12 +10,9 @@ use std::cell::RefCell;
 //use std::ops::Index;
 use ::rand::prelude::StdRng;
 
-#[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+
 
 use std::fmt;
-
-
 
 
 use super::typed_tensor::TypedTensor;
