@@ -57,10 +57,8 @@ macro_rules! blas_conv {
             //println!("{:?}", output_tensor_size);
                 
             let conv_size = filter_dim.iter().product::<usize>()/out_channels; // this is Cin xd1xd2xd3...
-            let mut data_block = Vec::<$a>::with_capacity(conv_size);
-            unsafe{ data_block.set_len(conv_size); }
-            let mut filter_block = Vec::<$a>::with_capacity(conv_size);
-            unsafe{ filter_block.set_len(conv_size); }
+	    let mut data_block = vec![0.; conv_size];
+	    let mut filter_block = vec![0.; conv_size];
         
             //println!("sample_size*output_inner_size*conv_size: {:?}", sample_size*output_inner_size*conv_size);
             let mut columned_data = Vec::<$a>::with_capacity(sample_size*output_inner_size*conv_size);

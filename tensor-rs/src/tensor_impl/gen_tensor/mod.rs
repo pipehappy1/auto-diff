@@ -743,7 +743,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
     }
 
     pub fn log10_like(&self) -> GenTensor<T> {
-	let new_data = vec![T::from(2.302585092994046).unwrap(); self.d.len()];
+	let new_data = vec![T::from(std::f64::consts::LN_10).unwrap(); self.d.len()];
         let new_dim = self.dim.to_vec();
         GenTensor {
             d: new_data,
@@ -751,7 +751,7 @@ impl<T> GenTensor<T> where T: num_traits::Float {
         }
     }
     pub fn log2_like(&self) -> GenTensor<T> {
-	let new_data = vec![T::from(0.6931471805599453).unwrap(); self.d.len()];
+	let new_data = vec![T::from(std::f64::consts::LN_2).unwrap(); self.d.len()];
         let new_dim = self.dim.to_vec();
         GenTensor {
             d: new_data,
