@@ -7,7 +7,12 @@ use std::rc::Rc;
 use crate::var::{Var};
 use crate::err::AutoDiffError;
 
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
+use std::any::Any;
 
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Linear {
     in_fea: Option<usize>,
     out_fea: Option<usize>,
@@ -16,7 +21,7 @@ pub struct Linear {
     bias: Tensor,
     weight_grad: Tensor,
     bias_grad: Tensor,
-    
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl Linear {
@@ -151,6 +156,11 @@ impl OpTrait for Linear {
         }
         ret
     }
+
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
+    }
     
 }
 
@@ -284,6 +294,11 @@ impl OpTrait for BiLinear {
             ret.push(self.bias_grad.clone());
         }
         ret
+    }
+
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
     
 }

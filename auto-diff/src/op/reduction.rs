@@ -6,6 +6,9 @@ use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpCall, Op, OpHandle};
 use crate::err::AutoDiffError;
 
+#[cfg(feature = "use-serde")]
+use std::any::Any;
+
 macro_rules! reduce_macro {
     ($a:ident, $b:expr, $c:ident, $d: tt) => {
         pub struct $a {
@@ -74,6 +77,10 @@ macro_rules! reduce_macro {
             }
             fn set_values(&self, _v: &[Tensor]) {
             }
+	    #[cfg(feature = "use-serde")]
+	    fn as_any(&self) -> &dyn Any {
+		self
+	    }
         }
     }
 }

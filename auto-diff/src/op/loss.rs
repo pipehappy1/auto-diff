@@ -1,6 +1,8 @@
 use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 
+#[cfg(feature = "use-serde")]
+use std::any::Any;
 
 //
 // Common Cost function
@@ -80,6 +82,10 @@ impl OpTrait for MSELoss {
 
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 impl Default for MSELoss {
@@ -191,6 +197,10 @@ impl OpTrait for CrossEntropyLoss {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
+    }
 }
 impl Default for CrossEntropyLoss {
     fn default() -> Self {
@@ -277,6 +287,10 @@ impl OpTrait for BCEWithLogitsLoss {
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 impl Default for BCEWithLogitsLoss {

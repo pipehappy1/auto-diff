@@ -12,6 +12,9 @@ use super::macros::{many_to_1_op_with_paras,
                     new_element_op,
                     one_to_1_op_with_paras};
 
+#[cfg(feature = "use-serde")]
+use std::any::Any;
+
 pub struct Cat {
     handle: OpHandle,
     dim: usize
@@ -78,6 +81,10 @@ impl OpTrait for Cat {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 
@@ -150,6 +157,10 @@ impl OpTrait for Gather {
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
+    }
 }
 
 // index_select
@@ -207,6 +218,10 @@ impl OpTrait for IndexSelect {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 
@@ -266,6 +281,10 @@ impl OpTrait for IndexExclude {
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
+    }
 }
 
 // reshape
@@ -323,6 +342,10 @@ impl OpTrait for Reshape {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 
@@ -388,6 +411,10 @@ impl OpTrait for Split {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 
@@ -482,6 +509,10 @@ impl OpTrait for Take {
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
+    }
 }
 
 // permute
@@ -539,6 +570,10 @@ impl OpTrait for Permute {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 
@@ -608,6 +643,10 @@ impl OpTrait for ConditionalSelect {
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
+    }
 }
 impl Default for ConditionalSelect {
     fn default() -> Self {
@@ -671,5 +710,9 @@ impl OpTrait for Repeat {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }

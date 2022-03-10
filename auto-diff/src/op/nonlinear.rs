@@ -2,6 +2,8 @@
 use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 
+#[cfg(feature = "use-serde")]
+use std::any::Any;
 
 /// ELU
 pub struct ELU {
@@ -61,6 +63,10 @@ impl OpTrait for ELU {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
+    }
 }
 
 // Hardshrink
@@ -118,6 +124,10 @@ impl OpTrait for ReLU {
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 
@@ -181,6 +191,10 @@ impl OpTrait for Sigmoid {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
+    }
 }
 
 // Softplus
@@ -236,6 +250,10 @@ impl OpTrait for Sine {
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 

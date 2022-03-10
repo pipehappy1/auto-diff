@@ -8,6 +8,11 @@ use crate::err::AutoDiffError;
 use crate::collection::generational_index::{GenKey};
 use crate::compute_graph::Net;
 
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
+use std::any::Any;
+
 /// Implement operator by this trait
 /// to allow the operator be able to stored
 /// in the computation graph.
@@ -29,27 +34,14 @@ pub trait OpTrait {
     /// return backward input gradeint.
     fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]);
 
-    
-//    fn call_tensor(&mut self, input: &[&Tensor]) -> Result<Vec<Tensor>, AutoDiffError> {
-//        if input.len() != self.get_input_size() {
-//            return Err(AutoDiffError::new(
-//                &format!("{} expect {} input, get {}",
-//                         self.get_name(), self.get_input_size(), input.len())));
-//        }
-//        let ret = vec![Tensor::new(); self.get_output_size()];
-//        let mut ret_ref = Vec::new();
-//        for i in &ret {
-//            ret_ref.push(i);
-//        }
-//        self.apply(input, &ret_ref[..]);
-//        Ok(ret)
-//    }
-    
     /// access weight values
     fn get_values(&self) -> Vec<Tensor>;
     fn set_values(&self, v: &[Tensor]);
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor>;
+
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any;
 }
 
 /// Ops that first created,
@@ -94,28 +86,22 @@ macro_rules! handle_method {
 ///
 pub struct Op {
     inner_op: Rc<RefCell<Box<dyn OpTrait>>>,
-    update_counter: RefCell<usize>, // guard for the case there optim.step is called when .backward is not called yet.
 }
 impl Op {
     pub fn new(op: Rc<RefCell<Box<dyn OpTrait>>>) -> Self {
         Op {
             inner_op: op.clone(),
-            update_counter: RefCell::new(0),
         }
+    }
+    pub fn inner(&self) -> &Rc<RefCell<Box<dyn OpTrait>>> {
+	&self.inner_op
     }
 
     pub fn ref_copy(&self) -> Self {
         Op {
             inner_op: self.inner_op.clone(),
-            update_counter: RefCell::new(0) // TODO?
         }
     }
-
-//    pub fn nop() -> Self {
-//        Op {
-//            update_counter: RefCell::new(0),
-//        }
-//    }
 
     pub fn get_name(&self) -> String {
         self.inner_op.borrow().get_name().to_string()
@@ -125,9 +111,6 @@ impl Op {
     }
     pub fn get_output_size(&self) -> usize {
         self.inner_op.borrow().get_output_size()
-    }
-    pub fn get_update_counter(&self) -> usize {
-        *self.update_counter.borrow()
     }
     /// Read the input, do the calculation and write result to output.
     /// Called by compute_grapyh.
@@ -142,8 +125,6 @@ impl Op {
                 input_grad: &[Tensor]) {
 
         self.inner_op.borrow().grad(input, output_grad, input_grad);
-        let new_counter = self.update_counter.borrow().overflowing_add(1).0;
-        self.update_counter.replace(new_counter);
     }
 
     /// access weight/paramenters
@@ -354,6 +335,11 @@ impl OpTrait for View {
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
+    }
+
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 

@@ -6,6 +6,9 @@ use super::{OpTrait, OpCall, Op, OpHandle};
 use crate::var::Var;
 use crate::err::AutoDiffError;
 
+#[cfg(feature = "use-serde")]
+use std::any::Any;
+
 pub struct Conv1d {
     alpha: f32,
     handle: OpHandle,
@@ -52,6 +55,10 @@ impl OpTrait for Conv1d {
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 
@@ -222,6 +229,10 @@ impl OpTrait for Conv2d {
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         vec![self.weight_grad.ref_copy(), self.bias_grad.ref_copy()]
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 // Conv3d

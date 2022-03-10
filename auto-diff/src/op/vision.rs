@@ -7,6 +7,9 @@ use std::rc::Rc;
 use crate::var::{Var};
 use crate::err::AutoDiffError;
 
+#[cfg(feature = "use-serde")]
+use std::any::Any;
+
 pub struct GetPatch {
     handle: OpHandle,
     range: Vec<(usize, usize)>,
@@ -69,6 +72,10 @@ impl OpTrait for GetPatch {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 
@@ -136,6 +143,10 @@ impl OpTrait for SetPatch {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 

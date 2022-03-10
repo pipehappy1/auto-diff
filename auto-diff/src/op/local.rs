@@ -3,6 +3,9 @@ use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 use super::macros::new_binary_op;
 
+#[cfg(feature = "use-serde")]
+use std::any::Any;
+
 
 new_binary_op!(Add, "add",
                (|a:&[Tensor], b:&[Tensor]|

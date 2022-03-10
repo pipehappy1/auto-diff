@@ -9,6 +9,9 @@ use std::rc::Rc;
 use crate::var::{Var};
 use crate::err::AutoDiffError;
 
+#[cfg(feature = "use-serde")]
+use std::any::Any;
+
 // max_pair
 new_binary_op!(MaxPair, "max_pair",
                (|a:&[Tensor], b:&[Tensor]|
@@ -88,6 +91,10 @@ impl OpTrait for ArgSort {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 // eq_t (use eq_elem)

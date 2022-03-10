@@ -1,4 +1,6 @@
 #![allow(clippy::redundant_closure_call)]
+#[cfg(feature = "use-serde")]
+use std::any::Any;
 
 macro_rules! one_to_1_op_with_paras {
     ($a:ident, $b:expr, $is:expr,$os:expr, $c:ident, $d: tt, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
@@ -57,6 +59,10 @@ macro_rules! one_to_1_op_with_paras {
             }
             fn set_values(&self, _v: &[Tensor]) {
             }
+	    #[cfg(feature = "use-serde")]
+	    fn as_any(&self) -> &dyn Any {
+		self
+	    }
         }
     }
 }
@@ -118,6 +124,10 @@ macro_rules! many_to_1_op_with_paras {
             }
             fn set_values(&self, _v: &[Tensor]) {
             }
+	    #[cfg(feature = "use-serde")]
+	    fn as_any(&self) -> &dyn Any {
+		self
+	    }
         }
     }
 }
@@ -182,6 +192,10 @@ macro_rules! one_to_vec_op_with_paras {
             }
             fn set_values(&self, _v: &[Tensor]) {
             }
+	    #[cfg(feature = "use-serde")]
+	    fn as_any(&self) -> &dyn Any {
+		self
+	    }
         }
     }
 }
@@ -229,6 +243,10 @@ macro_rules! new_binary_op {
             }
             fn set_values(&self, _v: &[Tensor]) {
             }
+	    #[cfg(feature = "use-serde")]
+	    fn as_any(&self) -> &dyn Any {
+		self
+	    }
         }
         impl Default for $a {
             fn default() -> Self {
@@ -281,6 +299,10 @@ macro_rules! new_element_op {
             }
             fn set_values(&self, _v: &[Tensor]) {
             }
+	    #[cfg(feature = "use-serde")]
+	    fn as_any(&self) -> &dyn Any {
+		self
+	    }
         }
         impl Default for $a {
             fn default() -> Self {

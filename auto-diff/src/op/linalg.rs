@@ -1,6 +1,9 @@
 use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 
+#[cfg(feature = "use-serde")]
+use std::any::Any;
+
 pub struct NormalizeUnit {
     handle: OpHandle,
 }
@@ -41,6 +44,10 @@ impl OpTrait for NormalizeUnit {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 impl Default for NormalizeUnit {
@@ -91,6 +98,10 @@ impl OpTrait for Det {
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
+    }
 }
 impl Default for Det {
     fn default() -> Self {
@@ -139,6 +150,10 @@ impl OpTrait for Inv {
     }
     fn set_values(&self, _v: &[Tensor]) {
     }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
+    }
 }
 impl Default for Inv {
     fn default() -> Self {
@@ -186,6 +201,10 @@ impl OpTrait for Tr {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 impl Default for Tr {

@@ -1,6 +1,9 @@
 use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 
+#[cfg(feature = "use-serde")]
+use std::any::Any;
+
 // MaxPool1d
 // Maxpool2d
 pub struct MaxPool2d {
@@ -66,6 +69,10 @@ impl OpTrait for MaxPool2d {
         Vec::new()
     }
     fn set_values(&self, _v: &[Tensor]) {
+    }
+    #[cfg(feature = "use-serde")]
+    fn as_any(&self) -> &dyn Any {
+	self
     }
 }
 
