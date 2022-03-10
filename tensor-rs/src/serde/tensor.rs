@@ -9,7 +9,7 @@ impl Serialize for Tensor {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where S: Serializer, {
         // 3 is the number of fields in the struct.
-        let mut state = serializer.serialize_struct("Tensor", 3)?;
+        let mut state = serializer.serialize_struct("Tensor", 1)?;
         state.serialize_field("v", &self.inner().borrow().clone())?;
         state.end()
     }
