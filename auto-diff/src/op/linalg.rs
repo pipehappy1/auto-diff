@@ -27,7 +27,7 @@ impl NormalizeUnit {
 impl OpTrait for NormalizeUnit {
      
     fn get_name(&self) -> &'static str {
-        "normalize_unit"
+        "NormalizeUnit"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -82,7 +82,7 @@ impl Det {
 impl OpTrait for Det {
      
     fn get_name(&self) -> &'static str {
-        "det"
+        "Det"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -136,7 +136,7 @@ impl Inv {
 impl OpTrait for Inv {
      
     fn get_name(&self) -> &'static str {
-        "inv"
+        "Inv"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -190,7 +190,7 @@ impl Tr {
 impl OpTrait for Tr {
      
     fn get_name(&self) -> &'static str {
-        "tr"
+        "Tr"
     }
     fn get_input_size(&self) -> usize {
         1

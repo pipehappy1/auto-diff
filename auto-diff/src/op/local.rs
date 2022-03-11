@@ -10,7 +10,7 @@ use std::any::Any;
 
 
 
-new_binary_op!(Add, "add",
+new_binary_op!(Add, "Add",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].add(&a[1]))
                ),
@@ -21,7 +21,7 @@ new_binary_op!(Add, "add",
                    input_grad[1].swap(&y);
                })
 );
-new_binary_op!(Sub, "sub",
+new_binary_op!(Sub, "Sub",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].sub(&a[1]))),
                (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
@@ -31,7 +31,7 @@ new_binary_op!(Sub, "sub",
                    input_grad[1].swap(&y);
                })
 );
-new_binary_op!(Mul, "mul",
+new_binary_op!(Mul, "Mul",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].mul(&a[1]))),
                (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
@@ -41,7 +41,7 @@ new_binary_op!(Mul, "mul",
                    input_grad[1].swap(&y);
                })
 );
-new_binary_op!(Div, "div",
+new_binary_op!(Div, "Div",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].div(&a[1]))),
                (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
@@ -52,7 +52,7 @@ new_binary_op!(Div, "div",
                })
 );
 
-new_binary_op!(Matmul, "matmul",
+new_binary_op!(Matmul, "Matmul",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].matmul(&a[1]))),
                (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
@@ -61,7 +61,7 @@ new_binary_op!(Matmul, "matmul",
                })
 );
 
-new_binary_op!(Outer, "outer",
+new_binary_op!(Outer, "Outer",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].outer(&a[1], None))),
                (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {

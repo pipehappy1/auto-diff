@@ -54,7 +54,7 @@ impl OpCall for GetPatch {
 impl OpTrait for GetPatch {
 
     fn get_name(&self) -> &'static str {
-        "get_patch"
+        "GetPatch"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -126,7 +126,7 @@ impl OpCall for SetPatch {
 impl OpTrait for SetPatch {
 
     fn get_name(&self) -> &'static str {
-        "set_patch"
+        "SetPatch"
     }
     fn get_input_size(&self) -> usize {
         2

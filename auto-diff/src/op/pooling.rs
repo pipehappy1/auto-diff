@@ -52,7 +52,7 @@ impl MaxPool2d {
 impl OpTrait for MaxPool2d {
      
     fn get_name(&self) -> &'static str {
-        "max_pool2d"
+        "MaxPool2d"
     }
     fn get_input_size(&self) -> usize {
         1

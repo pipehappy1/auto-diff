@@ -10,7 +10,7 @@ use std::any::Any;
 
 
 new_element_op!(Abs,
-                "abs",
+                "Abs",
                 abs,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -23,7 +23,7 @@ new_element_op!(Abs,
                  }));
 
 new_element_op!(Acos,
-                "acos",
+                "Acos",
                 acos,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -33,7 +33,7 @@ new_element_op!(Acos,
                  }));
 
 new_element_op!(Asin,
-                "asin",
+                "Asin",
                 asin,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -43,7 +43,7 @@ new_element_op!(Asin,
                  }));
 
 new_element_op!(Atan,
-                "atan",
+                "Atan",
                 atan,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -53,7 +53,7 @@ new_element_op!(Atan,
                  }));
 
 new_element_op!(Ceil,
-                "ceil",
+                "Ceil",
                 ceil,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -62,7 +62,7 @@ new_element_op!(Ceil,
                  }));
 
 new_element_op!(Cos,
-                "cos",
+                "Cos",
                 cos,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -72,7 +72,7 @@ new_element_op!(Cos,
                  }));
 
 new_element_op!(Cosh,
-                "cosh",
+                "Cosh",
                 cosh,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -82,7 +82,7 @@ new_element_op!(Cosh,
                  }));
 
 new_element_op!(Exp,
-                "exp",
+                "Exp",
                 exp,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -93,7 +93,7 @@ new_element_op!(Exp,
 
 
 new_element_op!(Expm1,
-                "expm1",
+                "Expm1",
                 expm1,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -103,7 +103,7 @@ new_element_op!(Expm1,
                  }));
 
 new_element_op!(Floor,
-                "floor",
+                "Floor",
                 floor,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -112,7 +112,7 @@ new_element_op!(Floor,
                  }));
 
 new_element_op!(Frac,
-                "frac",
+                "Frac",
                 frac,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -121,7 +121,7 @@ new_element_op!(Frac,
                  }));
 
 new_element_op!(Log,
-                "log",
+                "Log",
                 log,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -131,7 +131,7 @@ new_element_op!(Log,
                  }));
 
 new_element_op!(Log10,
-                "log10",
+                "Log10",
                 log10,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -141,7 +141,7 @@ new_element_op!(Log10,
                  }));
 
 new_element_op!(Log1p,
-                "log1p",
+                "Log1p",
                 log1p,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -151,7 +151,7 @@ new_element_op!(Log1p,
                  }));
 
 new_element_op!(Log1pexp,
-                "log1pexp",
+                "Log1pexp",
                 log1pexp,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -161,7 +161,7 @@ new_element_op!(Log1pexp,
                  }));
 
 new_element_op!(Log2,
-                "log2",
+                "Log2",
                 log2,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -171,7 +171,7 @@ new_element_op!(Log2,
                  }));
 
 new_element_op!(Neg,
-                "neg",
+                "Neg",
                 neg,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -181,7 +181,7 @@ new_element_op!(Neg,
                  }));
 
 new_element_op!(Reciprocal,
-                "reciprocal",
+                "Reciprocal",
                 reciprocal,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -191,7 +191,7 @@ new_element_op!(Reciprocal,
                  }));
 
 new_element_op!(Round,
-                "round",
+                "Round",
                 round,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -201,7 +201,7 @@ new_element_op!(Round,
                  }));
 
 new_element_op!(Rsqrt,
-                "rsqrt",
+                "Rsqrt",
                 rsqrt,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -213,7 +213,7 @@ new_element_op!(Rsqrt,
                  }));
 
 new_element_op!(Sigmoid,
-                "sigmoid",
+                "Sigmoid",
                 sigmoid,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -223,7 +223,7 @@ new_element_op!(Sigmoid,
                  }));
 
 new_element_op!(Sign,
-                "sign",
+                "Sign",
                 sign,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -233,7 +233,7 @@ new_element_op!(Sign,
                  }));
 
 new_element_op!(Sin,
-                "sin",
+                "Sin",
                 sin,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -243,7 +243,7 @@ new_element_op!(Sin,
                  }));
 
 new_element_op!(Sinh,
-                "sinh",
+                "Sinh",
                 sinh,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -253,7 +253,7 @@ new_element_op!(Sinh,
                  }));
 
 new_element_op!(Sqrt,
-                "sqrt",
+                "Sqrt",
                 sqrt,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -264,7 +264,7 @@ new_element_op!(Sqrt,
                  }));
 
 new_element_op!(Tan,
-                "tan",
+                "Tan",
                 tan,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -274,7 +274,7 @@ new_element_op!(Tan,
                  }));
 
 new_element_op!(Tanh,
-                "tanh",
+                "Tanh",
                 tanh,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -284,7 +284,7 @@ new_element_op!(Tanh,
                  }));
 
 new_element_op!(Trunc,
-                "trunc",
+                "Trunc",
                 trunc,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],

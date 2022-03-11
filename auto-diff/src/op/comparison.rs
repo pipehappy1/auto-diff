@@ -15,7 +15,7 @@ use serde::{Serialize, Deserialize};
 use std::any::Any;
 
 // max_pair
-new_binary_op!(MaxPair, "max_pair",
+new_binary_op!(MaxPair, "Max_pair",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].max_pair(&a[1]))
                ),
@@ -25,7 +25,7 @@ new_binary_op!(MaxPair, "max_pair",
                }));
 // max, in reduction
 // min_pair
-new_binary_op!(MinPair, "min_pair",
+new_binary_op!(MinPair, "Min_pair",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].min_pair(&a[1]))
                ),
@@ -74,7 +74,7 @@ impl OpCall for ArgSort {
 impl OpTrait for ArgSort {
 
     fn get_name(&self) -> &'static str {
-        "arg_sort"
+        "Arg_sort"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -102,7 +102,7 @@ impl OpTrait for ArgSort {
     }
 }
 // eq_t (use eq_elem)
-new_binary_op!(EqElem, "eq_t",
+new_binary_op!(EqElem, "Eq_t",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].eq_t(&a[1]))
                ),
@@ -111,7 +111,7 @@ new_binary_op!(EqElem, "eq_t",
                     unimplemented!();
                }));
 // equal, 0 is == 1 is !=
-new_binary_op!(Equal, "equal",
+new_binary_op!(Equal, "Equal",
                (|a:&[Tensor], b:&[Tensor]|
                 if a[0].equal(&a[1]) {
                     b[0].swap(&Tensor::zeros(&[1]))
@@ -123,7 +123,7 @@ new_binary_op!(Equal, "equal",
                     unimplemented!();
                }));
 // ge
-new_binary_op!(Ge, "ge",
+new_binary_op!(Ge, "Ge",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].ge(&a[1]))
                ),
@@ -132,7 +132,7 @@ new_binary_op!(Ge, "ge",
                     unimplemented!();
                }));
 // gt
-new_binary_op!(Gt, "gt",
+new_binary_op!(Gt, "Gt",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].gt(&a[1]))
                ),
@@ -141,7 +141,7 @@ new_binary_op!(Gt, "gt",
                     unimplemented!();
                }));
 // le
-new_binary_op!(Le, "le",
+new_binary_op!(Le, "Le",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].le(&a[1]))
                ),
@@ -150,7 +150,7 @@ new_binary_op!(Le, "le",
                     unimplemented!();
                }));
 // lt
-new_binary_op!(Lt, "lt",
+new_binary_op!(Lt, "Lt",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].lt(&a[1]))
                ),
@@ -159,7 +159,7 @@ new_binary_op!(Lt, "lt",
                     unimplemented!();
                }));
 // ne
-new_binary_op!(Ne, "ne",
+new_binary_op!(Ne, "Ne",
                (|a:&[Tensor], b:&[Tensor]|
                 b[0].swap(&a[0].ne(&a[1]))
                ),

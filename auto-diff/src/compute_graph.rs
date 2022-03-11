@@ -14,6 +14,7 @@ use serde::{Serialize, Deserialize};
 /// The computation network.
 /// Connection has duplication.
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
+#[derive(Clone)]
 pub struct Net {
     data: GenIndex<Tensor>,
     ops: GenIndex<Op>,
@@ -353,3 +354,11 @@ impl Default for Net {
         Self::new()
     }
 }
+
+impl PartialEq for Net {
+    fn eq(&self, other: &Self) -> bool {
+	unimplemented!();
+    }
+}
+
+impl Eq for Net {}

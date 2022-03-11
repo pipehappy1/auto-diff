@@ -34,6 +34,7 @@ impl fmt::Display for GenKey {
 /// Use RefCell to get mutability.
 /// Not secure, no index validity check.
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
+#[derive(Clone)]
 pub struct GenIndex<T> {
     data: Vec<T>,
     generation: Vec<usize>,
@@ -212,6 +213,7 @@ impl<T: fmt::Debug> fmt::Debug for GenIndex<T> {
 	writeln!(f, "data: {:?}", self.data)
     }
 }
+
 
 
 #[cfg(test)]

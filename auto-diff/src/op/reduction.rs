@@ -92,7 +92,7 @@ macro_rules! reduce_macro {
 
 
 
-reduce_macro!(Argmax, "argmax", argmax,
+reduce_macro!(Argmax, "Argmax", argmax,
               (|input: &[Tensor],
                output_grad: &[Tensor],
                input_grad: &[Tensor]| {
@@ -100,7 +100,7 @@ reduce_macro!(Argmax, "argmax", argmax,
                }));
 
 
-reduce_macro!(Argmin, "argmin", argmin,
+reduce_macro!(Argmin, "Argmin", argmin,
               (|input: &[Tensor],
                output_grad: &[Tensor],
                input_grad: &[Tensor]| {
@@ -108,7 +108,7 @@ reduce_macro!(Argmin, "argmin", argmin,
                }));
 
 
-reduce_macro!(Logsumexp, "logsumexp", logsumexp,
+reduce_macro!(Logsumexp, "Logsumexp", logsumexp,
               (|input: &[Tensor],
                output_grad: &[Tensor],
                input_grad: &[Tensor]| {
@@ -116,49 +116,49 @@ reduce_macro!(Logsumexp, "logsumexp", logsumexp,
                }));
 
 
-reduce_macro!(Mean, "mean", mean,
+reduce_macro!(Mean, "Mean", mean,
               (|input: &[Tensor],
                output_grad: &[Tensor],
                input_grad: &[Tensor]| {
                    unimplemented!();
                }));
 
-reduce_macro!(Prod, "prod", prod,
+reduce_macro!(Prod, "Prod", prod,
               (|input: &[Tensor],
                output_grad: &[Tensor],
                input_grad: &[Tensor]| {
                    unimplemented!();
                }));
 
-reduce_macro!(Std, "std", std,
+reduce_macro!(Std, "Std", std,
               (|input: &[Tensor],
                output_grad: &[Tensor],
                input_grad: &[Tensor]| {
                    unimplemented!();
                }));
 
-reduce_macro!(Sum, "sum", sum,
+reduce_macro!(Sum, "Sum", sum,
               (|input: &[Tensor],
                output_grad: &[Tensor],
                input_grad: &[Tensor]| {
                    unimplemented!();
                }));
 
-reduce_macro!(Variance, "var", var,
+reduce_macro!(Variance, "Var", var,
               (|input: &[Tensor],
                output_grad: &[Tensor],
                input_grad: &[Tensor]| {
                    unimplemented!();
                }));
 
-reduce_macro!(Max, "max", max,
+reduce_macro!(Max, "Max", max,
               (|input: &[Tensor],
                output_grad: &[Tensor],
                input_grad: &[Tensor]| {
                    unimplemented!();
                }));
 
-reduce_macro!(Min, "min", min,
+reduce_macro!(Min, "Min", min,
               (|input: &[Tensor],
                output_grad: &[Tensor],
                input_grad: &[Tensor]| {

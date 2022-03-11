@@ -53,7 +53,7 @@ impl OpCall for Cat {
 impl OpTrait for Cat {
 
     fn get_name(&self) -> &'static str {
-        "cat"
+        "Cat"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -94,7 +94,7 @@ impl OpTrait for Cat {
 
 
 one_to_vec_op_with_paras!(Chunk,
-                          "chunk",
+                          "Chunk",
                           1,
 			  1, // TODO, this is dependent on the number of output.
 			  chunk,
@@ -141,7 +141,7 @@ impl OpCall for Gather {
 impl OpTrait for Gather {
 
     fn get_name(&self) -> &'static str {
-        "gather"
+        "Gather"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -205,7 +205,7 @@ impl OpCall for IndexSelect {
 impl OpTrait for IndexSelect {
 
     fn get_name(&self) -> &'static str {
-        "index_select"
+        "Index_select"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -269,7 +269,7 @@ impl OpCall for IndexExclude {
 impl OpTrait for IndexExclude {
 
     fn get_name(&self) -> &'static str {
-        "index_exclude"
+        "Index_exclude"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -333,7 +333,7 @@ impl OpCall for Reshape {
 impl OpTrait for Reshape {
 
     fn get_name(&self) -> &'static str {
-        "reshape"
+        "Reshape"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -401,7 +401,7 @@ impl OpCall for Split {
 impl OpTrait for Split {
 
     fn get_name(&self) -> &'static str {
-        "split"
+        "Split"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -434,7 +434,7 @@ impl OpTrait for Split {
 
 // squeeze
 one_to_1_op_with_paras!(Squeeze,
-                        "squeeze",
+                        "Squeeze",
                         1, 1,
                         squeeze,
                         (|input: &[Tensor],
@@ -447,7 +447,7 @@ one_to_1_op_with_paras!(Squeeze,
 
 // stack
 many_to_1_op_with_paras!(Stack,
-                          "stack",
+                          "Stack",
                           2, // TODO, this is dependent on the number of input.
                           1,
                           stack,
@@ -459,7 +459,7 @@ many_to_1_op_with_paras!(Stack,
                           dim: usize);
 // t
 new_element_op!(T,
-                "t",
+                "T",
                 t,
                 (|input: &[Tensor],
                  output_grad: &[Tensor],
@@ -503,7 +503,7 @@ impl OpCall for Take {
 impl OpTrait for Take {
 
     fn get_name(&self) -> &'static str {
-        "take"
+        "Take"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -567,7 +567,7 @@ impl OpCall for Permute {
 impl OpTrait for Permute {
 
     fn get_name(&self) -> &'static str {
-        "permute"
+        "Permute"
     }
     fn get_input_size(&self) -> usize {
         1
@@ -598,7 +598,7 @@ impl OpTrait for Permute {
 
 // unsqueeze
 one_to_1_op_with_paras!(Unsqueeze,
-                        "unsqueeze",
+                        "Unsqueeze",
                         1, 1,
                         unsqueeze,
                         (|input: &[Tensor],
@@ -641,7 +641,7 @@ impl OpCall for ConditionalSelect {
 impl OpTrait for ConditionalSelect {
 
     fn get_name(&self) -> &'static str {
-        "conditional_select"
+        "ConditionalSelect"
     }
     fn get_input_size(&self) -> usize {
         3
@@ -711,7 +711,7 @@ impl OpCall for Repeat {
 impl OpTrait for Repeat {
 
     fn get_name(&self) -> &'static str {
-        "repeat"
+        "Repeat"
     }
     fn get_input_size(&self) -> usize {
         1

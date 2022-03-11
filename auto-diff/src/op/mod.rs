@@ -84,6 +84,7 @@ macro_rules! handle_method {
 ///
 /// Op is the Rc wrapper of typed op trait
 ///
+#[derive(Clone)]
 pub struct Op {
     inner_op: Rc<RefCell<Box<dyn OpTrait>>>,
 }

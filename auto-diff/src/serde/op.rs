@@ -363,8 +363,8 @@ impl Serialize for Box<dyn OpTrait> {
          let op = self.as_any().downcast_ref::<SetPatch>().unwrap();
          return op.serialize(serializer);
          }, 
-	    _ => {
-		return Err(ser::Error::custom("unknown op"));
+	    other => {
+		return Err(ser::Error::custom(format!("unknown op {:?}", other)));
 	    }
 	}
     }

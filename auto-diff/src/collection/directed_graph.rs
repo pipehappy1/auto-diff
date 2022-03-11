@@ -10,6 +10,7 @@ use serde::{Serialize, Deserialize};
 
 /// Graph
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
+#[derive(Clone)]
 pub struct Graph<TData: Ord, TOp: Ord> {
     data: BTreeSet<TData>,
     op: BTreeSet<TOp>,
