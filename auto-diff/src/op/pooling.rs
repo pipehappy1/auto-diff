@@ -2,11 +2,15 @@ use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
 
 // MaxPool1d
 // Maxpool2d
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct MaxPool2d {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     kernel_size: (usize, usize),
     stride: (usize, usize),

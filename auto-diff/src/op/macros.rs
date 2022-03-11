@@ -2,7 +2,9 @@
 
 macro_rules! one_to_1_op_with_paras {
     ($a:ident, $b:expr, $is:expr,$os:expr, $c:ident, $d: tt, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+	#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
         pub struct $a {
+	    #[cfg_attr(feature = "use-serde", serde(skip))]
             handle: OpHandle,
             $( $arg_name : $ArgTy ),*
         }
@@ -67,7 +69,9 @@ macro_rules! one_to_1_op_with_paras {
 
 macro_rules! many_to_1_op_with_paras {
     ($a:ident, $b:expr, $is:expr,$os:expr, $c:ident, $d: tt, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+	#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
         pub struct $a {
+	    #[cfg_attr(feature = "use-serde", serde(skip))]
             handle: OpHandle,
             $( $arg_name : $ArgTy ),*
         }
@@ -132,7 +136,9 @@ macro_rules! many_to_1_op_with_paras {
 
 macro_rules! one_to_vec_op_with_paras {
     ($a:ident, $b:expr, $is:expr,$os:expr, $c:ident, $d: tt, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {
+	#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
         pub struct $a {
+	    #[cfg_attr(feature = "use-serde", serde(skip))]
             handle: OpHandle,
             $( $arg_name : $ArgTy ),*
         }
@@ -200,7 +206,9 @@ macro_rules! one_to_vec_op_with_paras {
 
 macro_rules! new_binary_op {
     ($a:ident, $b:expr, $c:tt, $d: tt) => {
+	#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
         pub struct $a {
+	    #[cfg_attr(feature = "use-serde", serde(skip))]
             handle: OpHandle,
         }
         impl $a {
@@ -256,7 +264,9 @@ macro_rules! new_binary_op {
 
 macro_rules! new_element_op {
     ($a:ident, $b:expr, $c:ident, $d: tt) => {
+	#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
         pub struct $a {
+	    #[cfg_attr(feature = "use-serde", serde(skip))]
             handle: OpHandle,
         }
         impl $a {

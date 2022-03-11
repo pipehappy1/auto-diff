@@ -8,8 +8,12 @@ use tensor_rs::tensor::Tensor;
 use crate::op::Op;
 use crate::err::AutoDiffError;
 
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+
 /// The computation network.
 /// Connection has duplication.
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Net {
     data: GenIndex<Tensor>,
     ops: GenIndex<Op>,

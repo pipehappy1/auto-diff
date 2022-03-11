@@ -13,9 +13,13 @@ use super::macros::{many_to_1_op_with_paras,
                     one_to_1_op_with_paras};
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
 
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Cat {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     dim: usize
 }
@@ -102,7 +106,9 @@ one_to_vec_op_with_paras!(Chunk,
                           chunks: usize, dim: usize);
                           
 // gather
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Gather {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     dim: usize
 }
@@ -164,7 +170,9 @@ impl OpTrait for Gather {
 }
 
 // index_select
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct IndexSelect {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     dim: usize
 }
@@ -226,7 +234,9 @@ impl OpTrait for IndexSelect {
 }
 
 // index_exclude
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct IndexExclude {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     dim: usize
 }
@@ -288,7 +298,9 @@ impl OpTrait for IndexExclude {
 }
 
 // reshape
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Reshape {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     new_shape: Vec<usize>,
 }
@@ -351,7 +363,9 @@ impl OpTrait for Reshape {
 
 
 // split
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Split {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     sections: Vec<usize>,
     dim: usize,
@@ -454,7 +468,9 @@ new_element_op!(T,
                  }));
 
 // take
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Take {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     sizes: Vec<usize>,
 }
@@ -516,7 +532,9 @@ impl OpTrait for Take {
 }
 
 // permute
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Permute {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     sizes: Vec<usize>,
 }
@@ -591,7 +609,9 @@ one_to_1_op_with_paras!(Unsqueeze,
                         dim: usize);
 
 // conditional_select
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct ConditionalSelect {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl ConditionalSelect {
@@ -656,7 +676,9 @@ impl Default for ConditionalSelect {
 
 
 // repeat
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Repeat {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     sizes: Vec<usize>,
 }

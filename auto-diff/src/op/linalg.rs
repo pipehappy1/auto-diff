@@ -2,9 +2,13 @@ use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
 
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct NormalizeUnit {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl NormalizeUnit {
@@ -57,7 +61,9 @@ impl Default for NormalizeUnit {
 }
 
 
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Det {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl Det {
@@ -109,7 +115,9 @@ impl Default for Det {
     }
 }
 
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Inv {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl Inv {
@@ -161,7 +169,9 @@ impl Default for Inv {
     }
 }
 
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Tr {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl Tr {

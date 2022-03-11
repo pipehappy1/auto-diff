@@ -7,10 +7,14 @@ use crate::var::Var;
 use crate::err::AutoDiffError;
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
 
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Conv1d {
     alpha: f32,
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl Conv1d {
@@ -64,7 +68,7 @@ impl OpTrait for Conv1d {
 
 // Conv2d
 
-
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Conv2d {
     in_channels: usize,
     out_channels: usize,
@@ -80,7 +84,7 @@ pub struct Conv2d {
     bias: Tensor,
     weight_grad: Tensor,
     bias_grad: Tensor,
-
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl Conv2d {

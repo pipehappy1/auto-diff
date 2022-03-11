@@ -165,6 +165,7 @@ impl OpTrait for Linear {
 }
 
 // Bilinear
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct BiLinear {
     in1_fea: Option<usize>,
     in2_fea: Option<usize>,
@@ -174,7 +175,7 @@ pub struct BiLinear {
     bias: Tensor,
     weight_grad: Tensor,
     bias_grad: Tensor,
-    
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl BiLinear {

@@ -8,8 +8,10 @@ use serde::{Serialize, Deserialize};
 use std::any::Any;
 
 /// ELU
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct ELU {
     alpha: Tensor,
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl ELU {
@@ -141,7 +143,9 @@ impl OpTrait for ReLU {
 // SELU
 // CELU
 // Sigmoid
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Sigmoid {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,    
 }
 impl Sigmoid {
@@ -207,8 +211,9 @@ impl OpTrait for Sigmoid {
 // Tanh
 // Tanhshrink
 // Threshold
-
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Sine {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl Sine {

@@ -4,6 +4,8 @@ use super::{OpTrait, OpHandle};
 use super::macros::new_element_op;
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
 
 

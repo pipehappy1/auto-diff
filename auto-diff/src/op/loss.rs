@@ -2,6 +2,8 @@ use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
 
 //
@@ -17,7 +19,9 @@ pub enum Reduction{
 
 /// MSELoss
 /// The left-most dimension is the N.
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct MSELoss {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
  }
 impl MSELoss {
@@ -96,7 +100,9 @@ impl Default for MSELoss {
 
 
 /// CrossEntropyLoss
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct CrossEntropyLoss {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl CrossEntropyLoss {
@@ -221,7 +227,9 @@ impl Default for CrossEntropyLoss {
 /// -y log (1/(1 + exp(-x))) - (1-y) log(1 - 1/(1 + exp(-x)))
 /// 
 /// Prediction comes first, label comes second.
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct BCEWithLogitsLoss {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl BCEWithLogitsLoss {

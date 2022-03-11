@@ -4,7 +4,10 @@ use super::{OpTrait, OpHandle};
 use super::macros::new_binary_op;
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
+
 
 
 new_binary_op!(Add, "add",

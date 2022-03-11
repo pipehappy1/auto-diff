@@ -8,9 +8,13 @@ use crate::var::{Var};
 use crate::err::AutoDiffError;
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
 
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct GetPatch {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     range: Vec<(usize, usize)>,
     step: Option<Vec<usize>>,
@@ -79,8 +83,9 @@ impl OpTrait for GetPatch {
     }
 }
 
-
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct SetPatch {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     range: Vec<(usize, usize)>,
     step: Option<Vec<usize>>,

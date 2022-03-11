@@ -10,6 +10,8 @@ use crate::var::{Var};
 use crate::err::AutoDiffError;
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
 
 // max_pair
@@ -33,7 +35,9 @@ new_binary_op!(MinPair, "min_pair",
                }));
 // min, in reduction
 // arg_sort
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct ArgSort {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
     dim: usize,
     descending: bool,

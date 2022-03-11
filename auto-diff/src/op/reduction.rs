@@ -7,11 +7,15 @@ use super::{OpTrait, OpCall, Op, OpHandle};
 use crate::err::AutoDiffError;
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
 
 macro_rules! reduce_macro {
     ($a:ident, $b:expr, $c:ident, $d: tt) => {
+	#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
         pub struct $a {
+	    #[cfg_attr(feature = "use-serde", serde(skip))]
             handle: OpHandle,
             dim: Option<Vec<usize>>,
             keepdim: bool

@@ -9,7 +9,8 @@ use std::cell::RefCell;
 //use std::ops::Index;
 use ::rand::prelude::StdRng;
 
-
+#[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
 
 use std::fmt;
 
@@ -785,6 +786,8 @@ impl Clone for Tensor {
 //    }
 //}
 
+
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, PartialEq)]
 pub enum PaddingMode{
     Zeros,
