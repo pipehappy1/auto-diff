@@ -355,10 +355,10 @@ impl Default for Net {
     }
 }
 
-impl PartialEq for Net {
-    fn eq(&self, other: &Self) -> bool {
-	unimplemented!();
-    }
-}
-
-impl Eq for Net {}
+//impl PartialEq for Net {
+//    fn eq(&self, other: &Self) -> bool {
+//	unimplemented!();
+//    }
+//}
+//
+//impl Eq for Net {}

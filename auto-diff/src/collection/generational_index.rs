@@ -190,7 +190,7 @@ impl<T> Default for GenIndex<T> {
 impl<T: PartialEq> PartialEq for GenIndex<T> {
     fn eq(&self, other: &Self) -> bool {
 	if self.len() != other.len() {
-	    return false;
+	    false
 	} else {
 	    for (self_key, other_key) in
 		self.iter_key().zip(other.iter_key()) {
@@ -199,7 +199,7 @@ impl<T: PartialEq> PartialEq for GenIndex<T> {
 			return false;
 		    }
 		}
-	    return true;
+	    true
 	}
     }
 }

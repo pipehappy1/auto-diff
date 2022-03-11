@@ -33,335 +33,335 @@ impl Serialize for Box<dyn OpTrait> {
 	match self.get_name() {
 	    "View" => {
          let op = self.as_any().downcast_ref::<View>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Add" => {
          let op = self.as_any().downcast_ref::<Add>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Sub" => {
          let op = self.as_any().downcast_ref::<Sub>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Mul" => {
          let op = self.as_any().downcast_ref::<Mul>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Div" => {
          let op = self.as_any().downcast_ref::<Div>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Matmul" => {
          let op = self.as_any().downcast_ref::<Matmul>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Outer" => {
          let op = self.as_any().downcast_ref::<Outer>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Linear" => {
          let op = self.as_any().downcast_ref::<Linear>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "ELU" => {
          let op = self.as_any().downcast_ref::<ELU>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "ReLU" => {
          let op = self.as_any().downcast_ref::<ReLU>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Sigmoid" => {
          let op = self.as_any().downcast_ref::<Sigmoid>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Conv2d" => {
          let op = self.as_any().downcast_ref::<Conv2d>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "MSELoss" => {
          let op = self.as_any().downcast_ref::<MSELoss>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "BCEWithLogitsLoss" => {
          let op = self.as_any().downcast_ref::<BCEWithLogitsLoss>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "CrossEntropyLoss" => {
          let op = self.as_any().downcast_ref::<CrossEntropyLoss>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Abs" => {
          let op = self.as_any().downcast_ref::<Abs>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Acos" => {
          let op = self.as_any().downcast_ref::<Acos>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Asin" => {
          let op = self.as_any().downcast_ref::<Asin>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Atan" => {
          let op = self.as_any().downcast_ref::<Atan>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Ceil" => {
          let op = self.as_any().downcast_ref::<Ceil>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Cos" => {
          let op = self.as_any().downcast_ref::<Cos>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Cosh" => {
          let op = self.as_any().downcast_ref::<Cosh>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Exp" => {
          let op = self.as_any().downcast_ref::<Exp>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Expm1" => {
          let op = self.as_any().downcast_ref::<Expm1>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Floor" => {
          let op = self.as_any().downcast_ref::<Floor>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Frac" => {
          let op = self.as_any().downcast_ref::<Frac>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Log" => {
          let op = self.as_any().downcast_ref::<Log>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Log10" => {
          let op = self.as_any().downcast_ref::<Log10>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Log1p" => {
          let op = self.as_any().downcast_ref::<Log1p>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Log1pexp" => {
          let op = self.as_any().downcast_ref::<Log1pexp>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Log2" => {
          let op = self.as_any().downcast_ref::<Log2>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Neg" => {
          let op = self.as_any().downcast_ref::<Neg>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Reciprocal" => {
          let op = self.as_any().downcast_ref::<Reciprocal>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Round" => {
          let op = self.as_any().downcast_ref::<Round>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Rsqrt" => {
          let op = self.as_any().downcast_ref::<Rsqrt>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Sign" => {
          let op = self.as_any().downcast_ref::<Sign>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Sin" => {
          let op = self.as_any().downcast_ref::<Sin>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Sinh" => {
          let op = self.as_any().downcast_ref::<Sinh>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Sqrt" => {
          let op = self.as_any().downcast_ref::<Sqrt>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Tan" => {
          let op = self.as_any().downcast_ref::<Tan>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Tanh" => {
          let op = self.as_any().downcast_ref::<Tanh>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Trunc" => {
          let op = self.as_any().downcast_ref::<Trunc>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "MaxPair" => {
          let op = self.as_any().downcast_ref::<MaxPair>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "MinPair" => {
          let op = self.as_any().downcast_ref::<MinPair>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "ArgSort" => {
          let op = self.as_any().downcast_ref::<ArgSort>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "EqElem" => {
          let op = self.as_any().downcast_ref::<EqElem>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Equal" => {
          let op = self.as_any().downcast_ref::<Equal>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Ge" => {
          let op = self.as_any().downcast_ref::<Ge>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Gt" => {
          let op = self.as_any().downcast_ref::<Gt>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Le" => {
          let op = self.as_any().downcast_ref::<Le>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Lt" => {
          let op = self.as_any().downcast_ref::<Lt>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Ne" => {
          let op = self.as_any().downcast_ref::<Ne>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Cat" => {
          let op = self.as_any().downcast_ref::<Cat>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Chunk" => {
          let op = self.as_any().downcast_ref::<Chunk>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "ConditionalSelect" => {
          let op = self.as_any().downcast_ref::<ConditionalSelect>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Gather" => {
          let op = self.as_any().downcast_ref::<Gather>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "IndexSelect" => {
          let op = self.as_any().downcast_ref::<IndexSelect>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "IndexExclude" => {
          let op = self.as_any().downcast_ref::<IndexExclude>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Reshape" => {
          let op = self.as_any().downcast_ref::<Reshape>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Split" => {
          let op = self.as_any().downcast_ref::<Split>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Squeeze" => {
          let op = self.as_any().downcast_ref::<Squeeze>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Stack" => {
          let op = self.as_any().downcast_ref::<Stack>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "T" => {
          let op = self.as_any().downcast_ref::<T>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Take" => {
          let op = self.as_any().downcast_ref::<Take>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Permute" => {
          let op = self.as_any().downcast_ref::<Permute>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Unsqueeze" => {
          let op = self.as_any().downcast_ref::<Unsqueeze>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Repeat" => {
          let op = self.as_any().downcast_ref::<Repeat>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Det" => {
          let op = self.as_any().downcast_ref::<Det>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Inv" => {
          let op = self.as_any().downcast_ref::<Inv>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "NormalizeUnit" => {
          let op = self.as_any().downcast_ref::<NormalizeUnit>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Tr" => {
          let op = self.as_any().downcast_ref::<Tr>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Argmax" => {
          let op = self.as_any().downcast_ref::<Argmax>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Argmin" => {
          let op = self.as_any().downcast_ref::<Argmin>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Logsumexp" => {
          let op = self.as_any().downcast_ref::<Logsumexp>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Mean" => {
          let op = self.as_any().downcast_ref::<Mean>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Prod" => {
          let op = self.as_any().downcast_ref::<Prod>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Std" => {
          let op = self.as_any().downcast_ref::<Std>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Sum" => {
          let op = self.as_any().downcast_ref::<Sum>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Variance" => {
          let op = self.as_any().downcast_ref::<Variance>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Max" => {
          let op = self.as_any().downcast_ref::<Max>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "Min" => {
          let op = self.as_any().downcast_ref::<Min>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "GetPatch" => {
          let op = self.as_any().downcast_ref::<GetPatch>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 "SetPatch" => {
          let op = self.as_any().downcast_ref::<SetPatch>().unwrap();
-         return op.serialize(serializer);
+         op.serialize(serializer)
          }, 
 	    other => {
 		return Err(ser::Error::custom(format!("unknown op {:?}", other)));
@@ -789,420 +789,420 @@ impl<'de> Deserialize<'de> for Op {
 		match op_name.as_str() {
 		    		    "View" => {
  			let op_obj: View = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Add" => {
  			let op_obj: Add = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Sub" => {
  			let op_obj: Sub = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Mul" => {
  			let op_obj: Mul = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Div" => {
  			let op_obj: Div = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Matmul" => {
  			let op_obj: Matmul = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Outer" => {
  			let op_obj: Outer = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Linear" => {
  			let op_obj: Linear = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "ELU" => {
  			let op_obj: ELU = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "ReLU" => {
  			let op_obj: ReLU = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Sigmoid" => {
  			let op_obj: Sigmoid = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Conv2d" => {
  			let op_obj: Conv2d = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "MSELoss" => {
  			let op_obj: MSELoss = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "BCEWithLogitsLoss" => {
  			let op_obj: BCEWithLogitsLoss = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "CrossEntropyLoss" => {
  			let op_obj: CrossEntropyLoss = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Abs" => {
  			let op_obj: Abs = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Acos" => {
  			let op_obj: Acos = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Asin" => {
  			let op_obj: Asin = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Atan" => {
  			let op_obj: Atan = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Ceil" => {
  			let op_obj: Ceil = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Cos" => {
  			let op_obj: Cos = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Cosh" => {
  			let op_obj: Cosh = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Exp" => {
  			let op_obj: Exp = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Expm1" => {
  			let op_obj: Expm1 = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Floor" => {
  			let op_obj: Floor = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Frac" => {
  			let op_obj: Frac = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Log" => {
  			let op_obj: Log = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Log10" => {
  			let op_obj: Log10 = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Log1p" => {
  			let op_obj: Log1p = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Log1pexp" => {
  			let op_obj: Log1pexp = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Log2" => {
  			let op_obj: Log2 = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Neg" => {
  			let op_obj: Neg = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Reciprocal" => {
  			let op_obj: Reciprocal = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Round" => {
  			let op_obj: Round = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Rsqrt" => {
  			let op_obj: Rsqrt = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Sign" => {
  			let op_obj: Sign = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Sin" => {
  			let op_obj: Sin = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Sinh" => {
  			let op_obj: Sinh = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Sqrt" => {
  			let op_obj: Sqrt = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Tan" => {
  			let op_obj: Tan = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Tanh" => {
  			let op_obj: Tanh = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Trunc" => {
  			let op_obj: Trunc = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "MaxPair" => {
  			let op_obj: MaxPair = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "MinPair" => {
  			let op_obj: MinPair = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "ArgSort" => {
  			let op_obj: ArgSort = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "EqElem" => {
  			let op_obj: EqElem = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Equal" => {
  			let op_obj: Equal = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Ge" => {
  			let op_obj: Ge = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Gt" => {
  			let op_obj: Gt = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Le" => {
  			let op_obj: Le = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Lt" => {
  			let op_obj: Lt = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Ne" => {
  			let op_obj: Ne = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Cat" => {
  			let op_obj: Cat = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Chunk" => {
  			let op_obj: Chunk = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "ConditionalSelect" => {
  			let op_obj: ConditionalSelect = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Gather" => {
  			let op_obj: Gather = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "IndexSelect" => {
  			let op_obj: IndexSelect = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "IndexExclude" => {
  			let op_obj: IndexExclude = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Reshape" => {
  			let op_obj: Reshape = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Split" => {
  			let op_obj: Split = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Squeeze" => {
  			let op_obj: Squeeze = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Stack" => {
  			let op_obj: Stack = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "T" => {
  			let op_obj: T = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Take" => {
  			let op_obj: Take = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Permute" => {
  			let op_obj: Permute = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Unsqueeze" => {
  			let op_obj: Unsqueeze = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Repeat" => {
  			let op_obj: Repeat = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Det" => {
  			let op_obj: Det = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Inv" => {
  			let op_obj: Inv = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "NormalizeUnit" => {
  			let op_obj: NormalizeUnit = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Tr" => {
  			let op_obj: Tr = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Argmax" => {
  			let op_obj: Argmax = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Argmin" => {
  			let op_obj: Argmin = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Logsumexp" => {
  			let op_obj: Logsumexp = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Mean" => {
  			let op_obj: Mean = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Prod" => {
  			let op_obj: Prod = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Std" => {
  			let op_obj: Std = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Sum" => {
  			let op_obj: Sum = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Variance" => {
  			let op_obj: Variance = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Max" => {
  			let op_obj: Max = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "Min" => {
  			let op_obj: Min = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "GetPatch" => {
  			let op_obj: GetPatch = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 
 		    "SetPatch" => {
  			let op_obj: SetPatch = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
- 			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+ 			Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
  		    }
 		    _ => {
-			return Err(de::Error::missing_field("op_obj"));
+			Err(de::Error::missing_field("op_obj"))
 		    }
 		}
             }
