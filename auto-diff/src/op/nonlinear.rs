@@ -3,6 +3,8 @@ use tensor_rs::tensor::Tensor;
 use super::{OpTrait, OpHandle};
 
 #[cfg(feature = "use-serde")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "use-serde")]
 use std::any::Any;
 
 /// ELU
@@ -77,7 +79,9 @@ impl OpTrait for ELU {
 // PReLU
 
 /// ReLU
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct ReLU {
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl ReLU {

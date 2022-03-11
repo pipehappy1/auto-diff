@@ -8,7 +8,8 @@ use std::ops::Deref;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::op::{linear::Linear};
+use crate::op::{linear::Linear,
+		nonlinear::ReLU};
 
 
 impl Serialize for Box<dyn OpTrait> {
@@ -18,11 +19,18 @@ impl Serialize for Box<dyn OpTrait> {
         //let mut state = serializer.serialize_struct("OpTrait", 1)?;
         //state.serialize_field("op_name", &self.get_name())?;
         //state.end()
-	if self.get_name() == "Linear" {
-	    let op = self.as_any().downcast_ref::<Linear>().unwrap();
-	    return op.serialize(serializer);
-	} else {
-	    return Err(ser::Error::custom("unknown op"));
+	match self.get_name() {
+	    "Linear" => {
+		let op = self.as_any().downcast_ref::<Linear>().unwrap();
+		return op.serialize(serializer);
+	    },
+	    "ReLU" => {
+		let op = self.as_any().downcast_ref::<ReLU>().unwrap();
+		return op.serialize(serializer);
+	    }
+	    _ => {
+		return Err(ser::Error::custom("unknown op"));
+	    }
 	}
     }
 }
@@ -82,7 +90,6 @@ impl<'de> Deserialize<'de> for Op {
 	    fn visit_map<V>(self, mut map: V) -> Result<Op, V::Error>
             where V: MapAccess<'de>, {
 		let mut op_name = None;
-		let mut op_obj = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         Field::OpName => {
@@ -92,35 +99,47 @@ impl<'de> Deserialize<'de> for Op {
                             op_name = Some(map.next_value()?);
                         },
 			Field::OpObj => {
-                            if op_obj.is_some() {
-                                return Err(de::Error::duplicate_field("op_obj"));
-                            }
-                            op_obj = Some(map.next_value()?);
+                            //if op_obj.is_some() {
+                            //    return Err(de::Error::duplicate_field("op_obj"));
+                            //}
+                            //op_obj = Some(map.next_value()?);
+			    let op_name: String = op_name.ok_or_else(|| de::Error::missing_field("op_name"))?;
+			    match op_name.as_str() {
+				"Linear" => {
+				    let op_obj: Linear = Some(map.next_value::<Linear>()?).ok_or_else(|| de::Error::missing_field("op_obj"))?;
+				    return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+				},
+				"ReLU" => {
+				    let op_obj: ReLU = Some(map.next_value::<ReLU>()?).ok_or_else(|| de::Error::missing_field("op_obj"))?;
+				    return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+				}
+				_ => {
+				    return Err(de::Error::missing_field("op_obj"));
+				}
+			    }
                         }
                     }
                 }
-                let op_name: String = op_name.ok_or_else(|| de::Error::missing_field("op_name"))?;
-		if op_name == "Linear" {
-		    let op_obj: Linear = op_obj.ok_or_else(|| de::Error::missing_field("op_obj"))?;
-                    return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
-		} else {
-		    return Err(de::Error::missing_field("op_obj"));
-		}
-
+		Err(de::Error::missing_field("op_obj"))
             }
 
             fn visit_seq<V>(self, mut seq: V) -> Result<Op, V::Error>
             where V: SeqAccess<'de>, {
                 let op_name: String = seq.next_element()?
                     .ok_or_else(|| de::Error::invalid_length(0, &self))?;
-		if op_name == "Linear" {
-		    let op_obj: Linear = seq.next_element()?
-			.ok_or_else(|| de::Error::invalid_length(0, &self))?;
-		    Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))))
-		} else {
-		    return Err(de::Error::missing_field("op_obj"));
+		match op_name.as_str() {
+		    "Linear" => {
+			let op_obj: Linear = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
+			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+		    }
+		    "ReLU" => {
+			let op_obj: ReLU = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
+			return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+		    }
+		    _ => {
+			return Err(de::Error::missing_field("op_obj"));
+		    }
 		}
-		
             }
         }
 
@@ -137,8 +156,8 @@ mod tests {
     
     #[test]
     fn test_serde_op() {
-	let mut m1 = Linear::new(None, None, true);
-	let mut m1 = Op::new(Rc::new(RefCell::new(Box::new(m1))));
+	let m1 = Linear::new(None, None, true);
+	let m1 = Op::new(Rc::new(RefCell::new(Box::new(m1))));
 	
         let serialized = serde_pickle::to_vec(&m1, true).unwrap();
         let deserialized: Op = serde_pickle::from_slice(&serialized).unwrap();

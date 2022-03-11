@@ -1,6 +1,4 @@
 #![allow(clippy::redundant_closure_call)]
-#[cfg(feature = "use-serde")]
-use std::any::Any;
 
 macro_rules! one_to_1_op_with_paras {
     ($a:ident, $b:expr, $is:expr,$os:expr, $c:ident, $d: tt, $( $arg_name:ident : $ArgTy:ty ),* $(,)?) => {

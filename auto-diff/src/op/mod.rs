@@ -273,8 +273,10 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
 ///
 /// View op
 ///
+#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct View {
     shape: Vec<usize>,
+    #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
 }
 impl View {
