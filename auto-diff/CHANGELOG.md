@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.7] - 2022-03-12
+- Support serde.
+
 ## [0.5.4] - 2022-02-21
 - Add more gradient methods.
 
