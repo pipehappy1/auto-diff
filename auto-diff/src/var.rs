@@ -600,6 +600,11 @@ impl Var {
     pub(crate) fn inner(&self) -> Rc<RefCell<VarInner>> {
 	self.var.clone()
     }
+    pub(crate) fn set_inner(var: VarInner) -> Var {
+	Var {
+	    var: Rc::new(RefCell::new(var))
+	}
+    }
 }
 
 // Test for equal

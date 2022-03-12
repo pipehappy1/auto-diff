@@ -3,3 +3,4 @@ pub mod directed_graph;
 pub mod op;
 pub mod compute_graph;
 pub mod var_inner;
+pub mod var;
