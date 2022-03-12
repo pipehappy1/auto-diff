@@ -583,6 +583,13 @@ impl Var {
         self.var.borrow().rerun()
     }
 
+    /// Extract input and output from the hidden net.
+    pub fn get_io_var(&self) -> Result<(Vec<Var>, Vec<Var>), AutoDiffError> {
+	let (mut inputs, mut outputs) = self.var.borrow().get_io_var()?;
+	Ok((inputs.drain(..).map(|x| Var {var: Rc::new(RefCell::new(x))}).collect(),
+	    outputs.drain(..).map(|x| Var {var: Rc::new(RefCell::new(x))}).collect()))
+    }
+
     pub(crate) fn called_with(&self, op: Op,
                               others: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
         let refs: Vec<Rc<RefCell<VarInner>>> = others.iter().map(|x| x.var.clone()).collect();

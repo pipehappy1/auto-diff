@@ -342,6 +342,13 @@ impl VarInner {
         Ok(())
     }
 
+    pub fn get_io_var(&self) -> Result<(Vec<VarInner>, Vec<VarInner>), AutoDiffError> {
+	let input_id = self.net.borrow().get_input_edge_data();
+	let output_id = self.net.borrow().get_output_edge_data();
+	Ok((input_id.iter().map(|x| VarInner {id: *x, need_grad: true, net: self.net.clone()}).collect(),
+	    output_id.iter().map(|x| VarInner {id: *x, need_grad: true, net: self.net.clone()}).collect(),))
+    }
+
     pub(crate) fn set_grad(&mut self, use_gradient: bool) {
         self.need_grad = use_gradient;
     }
