@@ -1,6 +1,6 @@
 [package]
 name = "tensor-rs"
-version = "0.5.6"
+version = "0.5.7"
 authors = ["yguan <yguan@example.com>"]
 edition = "2021"
 description = """
@@ -41,7 +41,7 @@ criterion = "0.3"
 # for examples
 csv = "1.1"
 
-tensorboard-rs = { path = "../tensorboard-rs", version = "0.5.6"}
+tensorboard-rs = { path = "../tensorboard-rs", version = "0.5.7"}
 
 openblas-src = { version = "0.10" }
 
