@@ -187,6 +187,15 @@ impl VarInner {
         }
     }
 
+    pub fn get_id(&self) -> GenKey {
+	self.id
+    }
+    pub fn get_need_grad(&self) -> bool {
+	self.need_grad
+    }
+    pub fn get_net(&self) -> Rc<RefCell<Net>> {
+	self.net.clone()
+    }
 
     pub fn size(&self) -> Vec<usize> {
         self.net.borrow().get_tensor(self.id).expect("").size()
@@ -602,6 +611,14 @@ impl VarInner {
 
     pub fn dump_net(&self) -> Rc<RefCell<Net>> {
         self.net.clone()
+    }
+
+    pub(crate) fn set_inner(id: GenKey, need_grad: bool, net: Net) -> VarInner {
+	VarInner {
+	    id,
+	    need_grad,
+	    net: Rc::new(RefCell::new(net))
+	}
     }
 }
 

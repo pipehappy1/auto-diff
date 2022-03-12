@@ -597,6 +597,9 @@ impl Var {
     pub fn dump_net(&self) -> Rc<RefCell<Net>> {
         self.var.borrow().dump_net()
     }
+    pub(crate) fn inner(&self) -> Rc<RefCell<VarInner>> {
+	self.var.clone()
+    }
 }
 
 // Test for equal
