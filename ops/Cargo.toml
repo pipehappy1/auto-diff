@@ -1,0 +1,24 @@
+[package]
+name = "auto-diff-ops"
+version = "0.5.7"
+authors = ["yguan <yguan@example.com>"]
+edition = "2021"
+description = """
+Extra operators for auto-diff.
+"""
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+documentation = "https://docs.rs/auto-diff-ops"
+homepage = "https://github.com/pipehappy1/auto-diff"
+repository = "https://github.com/pipehappy1/auto-diff"
+readme = "README.md"
+license = "MIT"
+
+[dependencies]
+tensor-rs = { path="../tensor-rs", version = "0.5.7"}
+auto-diff = { path="../auto-diff", version = "0.5.7"}
+auto-diff-macros = { path="../macros", version = "0.5.7"}
+
+[dev-dependencies]
+# one backend
+openblas-src = "0.10" # or another backend of your choice
+

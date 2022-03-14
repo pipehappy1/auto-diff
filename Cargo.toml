@@ -8,6 +8,7 @@ members = [
     "extension-op",
     "tensorboard-rs",
     "ann",
+    "ops",
 ]
 
 exclude = [

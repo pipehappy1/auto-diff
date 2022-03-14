@@ -19,7 +19,6 @@ license = "MIT"
 proc-macro = true
 
 [dependencies]
-auto-diff = { path="../auto-diff", version = "0.5.7"}
 
-syn = { version = "1", features = ["full"] }
+syn = { version = "1", features = ["full", "extra-traits"] }
 quote = { version = "1" }
