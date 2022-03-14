@@ -13,7 +13,10 @@ pub fn op(args: TokenStream, input: TokenStream) -> TokenStream {
     if let syn::Fields::Named(ref mut fields) = item_struct.fields {
         fields.named.push(
             syn::Field::parse_named
-                .parse2(quote! { handle: OpHandle, })
+                .parse2(quote! {
+                    #[cfg_attr(feature = "use-serde", serde(skip))]
+                    handle: OpHandle,
+                })
                 .unwrap(),
         );
     }
@@ -25,4 +28,11 @@ pub fn op(args: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 
-
+#[cfg(test)]
+mod tests {
+    
+    #[test]
+    fn test() {
+        
+    }
+}
