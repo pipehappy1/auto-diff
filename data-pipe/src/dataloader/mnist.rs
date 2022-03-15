@@ -1,4 +1,4 @@
-use crate::{DataLoader, Slice};
+use crate::dataloader::{DataLoader, Slice};
 use auto_diff::{Var, AutoDiffError};
 
 use std::path::{Path, PathBuf};
@@ -77,22 +77,65 @@ impl DataLoader for Mnist {
         match slice {
 	    Some(Slice::Train) => {Some(self.train.size())},
 	    Some(Slice::Test) => {Some(self.test.size())},
-	    None => {Some(vec![self.train.size()[0] + self.test.size()[0],
-			  self.train.size()[1]])}
+	    None => {
+                let n = self.train.size()[0] + self.test.size()[1];
+                let mut new_size = self.train.size();
+                new_size[0] = n;
+                Some(new_size)
+            },
 	    _ => {None}
 	}
     }
     fn get_item(&self, index: usize, slice: Option<Slice>) -> Result<(Var, Var), AutoDiffError> {
         match slice {
-	    Some(Slice::Train) => {Some(self.train.get_patch((index, index+1),()))},
-	    Some(Slice::Test) => {Some(self.test.get_patch((index, index+1),()))},
-	    
+	    Some(Slice::Train) => {
+                let dim = self.train.size().len();
+                let mut index_block = vec![(index, index+1)];
+                index_block.append(
+                    &mut vec![0; dim-1].iter().zip(&self.train.size()[1..])
+                        .map(|(x,y)| (*x, *y)).collect());
+                let data = self.train.get_patch(&index_block, None)?;
+                let label = self.train_label.get_patch(&[(index, index+1)], None)?;
+                return Ok((data, label));
+            },
+	    Some(Slice::Test) => {
+                let dim = self.test.size().len();
+                let mut index_block = vec![(index, index+1)];
+                index_block.append(
+                    &mut vec![0; dim-1].iter().zip(&self.test.size()[1..])
+                        .map(|(x,y)| (*x, *y)).collect());
+                let data = self.test.get_patch(&index_block, None)?;
+                let label = self.test_label.get_patch(&[(index, index+1)], None)?;
+                return Ok((data, label));
+            },
+	    _ => {Err(AutoDiffError::new("only train and test"))}
 	}
     }
     fn get_batch(&self, start: usize, end: usize, slice: Option<Slice>) -> Result<(Var, Var), AutoDiffError> {
-        unimplemented!()
+        match slice {
+	    Some(Slice::Train) => {
+                let dim = self.train.size().len();
+                let mut index_block = vec![(start, end)];
+                index_block.append(
+                    &mut vec![0; dim-1].iter().zip(&self.train.size()[1..])
+                        .map(|(x,y)| (*x, *y)).collect());
+                let data = self.train.get_patch(&index_block, None)?;
+                let label = self.train_label.get_patch(&[(start, end)], None)?;
+                return Ok((data, label));
+            },
+	    Some(Slice::Test) => {
+                let dim = self.test.size().len();
+                let mut index_block = vec![(start, end)];
+                index_block.append(
+                    &mut vec![0; dim-1].iter().zip(&self.test.size()[1..])
+                        .map(|(x,y)| (*x, *y)).collect());
+                let data = self.test.get_patch(&index_block, None)?;
+                let label = self.test_label.get_patch(&[(start, end)], None)?;
+                return Ok((data, label));
+            },
+	    _ => {Err(AutoDiffError::new("only train and test"))}
+	}
     }
-    
 }
 
 #[cfg(test)]
