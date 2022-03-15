@@ -9,6 +9,7 @@ members = [
     "tensorboard-rs",
     "ann",
     "ops",
+    "data-pipe",
 ]
 
 exclude = [

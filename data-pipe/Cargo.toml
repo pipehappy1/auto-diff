@@ -1,0 +1,22 @@
+[package]
+name = "auto-diff-data-pipe"
+version = "0.5.7"
+authors = ["yguan <yguan@example.com>"]
+edition = "2021"
+description = """
+A data loader
+"""
+documentation = "https://docs.rs/auto-diff"
+homepage = "https://github.com/pipehappy1/auto-diff"
+repository = "https://github.com/pipehappy1/auto-diff"
+readme = "README.md"
+license = "MIT"
+keywords = ["machine-learning", "neural-network", "deep-learning"]
+exclude = ["/dev/**"]
+
+[dependencies]
+auto-diff = { path = "../auto-diff", version = "0.5.7" }
+
+[dev-dependencies]
+# one backend
+openblas-src = "0.10" # or another backend of your choice
