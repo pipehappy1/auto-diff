@@ -1,4 +1,4 @@
-use crate::dataloader::{DataLoader, Slice};
+use crate::dataloader::{DataLoader, DataSlice};
 use auto_diff::{Var, AutoDiffError};
 
 use std::path::{Path, PathBuf};
@@ -15,13 +15,19 @@ pub struct Mnist {
 }
 impl Mnist {
     pub fn new() -> Mnist {
+        // TODO download the data if it is not there.
         unimplemented!()
     }
     pub fn load(path: &Path) -> Mnist {
-	let train_img = Self::load_images("examples/data/mnist/train-images-idx3-ubyte");
-	let test_img = Self::load_images("examples/data/mnist/t10k-images-idx3-ubyte");
-	let train_label = Self::load_labels("examples/data/mnist/train-labels-idx1-ubyte");
-	let test_label = Self::load_labels("examples/data/mnist/t10k-labels-idx1-ubyte");
+        let train_fn = path.join("train-images-idx3-ubyte");
+        let test_fn = path.join("t10k-images-idx3-ubyte");
+        let train_label = path.join("train-labels-idx1-ubyte");
+        let test_label = path.join("t10k-labels-idx1-ubyte");
+        
+	let train_img = Self::load_images(train_fn);
+	let test_img = Self::load_images(test_fn);
+	let train_label = Self::load_labels(train_label);
+	let test_label = Self::load_labels(test_label);
 	
         Mnist {
             path: PathBuf::from(path),
@@ -73,22 +79,22 @@ impl Mnist {
     }
 }
 impl DataLoader for Mnist {
-    fn get_size(&self, slice: Option<Slice>) -> Option<Vec<usize>> {
+    fn get_size(&self, slice: Option<DataSlice>) -> Result<Vec<usize>, AutoDiffError> {
         match slice {
-	    Some(Slice::Train) => {Some(self.train.size())},
-	    Some(Slice::Test) => {Some(self.test.size())},
+	    Some(DataSlice::Train) => {Ok(self.train.size())},
+	    Some(DataSlice::Test) => {Ok(self.test.size())},
 	    None => {
                 let n = self.train.size()[0] + self.test.size()[1];
                 let mut new_size = self.train.size();
                 new_size[0] = n;
-                Some(new_size)
+                Ok(new_size)
             },
-	    _ => {None}
+	    _ => {Err(AutoDiffError::new("TODO"))}
 	}
     }
-    fn get_item(&self, index: usize, slice: Option<Slice>) -> Result<(Var, Var), AutoDiffError> {
+    fn get_item(&self, index: usize, slice: Option<DataSlice>) -> Result<(Var, Var), AutoDiffError> {
         match slice {
-	    Some(Slice::Train) => {
+	    Some(DataSlice::Train) => {
                 let dim = self.train.size().len();
                 let mut index_block = vec![(index, index+1)];
                 index_block.append(
@@ -98,7 +104,7 @@ impl DataLoader for Mnist {
                 let label = self.train_label.get_patch(&[(index, index+1)], None)?;
                 return Ok((data, label));
             },
-	    Some(Slice::Test) => {
+	    Some(DataSlice::Test) => {
                 let dim = self.test.size().len();
                 let mut index_block = vec![(index, index+1)];
                 index_block.append(
@@ -111,9 +117,9 @@ impl DataLoader for Mnist {
 	    _ => {Err(AutoDiffError::new("only train and test"))}
 	}
     }
-    fn get_batch(&self, start: usize, end: usize, slice: Option<Slice>) -> Result<(Var, Var), AutoDiffError> {
+    fn get_batch(&self, start: usize, end: usize, slice: Option<DataSlice>) -> Result<(Var, Var), AutoDiffError> {
         match slice {
-	    Some(Slice::Train) => {
+	    Some(DataSlice::Train) => {
                 let dim = self.train.size().len();
                 let mut index_block = vec![(start, end)];
                 index_block.append(
@@ -123,7 +129,7 @@ impl DataLoader for Mnist {
                 let label = self.train_label.get_patch(&[(start, end)], None)?;
                 return Ok((data, label));
             },
-	    Some(Slice::Test) => {
+	    Some(DataSlice::Test) => {
                 let dim = self.test.size().len();
                 let mut index_block = vec![(start, end)];
                 index_block.append(

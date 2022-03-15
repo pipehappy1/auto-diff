@@ -19,8 +19,17 @@ exclude = ["/dev/**"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rand = "0.8"
+rand_distr = "0.4"
+
 auto-diff = { path = "../auto-diff", version = "0.5.7" }
+
+auto-diff-data-pipe = { path = "../data-pipe", version = "0.5.7" }
 
 [dev-dependencies]
 # one backend
 openblas-src = "0.10" # or another backend of your choice
+
+auto-diff-data-pipe = { path = "../data-pipe", version = "0.5.7" }
+
+tensorboard-rs = { path = "../tensorboard-rs", version = "0.5.7" }

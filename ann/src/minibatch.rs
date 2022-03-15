@@ -1,0 +1,39 @@
+use ::rand::prelude::StdRng;
+use auto_diff::{Var, AutoDiffError};
+use auto_diff_data_pipe::dataloader::{DataLoader, DataSlice};
+
+pub struct MiniBatch {
+    rng: StdRng,
+    size: usize,
+}
+impl MiniBatch {
+    pub fn new(rng: StdRng, size: usize) -> MiniBatch {
+        MiniBatch {
+            rng,
+            size,
+        }
+    }
+
+    pub fn next(&mut self, loader: &dyn DataLoader, part: &DataSlice) -> Result<(Var, Var), AutoDiffError> {
+        let sample_size = loader.get_size(Some(*part))?[0];
+        let index_t = Var::rand_usize(&mut self.rng, &[self.size], 0, sample_size);
+        
+    }
+
+    pub fn next_data_slice(&mut self, data: &Var, label: &Var) -> Result<(Var, Var), AutoDiffError> {
+        let sample_size = data.size()[0];
+        let sample_size2 = label.size()[0];
+
+        if sample_size != sample_size2 {
+            return Err(AutoDiffError::new(&format!("minibatch needs data and label has the same N {}, {}",
+                                                   sample_size, sample_size2)));
+        }
+        let index_t = Var::rand_usize(&mut self.rng, &[self.size], 0, sample_size);
+
+        let mdata = data.index_select(0, index_t.clone())?;
+        let mlabel = label.index_select(0, index_t)?;
+        mdata.reset_net();
+        mlabel.reset_net();
+        Ok((mdata, mlabel))
+    }
+}

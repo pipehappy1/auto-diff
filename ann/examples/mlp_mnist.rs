@@ -1,44 +1,16 @@
 use auto_diff::op::{Linear, OpCall};
-use auto_diff::optim::{SGD, MiniBatch};
+use auto_diff::optim::{SGD};
+use auto_diff_ann::minibatch::MiniBatch;
 use auto_diff::Var;
-use rand::prelude::*;
-use ::rand::prelude::StdRng;
-extern crate openblas_src;
-
-
+use auto_diff_ann::init::normal;
+use auto_diff_data_pipe::dataloader::{mnist::Mnist, DataSlice};
 use tensorboard_rs::summary_writer::SummaryWriter;
-
-mod mnist;
-use mnist::{load_images, load_labels};
+use std::path::Path;
+use ::rand::prelude::StdRng;
 
 fn main() {
     
-    let train_img = load_images("examples/data/mnist/train-images-idx3-ubyte");
-    let test_img = load_images("examples/data/mnist/t10k-images-idx3-ubyte");
-    let train_label = load_labels("examples/data/mnist/train-labels-idx1-ubyte");
-    let test_label = load_labels("examples/data/mnist/t10k-labels-idx1-ubyte");
 
-    let train_size = train_img.size();
-    let n = train_size[0];
-    let h = train_size[1];
-    let w = train_size[2];
-    let train_data = train_img.reshape(&vec![n, h*w]).unwrap();
-
-    let test_size = test_img.size();
-    let n = test_size[0];
-    let h = test_size[1];
-    let w = test_size[2];
-    let test_data = test_img.reshape(&vec![n, h*w]).unwrap();
-
-    train_data.reset_net();
-    train_label.reset_net();
-    test_data.reset_net();
-    test_label.reset_net();
-
-    assert_eq!(train_data.size(), [60000, 784]);
-    assert_eq!(train_label.size(), [60000]);
-    assert_eq!(test_data.size(), [10000, 784]);
-    assert_eq!(test_label.size(), [10000]);
 
 
     // build the model
@@ -71,20 +43,26 @@ fn main() {
 
     let mut rng = StdRng::seed_from_u64(671);
 
+    let mnist = Mnist::load("../auto-diff/examples/data/mnist/train-images-idx3-ubyte" as Path);
+    
+    let train_size = mnist.get_size(Some(DataSlice::Train)).unwrap();
+    let h = train_size[1];
+    let w = train_size[2];
+
     let mut op1 = Linear::new(Some(h*w), Some(h*w*2), true);
-    op1.set_weight(Var::normal(&mut rng, &[h*w, h*w*2], 0., 1.));
-    op1.set_bias(Var::normal(&mut rng, &[h*w*2, ], 0., 1.));
+    normal(op1.weight(), None, None, rng);
+    normal(op1.bias(), None, None, rng);
 
     let mut op2 = Linear::new(Some(h*w*2), Some(10), true);
-    op2.set_weight(Var::normal(&mut rng, &[h*w*2, 10], 0., 1.));
-    op2.set_bias(Var::normal(&mut rng, &[10, ], 0., 1.));
+    normal(op2.weight(), None, None, rng);
+    normal(op2.bias(), None, None, rng);
 
 //    //println!("{}, {}", &train_data, &train_label);
-    let rng = StdRng::seed_from_u64(671);
+
     let mut minibatch = MiniBatch::new(rng, 16);
 
     let mut writer = SummaryWriter::new(&("./logdir".to_string()));
-    let (input, label) = minibatch.next(&train_data, &train_label).unwrap();        
+    let (input, label) = minibatch.next(&mnist, &DataSlice::Train).unwrap();        
 
     let output1 = op1.call(&[&input]).unwrap().pop().unwrap();
     let output2 = output1.sigmoid().unwrap();
