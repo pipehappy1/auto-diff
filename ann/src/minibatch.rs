@@ -17,7 +17,7 @@ impl MiniBatch {
     pub fn next(&mut self, loader: &dyn DataLoader, part: &DataSlice) -> Result<(Var, Var), AutoDiffError> {
         let sample_size = loader.get_size(Some(*part))?[0];
         let index_t = Var::rand_usize(&mut self.rng, &[self.size], 0, sample_size);
-        
+        loader.get_indexed_batch(&index_t, Some(*part))
     }
 
     pub fn next_data_slice(&mut self, data: &Var, label: &Var) -> Result<(Var, Var), AutoDiffError> {

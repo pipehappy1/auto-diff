@@ -119,6 +119,10 @@ impl Var {
             var: self.var.clone(),
         }
     }
+    /// With a &Var, use set to copy a value.
+    pub fn set(&self, o: &Var) {
+        self.var.borrow_mut().set(&o.var.borrow());
+    }
 
     pub fn size(&self) -> Vec<usize> {
         self.var.borrow().size()
@@ -137,10 +141,6 @@ impl Var {
     }
     pub fn set_f64(&self, o: &[usize], v: f64) -> Result<(), AutoDiffError> {
         self.var.borrow_mut().set_f64(o, v)
-    }
-
-    pub fn set(&self, o: &Var) {
-        self.var.borrow_mut().set(&o.var.borrow());
     }
 
     pub fn fill(size: &[usize], fill_value: &Var) -> Var {
@@ -690,6 +690,9 @@ impl TryFrom<Var> for f32 {
     type Error = AutoDiffError;
 
     fn try_from(value: Var) -> Result<Self, Self::Error> {
+        if value.numel() > 1 {
+            return Err(AutoDiffError::new("TryFrom<Var> for f32 only works for 1 element var."))
+        }
 	let index = vec![0; value.size().len()];
 	value.get_f32(&index)
     }
@@ -699,6 +702,9 @@ impl TryFrom<Var> for f64 {
     type Error = AutoDiffError;
 
     fn try_from(value: Var) -> Result<Self, Self::Error> {
+        if value.numel() > 1 {
+            return Err(AutoDiffError::new("TryFrom<Var> for f64 only works for 1 element var."))
+        }
 	let index = vec![0; value.size().len()];
 	value.get_f64(&index)
     }
