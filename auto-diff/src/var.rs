@@ -703,14 +703,28 @@ impl TryFrom<Var> for f64 {
 
     fn try_from(value: Var) -> Result<Self, Self::Error> {
         if value.numel() > 1 {
-            return Err(AutoDiffError::new("TryFrom<Var> for f64 only works for 1 element var."))
+            return Err(AutoDiffError::new("TryFrom<Var> for f64 only works for 1 element var."));
         }
 	let index = vec![0; value.size().len()];
 	value.get_f64(&index)
     }
 }
 
+impl TryFrom<Var> for Vec<usize> {
+    type Error = AutoDiffError;
 
+    fn try_from(value: Var) -> Result<Self, Self::Error> {
+        let t = value.val();
+        if t.size().len() > 2 {
+            return Err(AutoDiffError::new("expect size [n,1], or [n]."));
+        }
+        let mut ret = vec![];
+        for i in 0..self.numel() {
+            
+        }
+        Ok(ret)
+    }
+}
 
 #[macro_export]
 macro_rules! var_f64 {
