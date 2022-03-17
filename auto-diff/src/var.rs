@@ -546,7 +546,7 @@ impl Var {
 
 
     // innternal use
-    pub(crate) fn val(&self) -> Tensor {
+    pub fn val(&self) -> Tensor {
         self.var.borrow().val()
     }
 
@@ -718,10 +718,8 @@ impl TryFrom<Var> for Vec<usize> {
         if t.size().len() > 2 {
             return Err(AutoDiffError::new("expect size [n,1], or [n]."));
         }
-        let mut ret = vec![];
-        for i in 0..self.numel() {
-            
-        }
+        let value = t.reshape(&[value.numel()]);
+        let ret = value.get_raw_f64().iter().map(|x| *x as usize).collect();
         Ok(ret)
     }
 }

@@ -22,6 +22,7 @@ exclude = ["/dev/**"]
 rand = "0.8"
 rand_distr = "0.4"
 
+tensor-rs = { path = "../tensor-rs", version = "0.5.7" }
 auto-diff = { path = "../auto-diff", version = "0.5.7" }
 
 auto-diff-data-pipe = { path = "../data-pipe", version = "0.5.7" }

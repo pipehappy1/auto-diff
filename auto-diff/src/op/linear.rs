@@ -28,16 +28,37 @@ impl Linear {
     pub fn new(in_features: Option<usize>,
                out_features: Option<usize>,
                bias: bool) -> Linear {
-        Linear {
-            in_fea: in_features,
-            out_fea: out_features,
-            bias_option: bias,
-            weight: Tensor::new(),
-            bias: Tensor::new(),
-            weight_grad: Tensor::new(),
-            bias_grad: Tensor::new(),
-            handle: OpHandle::new(),
-        }
+        let weight: Tensor;
+        let bias_tensor: Tensor;
+        match (in_features, out_features) {
+            (Some(d1), Some(d2)) => {
+                weight = Tensor::zeros(&[d1, d2]);
+                bias_tensor = Tensor::zeros(&[d2,]);
+                return Linear {
+                    in_fea: in_features,
+                    out_fea: out_features,
+                    bias_option: bias,
+                    weight: weight,
+                    bias: bias_tensor,
+                    weight_grad: Tensor::new(),
+                    bias_grad: Tensor::new(),
+                    handle: OpHandle::new(),
+                };
+            },
+            _ => {
+                return Linear {
+                    in_fea: in_features,
+                    out_fea: out_features,
+                    bias_option: bias,
+                    weight: Tensor::new(),
+                    bias: Tensor::new(),
+                    weight_grad: Tensor::new(),
+                    bias_grad: Tensor::new(),
+                    handle: OpHandle::new(),
+                };
+            },
+        };
+        
     }
 
     pub fn weight(&self) -> &Tensor {
@@ -100,6 +121,12 @@ impl OpTrait for Linear {
              outputs: &[Tensor]) {
         // TODO go through condition where dimension is missing somewhere.
         //println!("left sie: {:?}, right size: {:?}", inputs[0], self.weight);
+        if inputs.len() != 1 {
+            panic!("linear expect one input.");
+        }
+        if inputs[0].size()[inputs[0].size().len()-1] != self.weight.size()[0] {
+            panic!("dismatched size");
+        }
         let ret = inputs[0].matmul(&self.weight);
         outputs[0].swap(&ret);
         //println!("matmut done");

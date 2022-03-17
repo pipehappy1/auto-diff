@@ -1,12 +1,16 @@
 use auto_diff::op::{Linear, OpCall};
 use auto_diff::optim::{SGD};
 use auto_diff_ann::minibatch::MiniBatch;
-use auto_diff::Var;
+//use auto_diff::Var;
 use auto_diff_ann::init::normal;
 use auto_diff_data_pipe::dataloader::{mnist::Mnist, DataSlice};
 use tensorboard_rs::summary_writer::SummaryWriter;
 use std::path::Path;
+use rand::prelude::*;
 use ::rand::prelude::StdRng;
+use auto_diff_data_pipe::dataloader::DataLoader;
+
+extern crate openblas_src;
 
 fn main() {
     
@@ -43,26 +47,28 @@ fn main() {
 
     let mut rng = StdRng::seed_from_u64(671);
 
-    let mnist = Mnist::load("../auto-diff/examples/data/mnist/train-images-idx3-ubyte" as Path);
+    let mnist = Mnist::load(&Path::new("../auto-diff/examples/data/mnist"));
     
     let train_size = mnist.get_size(Some(DataSlice::Train)).unwrap();
     let h = train_size[1];
     let w = train_size[2];
 
     let mut op1 = Linear::new(Some(h*w), Some(h*w*2), true);
-    normal(op1.weight(), None, None, rng);
-    normal(op1.bias(), None, None, rng);
+    normal(op1.weight(), None, None, &mut rng).unwrap();
+    normal(op1.bias(), None, None, &mut rng).unwrap();
 
     let mut op2 = Linear::new(Some(h*w*2), Some(10), true);
-    normal(op2.weight(), None, None, rng);
-    normal(op2.bias(), None, None, rng);
+    normal(op2.weight(), None, None, &mut rng).unwrap();
+    normal(op2.bias(), None, None, &mut rng).unwrap();
 
 //    //println!("{}, {}", &train_data, &train_label);
 
     let mut minibatch = MiniBatch::new(rng, 16);
 
     let mut writer = SummaryWriter::new(&("./logdir".to_string()));
-    let (input, label) = minibatch.next(&mnist, &DataSlice::Train).unwrap();        
+    let (input, label) = minibatch.next(&mnist, &DataSlice::Train).unwrap();
+    let input = input.reshape(&[16, h*w]).unwrap();
+    input.reset_net();
 
     let output1 = op1.call(&[&input]).unwrap().pop().unwrap();
     let output2 = output1.sigmoid().unwrap();
@@ -74,9 +80,11 @@ fn main() {
     let mut opt = SGD::new(lr);    
 
     
-    for i in 0..900 {
+    for i in 0..100 {
         println!("index: {}", i);
-        let (input_next, label_next) = minibatch.next(&train_data, &train_label).unwrap();        
+        let (input_next, label_next) = minibatch.next(&mnist, &DataSlice::Train).unwrap();
+        let input_next = input_next.reshape(&[16, h*w]).unwrap();
+        input_next.reset_net();
         input.set(&input_next);
         label.set(&label_next);
         println!("load data done");
@@ -90,24 +98,24 @@ fn main() {
 	writer.add_scalar(&"mlp_mnist/train_loss".to_string(), f64::try_from(loss.clone()).unwrap() as f32, i);
 
 
-        if i % 10 == 0 {
-            let (input_next, label_next) = minibatch.next(&test_data, &test_label).unwrap();        
-            input.set(&input_next);
-            label.set(&label_next);
-            loss.rerun().unwrap();
-
-            println!("test loss: {:?}", loss);
-
-            //let loss_value = loss.get().get_scale_f32();
-        
-            let tsum = output.clone().argmax(Some(&[1]), false).unwrap().eq_elem(&test_label).unwrap().mean(None, false);
-            //let accuracy = tsum.get_scale_f32();
-            //println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
-            println!("test accuracy: {:?}", tsum);
-
-            //writer.add_scalar(&"run3/accuracy".to_string(), accuracy, i);
-            //writer.flush();
-        }
+        //if i % 10 == 0 {
+        //    let (input_next, label_next) = minibatch.next(&mnist, &DataSlice::Test).unwrap();
+        //    input.set(&input_next);
+        //    label.set(&label_next);
+        //    loss.rerun().unwrap();
+        //
+        //    println!("test loss: {:?}", loss);
+        //
+        //    //let loss_value = loss.get().get_scale_f32();
+        //
+        //    let tsum = output.clone().argmax(Some(&[1]), false).unwrap().eq_elem(&test_label).unwrap().mean(None, false);
+        //    //let accuracy = tsum.get_scale_f32();
+        //    //println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
+        //    println!("test accuracy: {:?}", tsum);
+        //
+        //    //writer.add_scalar(&"run3/accuracy".to_string(), accuracy, i);
+        //    //writer.flush();
+        //}
 //        
 //        //println!("{}, loss: {}", i, loss.get().get_scale_f32());
 //        writer.add_scalar(&"run3/test_loss".to_string(), loss.get().get_scale_f32(), i);

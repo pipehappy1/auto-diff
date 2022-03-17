@@ -21,8 +21,11 @@ pub trait DataLoader {
             data.push(elem_data);
             label.push(elem_label);
         }
-
-        Ok((data[0].cat(&data[1..], 0)?, label[0].cat(&label[1..], 0)?))
+        let d1 = data[0].cat(&data[1..], 0)?;
+        let d2 = label[0].cat(&label[1..], 0)?;
+        d1.reset_net();
+        d2.reset_net();
+        Ok((d1, d2))
     }
 }
 
