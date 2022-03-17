@@ -9,9 +9,13 @@ pub enum DataSlice {
 }
 
 pub trait DataLoader {
+    /// The shape of the data if applicable.
     fn get_size(&self, slice: Option<DataSlice>) -> Result<Vec<usize>, AutoDiffError>;
+    /// Return one sample.
     fn get_item(&self, index: usize, slice: Option<DataSlice>) -> Result<(Var, Var), AutoDiffError>;
+    /// Return a batch following original order.
     fn get_batch(&self, start: usize, end: usize, slice: Option<DataSlice>) -> Result<(Var, Var), AutoDiffError>;
+    /// Return a batch given the index.
     fn get_indexed_batch(&self, index: &[usize], slice: Option<DataSlice>) -> Result<(Var, Var), AutoDiffError> {
         let mut data: Vec<Var> = vec![];
         let mut label: Vec<Var> = vec![];

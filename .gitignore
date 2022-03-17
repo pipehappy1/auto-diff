@@ -3,3 +3,4 @@ target/
 *~
 */examples/data
 logdir
+saved_model/

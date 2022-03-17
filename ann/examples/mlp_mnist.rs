@@ -9,6 +9,7 @@ use std::path::Path;
 use rand::prelude::*;
 use ::rand::prelude::StdRng;
 use auto_diff_data_pipe::dataloader::DataLoader;
+use std::fs;
 
 extern crate openblas_src;
 
@@ -80,7 +81,7 @@ fn main() {
     let mut opt = SGD::new(lr);    
 
     
-    for i in 0..100 {
+    for i in 0..500 {
         println!("index: {}", i);
         let (input_next, label_next) = minibatch.next(&mnist, &DataSlice::Train).unwrap();
         let input_next = input_next.reshape(&[16, h*w]).unwrap();
@@ -96,6 +97,13 @@ fn main() {
 
         println!("loss: {:?}", loss);
 	writer.add_scalar(&"mlp_mnist/train_loss".to_string(), f64::try_from(loss.clone()).unwrap() as f32, i);
+
+	if i % 5 == 0 {
+	    let encoded: Vec<u8> = bincode::serialize(&loss).unwrap();
+	    fs::write(format!("net_{}", i), encoded).expect("Unable to write file");
+	    //let deserialized: Var = bincode::deserialize(&serialized).unwrap();
+	}
+
 
 
         //if i % 10 == 0 {
