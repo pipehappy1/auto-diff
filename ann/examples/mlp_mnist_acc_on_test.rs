@@ -21,23 +21,40 @@ fn main() {
     
     let mut minibatch = MiniBatch::new(rng, 16);
 
-    let file_name = "./net_495";
+    let file_name = "./saved_model/net_9900";
     let deserialized = fs::read(file_name).expect("unable to read file");
     let deserialized: Var = bincode::deserialize(&deserialized).unwrap();
 
-    let (inputs, outputs) = deserialized.get_io_var().expect("");
+    //println!("net: {:?}", deserialized.dump_net().borrow());
 
+    let (inputs, outputs) = deserialized.get_io_var().expect("");
+    let predict = deserialized.predict().expect("");
+
+    let mut right = 0.;
+    let mut total = 0.;
     for (data, label) in minibatch.iter_block(&mnist, &DataSlice::Test).expect("") {
-	println!("{:?}, {:?}", data.size(), label.size());
+	//println!("{:?}, {:?}", data.size(), label.size());
 	let input = data.reshape(&[minibatch.batch_size(), data.size()[1]*data.size()[2]]).unwrap();
 	input.reset_net();
 	label.reset_net();
-	println!("{:?}, {:?}", input.size(), label.size());
+	//println!("{:?}, {:?}", input.size(), label.size());
 	inputs[0].set(&input);
 	inputs[1].set(&label);
 	deserialized.rerun();
 
-	println!("{:?}",outputs[0]);
-    }
+	//println!("{:?}, {:?}, {:?}",outputs[0], predict, label);
 
+	let predict_max = predict.clone().argmax(Some(&[1]), false).unwrap();
+	//println!("{:?}, {:?}", predict_max, label);
+	right += f64::try_from(predict_max.eq_elem(&label).unwrap().sum(None, false).unwrap()).unwrap();
+	total += input.size()[0] as f64;
+
+	println!("acc: {}", right/total);
+	
+	//let tsum = predict.clone().argmax(Some(&[1]), false).unwrap().eq_elem(&label).unwrap().mean(None, false);
+        //    //let accuracy = tsum.get_scale_f32();
+        //    //println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
+        //    println!("test accuracy: {:?}", tsum);
+    }
+    println!("acc: {}", right/total);
 }

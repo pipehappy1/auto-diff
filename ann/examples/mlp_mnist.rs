@@ -14,37 +14,6 @@ use std::fs;
 extern crate openblas_src;
 
 fn main() {
-    
-
-
-
-    // build the model
-//    let mut m = Module::new();
-//    let mut rng = RNG::new();
-//    rng.set_seed(123);
-//    
-//    let op1 = Linear::new(Some(h*w), Some(h*w*2), true);
-//    rng.normal_(op1.weight(), 0., 1.);
-//    rng.normal_(op1.bias(), 0., 1.);
-//    
-//    let linear1 = Op::new(Box::new(op1));
-//    
-//    let op2 = Linear::new(Some(h*w*2), Some(10), true);
-//    rng.normal_(op2.weight(), 0., 1.);
-//    rng.normal_(op2.bias(), 0., 1.);
-//    
-//    let linear2 = Op::new(Box::new(op2));
-//    
-//    let activator = Op::new(Box::new(Sigmoid::new()));
-//    
-//    let input = m.var();
-//    let output = input
-//        .to(&linear1)
-//        .to(&activator)
-//        .to(&linear2);
-//    let label = m.var();
-//    
-    //    let loss = crossentropyloss(&output, &label);
 
     let mut rng = StdRng::seed_from_u64(671);
 
@@ -54,15 +23,18 @@ fn main() {
     let h = train_size[1];
     let w = train_size[2];
 
-    let mut op1 = Linear::new(Some(h*w), Some(h*w*2), true);
+    let mut op1 = Linear::new(Some(h*w), Some(120), true);
     normal(op1.weight(), None, None, &mut rng).unwrap();
     normal(op1.bias(), None, None, &mut rng).unwrap();
 
-    let mut op2 = Linear::new(Some(h*w*2), Some(10), true);
+    let mut op2 = Linear::new(Some(120), Some(84), true);
     normal(op2.weight(), None, None, &mut rng).unwrap();
     normal(op2.bias(), None, None, &mut rng).unwrap();
 
-//    //println!("{}, {}", &train_data, &train_label);
+    let mut op3 = Linear::new(Some(84), Some(10), true);
+    normal(op3.weight(), None, None, &mut rng).unwrap();
+    normal(op3.bias(), None, None, &mut rng).unwrap();
+
 
     let mut minibatch = MiniBatch::new(rng, 16);
 
@@ -72,66 +44,41 @@ fn main() {
     input.reset_net();
 
     let output1 = op1.call(&[&input]).unwrap().pop().unwrap();
-    let output2 = output1.sigmoid().unwrap();
-    let output = op2.call(&[&output2]).unwrap().pop().unwrap();
+    let output2 = output1.relu().unwrap();
+    let output3 = op2.call(&[&output2]).unwrap().pop().unwrap();
+    let output4 = output3.relu().unwrap();
+    let output = op3.call(&[&output4]).unwrap().pop().unwrap();
+
+    output.set_predict().unwrap();
 
     let loss = output.cross_entropy_loss(&label).unwrap();
     
-    let lr = 0.1;
+    let lr = 0.001;
     let mut opt = SGD::new(lr);    
 
     
-    for i in 0..500 {
-        println!("index: {}", i);
+    for i in 0..100000 {
+        //println!("index: {}", i);
         let (input_next, label_next) = minibatch.next(&mnist, &DataSlice::Train).unwrap();
         let input_next = input_next.reshape(&[16, h*w]).unwrap();
         input_next.reset_net();
         input.set(&input_next);
         label.set(&label_next);
-        println!("load data done");
+        //println!("load data done");
 
         //println!("dump net: {:?}", loss.dump_net().borrow());
         loss.rerun().unwrap();
         loss.bp().unwrap();
         loss.step(&mut opt).unwrap();
-
-        println!("loss: {:?}", loss);
-	writer.add_scalar(&"mlp_mnist/train_loss".to_string(), f64::try_from(loss.clone()).unwrap() as f32, i);
-
-	if i % 5 == 0 {
+	
+        
+	
+	if i % 1000 == 0 {
+	    println!("i: {:?}, loss: {:?}", i, loss);
+	    writer.add_scalar(&"mlp_mnist/train_loss".to_string(), f64::try_from(loss.clone()).unwrap() as f32, i);
+	    
 	    let encoded: Vec<u8> = bincode::serialize(&loss).unwrap();
-	    fs::write(format!("net_{}", i), encoded).expect("Unable to write file");
-	    //let deserialized: Var = bincode::deserialize(&serialized).unwrap();
+	    fs::write(format!("saved_model/net_{}", i), encoded).expect("Unable to write file");
 	}
-
-
-
-        //if i % 10 == 0 {
-        //    let (input_next, label_next) = minibatch.next(&mnist, &DataSlice::Test).unwrap();
-        //    input.set(&input_next);
-        //    label.set(&label_next);
-        //    loss.rerun().unwrap();
-        //
-        //    println!("test loss: {:?}", loss);
-        //
-        //    //let loss_value = loss.get().get_scale_f32();
-        //
-        //    let tsum = output.clone().argmax(Some(&[1]), false).unwrap().eq_elem(&test_label).unwrap().mean(None, false);
-        //    //let accuracy = tsum.get_scale_f32();
-        //    //println!("{}, loss: {}, accuracy: {}", i, loss_value, accuracy);
-        //    println!("test accuracy: {:?}", tsum);
-        //
-        //    //writer.add_scalar(&"run3/accuracy".to_string(), accuracy, i);
-        //    //writer.flush();
-        //}
-//        
-//        //println!("{}, loss: {}", i, loss.get().get_scale_f32());
-//        writer.add_scalar(&"run3/test_loss".to_string(), loss.get().get_scale_f32(), i);
-//        writer.flush();
-//
-//        if i != 0 && i % 300 == 0 {
-//            lr = lr / 3.;
-//            opt = SGD::new(lr);
-//        }
     }
 }
