@@ -16,11 +16,14 @@ pub trait IndexSlicing where Self: Sized {
     /// Splits a tensor into a specific number of chunks.
     fn chunk(&self, chunks: usize, dim: usize) -> Vec<Self>;
     
-    /// Pick elements on the given dimension by the index given
-    /// in index, and gather them in the output.
-    /// A restriction is that self size and index size
-    /// should be the same.
+    /// Pick elements on the given dimension by the index,
+    /// and gather them in the output.
+    /// A restriction is that self.size() and index.size()
+    /// should be the same on other dimensions.
     fn gather(&self, dim: usize, index: &Self) -> Self;
+    /// The opposite of gather.
+    /// Self will be replaced with value along dim by index.
+    fn spread(&self, dim: usize, index: &Self, value: &Self) -> Self;
 
     /// Select on dim and collect those subtensor by index.
     fn index_select(&self, dim: usize, index: &Self) -> Self;
@@ -68,6 +71,9 @@ pub trait IndexSlicing where Self: Sized {
     /// Otherwise , use value from y if self at the position is negative.
     /// The restriction is that, self, x, and y all have the same size.
     fn conditional_select(&self, x: &Self, y: &Self) -> Self;
-
+    /// Repeat the tensor along all dimensions,
+    /// the number of repeat is specified in sizes.
+    /// Thus the restriction is that self.size().len() is
+    /// equal to sizes.len().
     fn repeat(&self, sizes: &[usize]) -> Self;
 }

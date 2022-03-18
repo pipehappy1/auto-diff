@@ -450,6 +450,17 @@ impl TypedTensor {
             _ => {panic!("should have same tensor type!");},
         }
     }
+    pub fn spread(&self, dim: usize, index: &TypedTensor, value: &TypedTensor) -> TypedTensor {
+        match (self, index, value) {
+            (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2), TypedTensor::Typef32(v3)) => {
+                TypedTensor::Typef32(v1.spread(dim, v2, v3))
+            },
+            (TypedTensor::Typef64(v1), TypedTensor::Typef64(v2), TypedTensor::Typef64(v3)) => {
+                TypedTensor::Typef64(v1.spread(dim, v2, v3))
+            },
+            _ => {panic!("should have same tensor type!");},
+        }
+    }
     pub fn index_select(&self, dim: usize, index: &TypedTensor) -> TypedTensor {
         match (self, index) {
             (TypedTensor::Typef32(v1), TypedTensor::Typef32(v2)) => {

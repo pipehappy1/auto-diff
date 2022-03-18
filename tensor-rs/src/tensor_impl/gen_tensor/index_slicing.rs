@@ -148,6 +148,32 @@ impl<T> IndexSlicing for GenTensor<T> where T: num_traits::Float {
         };
         ret
     }
+    fn spread(&self, dim: usize, index: &Self, value: &Self) -> Self {
+	if index.size() != value.size() {
+	    panic!("spread expect index and value have the same size.");
+	}
+	if index.size().len() <= dim {
+	    panic!("spread see invalid dim.");
+	}
+	if self.size().len() != index.size().len() {
+            panic!("gather need two input has the same number of dim: {}, {}", self.size().len(), index.size().len());
+        }
+        for i in 0..self.size().len() {
+            if i != dim && self.size()[i] != index.size()[i] {
+                panic!("gather want the same shape (but see {:?}, {:?}) except dim {}", self.size(), index.size(), dim);
+            }
+        }
+	let mut ret = self.clone();
+	for i in 0..index.numel() {
+	    let index_pos = index.index2dimpos(i);
+	    let mut set_pos = index_pos.clone();
+	    set_pos[dim] = index.get(&index_pos).to_usize().expect("");
+	    ret.set(&set_pos, value.get(&index_pos));
+	}
+
+	ret
+    }
+    
     fn index_select(&self, dim: usize, index: &Self) -> Self {
         if dim >= self.size().len() {
             panic!("index_select needs better dim: {:?}, {:?}", self.size(), dim);
@@ -481,6 +507,16 @@ mod tests {
         let r = a.gather(1, &g);
         println!("{:?}", r);
         assert_eq!(r, GenTensor::new_raw(&[1., 1., 4., 3.,], &[2, 2]));
+    }
+
+    #[test]
+    fn spread() {
+	let a = GenTensor::new_raw(&[1., 2., 3., 4.,], &[2, 2]);
+	let b = GenTensor::new_raw(&[1., 0.,], &[2, 1]);
+	let c = GenTensor::new_raw(&[10., 12.,], &[2, 1]);
+	let d = a.spread(1, &b, &c);
+	let e = GenTensor::new_raw(&[1., 10., 12., 4.], &[2, 2]);
+	assert_eq!(d, e);
     }
 
     #[test]

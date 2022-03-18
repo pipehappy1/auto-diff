@@ -301,6 +301,19 @@ impl Tensor {
         let a = Self::ones(dim);
         a.add(&a)
     }
+    pub fn int_n(dim: &[usize], n: isize) -> Tensor {
+	let abs_n = n.abs();
+	let mut a = Self::ones(dim);
+	let b = Self::ones(dim);
+	for _i in 0..(abs_n-1) {
+	    a = a.add(&b);
+	}
+	if n >= 0 {
+	    a
+	} else {
+	    a.neg()
+	}
+    }
     // ones_like
     tensor_method_single_tensor_return!(ones_like);
     // range
@@ -406,6 +419,11 @@ impl Tensor {
     pub fn gather(&self, dim: usize, index: &Tensor) -> Tensor {
         Tensor {
             v: Rc::new(RefCell::new(self.v.borrow().gather(dim, &index.v.borrow()))),
+        }
+    }
+    pub fn spread(&self, dim: usize, index: &Tensor, value: &Tensor) -> Tensor {
+        Tensor {
+            v: Rc::new(RefCell::new(self.v.borrow().spread(dim, &index.v.borrow(), &value.v.borrow()))),
         }
     }
     pub fn index_select(&self, dim: usize, index: &Tensor) -> Tensor {
@@ -828,6 +846,11 @@ mod tests {
         let m3 = m1.add(&m2);
         assert_eq!(m3.get_f32(&vec![0,0]), 2.);
         assert_eq!(m3.get_f32(&vec![1,1]), 8.);
+
+	let m1 = Tensor::from_vec_f32(&vec![1.,2.,3.,4.,], &vec![2,2]);
+        let m2 = Tensor::from_vec_f32(&vec![1.,2.,], &vec![2]);
+        let m3 = m1.add(&m2);
+        assert_eq!(m3, Tensor::from_vec_f32(&vec![2.,4.,4.,6.,], &vec![2,2]));
     }
 
     #[test]

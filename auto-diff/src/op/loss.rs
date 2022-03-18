@@ -126,11 +126,12 @@ impl OpTrait for CrossEntropyLoss {
     /// The first is the prediction, the second input is the label
     /// ORDER IS IMPORTANT, SECOND ARGUMENT WON'T GET GRADEINT.
     fn apply(&self, input: &[Tensor], output: &[Tensor]) {
-        if input.len() < 2 {
+        if input.len() != 2 {
             panic!("{} expect two input, get {}", self.get_name(), input.len());
         }
         if input[0].size().len() != (input[1].size().len()+1) {
-            panic!("{} expect dim+1 and dim, get {}, {}", self.get_name(), input[0].size().len(), input[1].size().len());
+            panic!("{} expect dim+1 and dim, get {}, {}, for now, no one-hot encoding support",
+		   self.get_name(), input[0].size().len(), input[1].size().len());
         }
 
         let class_index = input[1].unsqueeze(1);
@@ -144,53 +145,16 @@ impl OpTrait for CrossEntropyLoss {
     /// return backward input gradeint.
     fn grad(&self, input: &[Tensor],
             output_grad: &[Tensor], input_grad: &[Tensor]) {
-
-        // exchange sample size and class
-        let mut dim_order: Vec<usize> = (0..input[0].size().len()).collect();
-        dim_order[0] = 1;
-        dim_order[1] = 0;
-
-        // - max and use CNddd format
-        let smaller = input[0].permute(&dim_order);
-        let max = smaller.max(Some(&[0]), false);
-        let smaller = smaller.sub(&max);
-        let new_label = input[1].unsqueeze(0);
-
-        // get sum(exp(x_i))
-        let mut class_dim = vec![1; smaller.size().len()];
-        class_dim[0] = smaller.size()[0];
-        let denominator = smaller.exp().sum(Some(&[0]), true).repeat(&class_dim);
-
-        // repeated class label for each class
-        let mut tmp_dim = vec![1; smaller.size().len()]; // Nddd
-        tmp_dim[0] = smaller.size()[0]; // CNddd
-        let repeated_label = new_label.repeat(&tmp_dim); // CNddd
-
-        // repeated class label for each sample
-        #[cfg(feature = "use-f32")]
-        let class_seq: Vec<f32> = (0..smaller.size()[0]).map(|x| x as f32).collect();
-        #[cfg(feature = "use-f64")]
-        let class_seq: Vec<f64> = (0..smaller.size()[0]).map(|x| x as f64).collect();
-        
-        #[cfg(feature = "use-f32")]
-        let class_label = Tensor::from_vec_f32(&class_seq, &class_dim);
-        #[cfg(feature = "use-f64")]
-        let class_label = Tensor::from_vec_f64(&class_seq, &class_dim);
-        
-        let mut repeat_dim = smaller.size();
-        repeat_dim[0] = 1;
-        let repeated_class = class_label.repeat(&repeat_dim);
-
-        let pick = repeated_label.eq_t(&repeated_class);
-        let smaller_exp = smaller.exp();
-        let numerator = pick.conditional_select(&smaller_exp.sub(&denominator), &smaller_exp);
-
-        #[cfg(feature = "use-f32")]
-        let grad = numerator.div(&denominator).div(&Tensor::from_vec_f32(&[input[1].numel() as f32], &[1]));
-        #[cfg(feature = "use-f64")]
-        let grad = numerator.div(&denominator).div(&Tensor::from_vec_f64(&[input[1].numel() as f64], &[1]));
-        let grad = grad.permute(&dim_order);
-        input_grad[0].swap(&grad.mul(&output_grad[0]));
+	let n = input[0].size()[0];
+	let d = input[0].size()[1];
+	let common = input[0].sub(&input[0].logsumexp(Some(&[1]), true).repeat(&[1, d])).exp();
+	
+	let class_index = input[1].unsqueeze(1);
+	let zeros = Tensor::zeros(&[n, d]);
+	let subone = Tensor::ones(&[n, 1]).neg();
+        let class_score = zeros.spread(1, &class_index, &subone);
+	input_grad[0].swap(&(class_score.add(&common)).mul(&output_grad[0])
+			   .div(&Tensor::int_n(&[1], n.try_into().expect(""))))
     }
 
     /// access weight values
@@ -321,7 +285,7 @@ impl Default for BCEWithLogitsLoss {
 #[cfg(test)]
 mod tests {
     use super::*;
-//    use crate::op::_gradient_checker;
+    use crate::op::_gradient_checker;
 
     #[test]
     fn test_cross_entropy_loss() {
@@ -332,6 +296,20 @@ mod tests {
         c.apply(&[a.ref_copy(), b.ref_copy()], &[d.ref_copy()]);
         assert!((d.get_scale_f64() - 0.97992826).abs() < 0.001);
 
-//        assert!(_gradient_checker(&mut c, &[a, b], Some(&[true, false]), None, None));
+	let a = Tensor::from_vec_f64(&vec![0.1, 0.1, 10., 10., 0.1, 0.1], &[2, 3]);
+	let b = Tensor::from_vec_f64(&vec![2., 0., ], &vec![2]);
+	let c = CrossEntropyLoss::new();
+        let d = Tensor::new();
+        c.apply(&[a.ref_copy(), b.ref_copy()], &[d.ref_copy()]);
+	println!("{:?}", d);
+
+	let a = Tensor::from_vec_f64(&vec![0.1, 0.1, 10., 10., 0.1, 0.1], &[2, 3]);
+	let b = Tensor::from_vec_f64(&vec![0., 2., ], &vec![2]);
+	let mut c = CrossEntropyLoss::new();
+        let d = Tensor::new();
+        c.apply(&[a.ref_copy(), b.ref_copy()], &[d.ref_copy()]);
+	println!("{:?}", d);
+
+        assert!(_gradient_checker(&mut c, &[a, b], Some(&[true, false]), None, None));
     }
 }
