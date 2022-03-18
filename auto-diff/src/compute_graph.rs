@@ -21,6 +21,7 @@ pub struct Net {
     set_mark: BTreeSet<GenKey>,
     graph: Graph<GenKey, GenKey>,
     data_grad: BTreeMap<GenKey, Tensor>,
+    label2id: BTreeMap<String, GenKey>, // Give some var a name.
 }
 
 impl Net {
@@ -31,6 +32,7 @@ impl Net {
             set_mark: BTreeSet::new(),
             graph: Graph::new(),
             data_grad: BTreeMap::new(),
+	    label2id: BTreeMap::new(),
         }
     }
 
@@ -328,6 +330,31 @@ impl Net {
         self.graph.append(&other.graph, data_key_map, op_key_map)?;
 
         Ok(ret_keys)
+    }
+
+    /// For introspection.
+    pub fn set_label(&mut self, label: &str, id: &GenKey) -> Result<(), AutoDiffError>{
+	if !self.data.contains(id) {
+	    return Err(AutoDiffError::new("unknown id."));
+	} else {
+	    self.label2id.insert(label.to_string(), *id);
+	    return Ok(());
+	}
+    }
+
+    pub fn get_id_by_label(&self, label: &str) -> Result<GenKey, AutoDiffError> {
+	match self.label2id.get(label) {
+            Some(v) => {Ok(*v)},
+            None => {Err(AutoDiffError::new("unknown label."))}
+        }
+    }
+
+    pub fn drop_label(&mut self, label: &str) -> Result<GenKey, AutoDiffError> {
+	if !self.label2id.contains_key(label) {
+	    Err(AutoDiffError::new("unknown label."))
+	} else {
+	    Ok(*self.label2id.get(label).expect("unknown label."))
+	}
     }
 }
 

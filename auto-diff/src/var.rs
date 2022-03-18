@@ -589,6 +589,25 @@ impl Var {
 	Ok((inputs.drain(..).map(|x| Var {var: Rc::new(RefCell::new(x))}).collect(),
 	    outputs.drain(..).map(|x| Var {var: Rc::new(RefCell::new(x))}).collect()))
     }
+    
+    /// Get var by string label
+    pub fn get_var_by_label(&self, label: &str) -> Result<Var, AutoDiffError> {
+	let inner = self.var.borrow().get_var_by_label(label)?;
+	Ok(Var {
+	    var: Rc::new(RefCell::new(inner)),
+	})
+    }
+
+    pub fn set_label(&self, label: &str) -> Result<(), AutoDiffError> {
+	self.var.borrow().set_label(label)
+    }
+
+    pub fn set_predict(&self) -> Result<(), AutoDiffError> {
+	self.set_label("__predict__")
+    }
+    pub fn predict(&self) -> Result<Var, AutoDiffError> {
+	self.get_var_by_label("__predict__")
+    }
 
     pub(crate) fn called_with(&self, op: Op,
                               others: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {

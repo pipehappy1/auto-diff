@@ -349,6 +349,20 @@ impl VarInner {
 	    output_id.iter().map(|x| VarInner {id: *x, need_grad: true, net: self.net.clone()}).collect(),))
     }
 
+    pub fn get_var_by_label(&self, label: &str) -> Result<VarInner, AutoDiffError> {
+	let id = self.net.borrow().get_id_by_label(label)?;
+	//self.net.borrow().
+	Ok(VarInner {
+	    id: id,
+	    need_grad: true,
+	    net: self.net.clone(),
+	})
+    }
+
+    pub(crate) fn set_label(&self, label: &str) -> Result<(), AutoDiffError> {
+	self.net.borrow_mut().set_label(label, &self.id)
+    }
+
     pub(crate) fn set_grad(&mut self, use_gradient: bool) {
         self.need_grad = use_gradient;
     }
