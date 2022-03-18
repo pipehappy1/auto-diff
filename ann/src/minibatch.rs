@@ -23,7 +23,6 @@ impl MiniBatch {
         let sample_size = loader.get_size(Some(*part))?[0];
         let index_t = Var::rand_usize(&mut self.rng, &[self.size], 0, sample_size);
         loader.get_indexed_batch(&(Vec::<usize>::try_from(index_t)?), Some(*part))
-
     }
     /// Get a random set of samples given the data and label.
     pub fn next_data_slice(&mut self, data: &Var, label: &Var) -> Result<(Var, Var), AutoDiffError> {

@@ -102,6 +102,8 @@ impl DataLoader for Mnist {
                         .map(|(x,y)| (*x, *y)).collect());
                 let data = self.train.get_patch(&index_block, None)?;
                 let label = self.train_label.get_patch(&[(index, index+1)], None)?;
+		self.train.reset_net();
+		self.train_label.reset_net();
                 return Ok((data, label));
             },
 	    Some(DataSlice::Test) => {
