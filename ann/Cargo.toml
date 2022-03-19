@@ -1,6 +1,6 @@
 [package]
 name = "auto-diff-ann"
-version = "0.5.7"
+version = "0.5.8"
 authors = ["yguan <yguan@example.com>"]
 edition = "2021"
 description = """
@@ -22,17 +22,17 @@ exclude = ["/dev/**"]
 rand = "0.8"
 rand_distr = "0.4"
 
-tensor-rs = { path = "../tensor-rs", version = "0.5.7" }
-auto-diff = { path = "../auto-diff", version = "0.5.7" }
+tensor-rs = { path = "../tensor-rs", version = "0.5.8" }
+auto-diff = { path = "../auto-diff", version = "0.5.8" }
 
-auto-diff-data-pipe = { path = "../data-pipe", version = "0.5.7" }
+auto-diff-data-pipe = { path = "../data-pipe", version = "0.5.8" }
 
 [dev-dependencies]
 # one backend
 openblas-src = "0.10" # or another backend of your choice
 
-auto-diff-data-pipe = { path = "../data-pipe", version = "0.5.7" }
+auto-diff-data-pipe = { path = "../data-pipe", version = "0.5.8" }
 
-tensorboard-rs = { path = "../tensorboard-rs", version = "0.5.7" }
+tensorboard-rs = { path = "../tensorboard-rs", version = "0.5.8" }
 
 bincode = {version = "1.3.3"}

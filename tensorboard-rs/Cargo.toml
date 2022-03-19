@@ -1,6 +1,6 @@
 [package]
 name = "tensorboard-rs"
-version = "0.5.7"
+version = "0.5.8"
 authors = ["yguan <yguan@example.com>"]
 edition = "2021"
 description = """
@@ -21,7 +21,7 @@ exclude = ["/dev/**"]
 [dependencies]
 protobuf = "2.14"
 
-#tensorboard-proto = { path = "../../tensorboard-proto", version = "0.5.7" }
+#tensorboard-proto = { path = "../../tensorboard-proto", version = "0.5.8" }
 tensorboard-proto = { version = "0.5.7" }
 
 gethostname = "0.2.1"

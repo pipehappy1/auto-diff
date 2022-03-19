@@ -1,6 +1,6 @@
 [package]
 name = "auto-diff-macros"
-version = "0.5.7"
+version = "0.5.8"
 authors = ["yguan <yguan@example.com>"]
 edition = "2021"
 description = """
