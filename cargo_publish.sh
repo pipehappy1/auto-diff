@@ -1,12 +1,10 @@
 #!/bin/bash
 
-cd ../tensorboard-proto
+
+cd ./tensorboard-rs
 cargo publish
 
-cd ../tensorboard-rs
-cargo publish
-
-cd ../auto-diff/tensor-rs
+cd ../tensor-rs
 cargo publish
 
 sleep 2
@@ -14,6 +12,14 @@ sleep 2
 cd ../auto-diff
 cargo publish
 
+sleep 2
 
+cd ../data-pipe
+cargo publish
+
+sleep 2
+
+cd ../ann
+cargo publish
 
 
