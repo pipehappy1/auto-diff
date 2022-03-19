@@ -34,19 +34,19 @@ impl Linear {
             (Some(d1), Some(d2)) => {
                 weight = Tensor::zeros(&[d1, d2]);
                 bias_tensor = Tensor::zeros(&[d2,]);
-                return Linear {
+                Linear {
                     in_fea: in_features,
                     out_fea: out_features,
                     bias_option: bias,
-                    weight: weight,
+                    weight,
                     bias: bias_tensor,
                     weight_grad: Tensor::new(),
                     bias_grad: Tensor::new(),
                     handle: OpHandle::new(),
-                };
+                }
             },
             _ => {
-                return Linear {
+                Linear {
                     in_fea: in_features,
                     out_fea: out_features,
                     bias_option: bias,
@@ -55,9 +55,9 @@ impl Linear {
                     weight_grad: Tensor::new(),
                     bias_grad: Tensor::new(),
                     handle: OpHandle::new(),
-                };
+                }
             },
-        };
+        }
         
     }
 

@@ -44,7 +44,7 @@ impl MiniBatch {
 
     pub fn iter_block<'a>(&self, loader: &'a dyn DataLoader, part: & DataSlice) -> Result<BlockIterator<'a>, AutoDiffError> {
 	Ok(BlockIterator {
-            loader: loader,
+            loader,
 	    part: *part,
 	    block_size: self.size,
 	    block_index: 0,
@@ -74,7 +74,7 @@ impl<'a> Iterator for BlockIterator<'a> {
 	if end_index > n {
 	    end_index = n;
 	}
-	println!("{}, {}", self.block_index, end_index);
+
 	let result = self.loader.get_batch(self.block_index,
 					   end_index,
 					   Some(self.part));

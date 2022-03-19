@@ -335,10 +335,10 @@ impl Net {
     /// For introspection.
     pub fn set_label(&mut self, label: &str, id: &GenKey) -> Result<(), AutoDiffError>{
 	if !self.data.contains(id) {
-	    return Err(AutoDiffError::new("unknown id."));
+	    Err(AutoDiffError::new("unknown id."))
 	} else {
 	    self.label2id.insert(label.to_string(), *id);
-	    return Ok(());
+	    Ok(())
 	}
     }
 

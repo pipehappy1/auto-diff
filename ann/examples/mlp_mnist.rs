@@ -13,6 +13,7 @@ use std::fs;
 
 extern crate openblas_src;
 
+
 fn main() {
 
     let mut rng = StdRng::seed_from_u64(671);
@@ -23,6 +24,7 @@ fn main() {
     let h = train_size[1];
     let w = train_size[2];
 
+    // init
     let mut op1 = Linear::new(Some(h*w), Some(120), true);
     normal(op1.weight(), None, None, &mut rng).unwrap();
     normal(op1.bias(), None, None, &mut rng).unwrap();
@@ -37,41 +39,40 @@ fn main() {
 
 
     let mut minibatch = MiniBatch::new(rng, 16);
-
     let mut writer = SummaryWriter::new(&("./logdir".to_string()));
+
+    // get data
     let (input, label) = minibatch.next(&mnist, &DataSlice::Train).unwrap();
     let input = input.reshape(&[16, h*w]).unwrap();
     input.reset_net();
 
+    // the network
     let output1 = op1.call(&[&input]).unwrap().pop().unwrap();
     let output2 = output1.relu().unwrap();
     let output3 = op2.call(&[&output2]).unwrap().pop().unwrap();
     let output4 = output3.relu().unwrap();
     let output = op3.call(&[&output4]).unwrap().pop().unwrap();
 
+    // label the predict var.
     output.set_predict().unwrap();
 
     let loss = output.cross_entropy_loss(&label).unwrap();
     
     let lr = 0.001;
     let mut opt = SGD::new(lr);    
-
     
     for i in 0..100000 {
-        //println!("index: {}", i);
         let (input_next, label_next) = minibatch.next(&mnist, &DataSlice::Train).unwrap();
         let input_next = input_next.reshape(&[16, h*w]).unwrap();
         input_next.reset_net();
+
+	// set data and label
         input.set(&input_next);
         label.set(&label_next);
-        //println!("load data done");
 
-        //println!("dump net: {:?}", loss.dump_net().borrow());
         loss.rerun().unwrap();
         loss.bp().unwrap();
         loss.step(&mut opt).unwrap();
-	
-        
 	
 	if i % 1000 == 0 {
 	    println!("i: {:?}, loss: {:?}", i, loss);

@@ -353,7 +353,7 @@ impl VarInner {
 	let id = self.net.borrow().get_id_by_label(label)?;
 	//self.net.borrow().
 	Ok(VarInner {
-	    id: id,
+	    id,
 	    need_grad: true,
 	    net: self.net.clone(),
 	})
