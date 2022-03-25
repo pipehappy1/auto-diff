@@ -32,9 +32,9 @@ impl Serialize for Box<dyn OpTrait> {
         //state.end()
 	match self.get_name() {
 	    "View" => {
-         let op = self.as_any().downcast_ref::<View>().unwrap();
-         op.serialize(serializer)
-         }, 
+		let op = self.as_any().downcast_ref::<View>().unwrap();
+		op.serialize(serializer)
+            }, 
 "Add" => {
          let op = self.as_any().downcast_ref::<Add>().unwrap();
          op.serialize(serializer)

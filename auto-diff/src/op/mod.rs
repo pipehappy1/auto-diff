@@ -1,6 +1,7 @@
 /// Only NCWH format is supported.
 use std::cell::{RefCell};
 use std::rc::Rc;
+use std::collections::HashMap;
 
 use tensor_rs::tensor::Tensor;
 use crate::var::Var;
@@ -8,6 +9,10 @@ use crate::err::AutoDiffError;
 use crate::collection::generational_index::{GenKey};
 use crate::compute_graph::Net;
 
+#[cfg(feature = "use-serde")]
+use lazy_static::lazy_static;
+#[cfg(feature = "use-serde")]
+use serde::{Serializer, Deserializer,};
 #[cfg(feature = "use-serde")]
 use serde::{Serialize, Deserialize};
 #[cfg(feature = "use-serde")]
@@ -384,3 +389,10 @@ pub use reduction::{Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, M
 pub mod vision;
 pub use vision::{GetPatch, SetPatch};
 
+#[cfg(feature = "use-serde")]
+lazy_static! {
+    static ref SERDEMAP: HashMap<&'static str, > = {
+        let mut m = HashMap::new();
+        m
+    };
+}
