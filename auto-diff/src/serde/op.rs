@@ -32,8 +32,7 @@ impl Serialize for Box<dyn OpTrait> {
         //state.end()
 	match self.get_name() {
 	    "View" => {
-		let op = self.as_any().downcast_ref::<View>().unwrap();
-		op.serialize(serializer)
+                View::serialize::<S>(self, serializer)
             }, 
 "Add" => {
          let op = self.as_any().downcast_ref::<Add>().unwrap();
@@ -440,10 +439,10 @@ impl<'de> Deserialize<'de> for Op {
                             //op_obj = Some(map.next_value()?);
 			    let op_name: String = op_name.ok_or_else(|| de::Error::missing_field("op_name"))?;
 			    match op_name.as_str() {
-				         "View" => {
-             let op_obj: View = Some(map.next_value::<View>()?).ok_or_else(|| de::Error::missing_field("op_obj"))?;
-            return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
-         }, 
+				"View" => {
+                                    let op_obj: View = Some(map.next_value::<View>()?).ok_or_else(|| de::Error::missing_field("op_obj"))?;
+                                    return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+                                }, 
          "Add" => {
              let op_obj: Add = Some(map.next_value::<Add>()?).ok_or_else(|| de::Error::missing_field("op_obj"))?;
             return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));

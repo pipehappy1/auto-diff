@@ -293,6 +293,13 @@ impl View {
         }
     }
     handle_method!();
+
+    #[cfg(feature = "use-serde")]
+    pub fn serialize<S>(this: &Box<dyn OpTrait>, serializer: S) -> Result<S::Ok, S::Error>
+    where S: Serializer {
+        let op = this.as_any().downcast_ref::<View>().unwrap();
+	op.serialize(serializer)
+    }
 }
 impl OpCall for View {
     fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
@@ -389,10 +396,10 @@ pub use reduction::{Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, M
 pub mod vision;
 pub use vision::{GetPatch, SetPatch};
 
-#[cfg(feature = "use-serde")]
-lazy_static! {
-    static ref SERDEMAP: HashMap<&'static str, > = {
-        let mut m = HashMap::new();
-        m
-    };
-}
+//#[cfg(feature = "use-serde")]
+//lazy_static! {
+//    static ref SERDEMAP: HashMap<&'static str, > = {
+//        let mut m = HashMap::new();
+//        m
+//    };
+//}
