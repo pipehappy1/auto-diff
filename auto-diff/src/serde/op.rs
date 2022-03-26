@@ -32,7 +32,7 @@ impl Serialize for Box<dyn OpTrait> {
         //let mut state = serializer.serialize_struct("OpTrait", 1)?;
         //state.serialize_field("op_name", &self.get_name())?;
         //state.end()
-        crate::op::serialize::<S>(&self, serializer)
+        crate::op::serialize_box::<S>(&self, serializer)
     }
 }
 

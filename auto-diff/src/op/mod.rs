@@ -1,7 +1,6 @@
 /// Only NCWH format is supported.
 use std::cell::{RefCell};
 use std::rc::Rc;
-use std::collections::HashMap;
 
 use tensor_rs::tensor::Tensor;
 use crate::var::Var;
@@ -9,8 +8,7 @@ use crate::err::AutoDiffError;
 use crate::collection::generational_index::{GenKey};
 use crate::compute_graph::Net;
 
-#[cfg(feature = "use-serde")]
-use lazy_static::lazy_static;
+
 #[cfg(feature = "use-serde")]
 use serde::{Serializer, Deserializer,};
 #[cfg(feature = "use-serde")]
@@ -293,13 +291,6 @@ impl View {
         }
     }
     handle_method!();
-
-    #[cfg(feature = "use-serde")]
-    pub fn serialize<S>(this: &Box<dyn OpTrait>, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer {
-        let op = this.as_any().downcast_ref::<View>().unwrap();
-	op.serialize(serializer)
-    }
 }
 impl OpCall for View {
     fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
@@ -400,4 +391,15 @@ use auto_diff_macros::gen_serde_funcs;
 #[cfg(feature = "use-serde")]
 use serde::{ser};
 #[cfg(feature = "use-serde")]
-gen_serde_funcs!();
+gen_serde_funcs!(View,
+                 Add, Sub, Mul, Div, Matmul, Outer,
+                 Linear,
+                 ELU, ReLU,
+                 Conv2d,
+                 MSELoss, BCEWithLogitsLoss, CrossEntropyLoss,
+                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt,Sigmoid, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
+                 MaxPair, MinPair, ArgSort, EqElem, Equal, Ge, Gt, Le, Lt, Ne,
+                 Cat, Chunk, ConditionalSelect, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, Repeat,
+                 Det, Inv, NormalizeUnit, Tr,
+                 Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min,
+                 GetPatch, SetPatch);
