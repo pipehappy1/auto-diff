@@ -103,9 +103,25 @@ pub fn gen_serde_funcs(input: TokenStream) -> TokenStream {
         }
     };
 
+    let deserialize_seq = quote!{
+	pub fn deserialize_seq<'de, V>(op_name: String, mut seq: V) -> Result<Op, V::Error>
+        where V: SeqAccess<'de>, {
+            match op_name.as_str() {
+                #( #strs => {
+                    let op_obj: #names = seq.next_element()?.ok_or_else(|| de::Error::missing_field("op_obj"))?;
+                    return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+                }, )*
+                _ => {
+		    return Err(de::Error::missing_field("op_obj"));
+		}
+            }
+        }
+    };
+
     let tokens = quote! {
         #serialize_box
         #deserialize_map
+        #deserialize_seq
     };
     
     tokens.into()

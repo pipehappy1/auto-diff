@@ -10,7 +10,7 @@ use crate::compute_graph::Net;
 
 
 #[cfg(feature = "use-serde")]
-use serde::{Serializer, Deserializer, de, de::MapAccess};
+use serde::{Serializer, de, de::MapAccess, de::SeqAccess,};
 #[cfg(feature = "use-serde")]
 use serde::{Serialize, Deserialize};
 #[cfg(feature = "use-serde")]
