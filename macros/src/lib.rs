@@ -60,7 +60,7 @@ pub fn gen_serde_funcs(input: TokenStream) -> TokenStream {
     let input_tokens = input.clone();
     let parser = Punctuated::<Expr, Token![,]>::parse_separated_nonempty;
     let input_result = parser.parse(input_tokens).expect("need list of ids");
-    let mut strs = vec![];
+    let mut strs = vec![]; // This is the vec of op structure name in str.
     for item in input_result {
         match item {
             Expr::Path(expr) => {
@@ -70,9 +70,10 @@ pub fn gen_serde_funcs(input: TokenStream) -> TokenStream {
         }
     }
 
+    // This is the vec of ident.
     let names: Vec<_> = strs.iter().map(|x| quote::format_ident!("{}", x)).collect();
     
-    let tokens = quote!{
+    let serialize_box = quote!{
         pub fn serialize_box<S>(op: &Box<dyn OpTrait>, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer {
             match op.get_name() {
@@ -87,6 +88,25 @@ pub fn gen_serde_funcs(input: TokenStream) -> TokenStream {
         }
     };
 
+    let deserialize_map = quote!{
+        pub fn deserialize_map<'de, V>(op_name: String, mut map: V) -> Result<Op, V::Error>
+        where V: MapAccess<'de>, {
+            match op_name.as_str() {
+                #( #strs => {
+                    let op_obj: #names = Some(map.next_value::<#names>()?).ok_or_else(|| de::Error::missing_field("op_obj"))?;
+                    return Ok(Op::new(Rc::new(RefCell::new(Box::new(op_obj)))));
+                }, )*
+                _ => {
+		    return Err(de::Error::missing_field("op_obj"));
+		}
+            }
+        }
+    };
+
+    let tokens = quote! {
+        #serialize_box
+        #deserialize_map
+    };
     
     tokens.into()
 }
