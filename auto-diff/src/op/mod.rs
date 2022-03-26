@@ -367,7 +367,7 @@ pub mod linear;
 pub use linear::Linear;
 
 pub mod nonlinear;
-pub use nonlinear::{ELU, ReLU, Sigmoid};
+pub use nonlinear::{ELU, ReLU, };
 
 pub mod convolution;
 pub use convolution::{ Conv2d};
@@ -378,8 +378,7 @@ pub mod loss;
 pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};
 
 pub mod element;
-pub use element::{Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt, //Sigmoid,
-                  Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc};
+pub use element::{Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt,Sigmoid, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc};
 
 pub mod comparison;
 pub use comparison::{MaxPair, MinPair, ArgSort, EqElem, Equal, Ge, Gt, Le, Lt, Ne};
@@ -396,10 +395,9 @@ pub use reduction::{Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, M
 pub mod vision;
 pub use vision::{GetPatch, SetPatch};
 
-//#[cfg(feature = "use-serde")]
-//lazy_static! {
-//    static ref SERDEMAP: HashMap<&'static str, > = {
-//        let mut m = HashMap::new();
-//        m
-//    };
-//}
+#[cfg(feature = "use-serde")]
+use auto_diff_macros::gen_serde_funcs;
+#[cfg(feature = "use-serde")]
+use serde::{ser};
+#[cfg(feature = "use-serde")]
+gen_serde_funcs!();
