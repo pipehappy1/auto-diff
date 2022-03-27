@@ -114,6 +114,8 @@ impl<'de> Deserialize<'de> for Op {
 mod tests {
     use crate::op::linear::Linear;
     use super::*;
+    use std::rc::Rc;
+    use std::cell::RefCell;
     
     #[test]
     fn test_serde_op() {
