@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.9] - 2022-03-28
+- Use proc_macro to save some typing.
+
 ## [0.5.8] - 2022-03-19
 - Add data loader and fix mlp_mnist example.
 
