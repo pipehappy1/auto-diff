@@ -9,6 +9,9 @@ cargo publish
 
 sleep 2
 
+cd ../macros
+cargo publish
+
 cd ../auto-diff
 cargo publish
 
