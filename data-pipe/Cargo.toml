@@ -1,6 +1,6 @@
 [package]
 name = "auto-diff-data-pipe"
-version = "0.5.8"
+version = "0.5.9"
 authors = ["yguan <yguan@example.com>"]
 edition = "2021"
 description = """
@@ -15,7 +15,7 @@ keywords = ["machine-learning", "neural-network", "deep-learning"]
 exclude = ["/dev/**"]
 
 [dependencies]
-auto-diff = { path = "../auto-diff", version = "0.5.8" }
+auto-diff = { path = "../auto-diff", version = "0.5.9" }
 
 [dev-dependencies]
 # one backend
