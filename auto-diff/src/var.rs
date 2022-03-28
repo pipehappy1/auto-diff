@@ -149,6 +149,17 @@ impl Var {
                 VarInner::fill(size, fill_value.var.clone())))
         }
     }
+
+    pub fn one() -> Var {
+	Self::ones(&[1,1])
+    }
+    pub fn zero() -> Var {
+	Self::zeros(&[1,1])
+    }
+    pub fn two() -> Var {
+	Self::twos(&[1,1])
+    }
+    
     delegate_new_op!(fill_f32, size: &[usize], fill_value: f32);
     delegate_new_op!(fill_f64, size: &[usize], fill_value: f64);
     delegate_new_op!(zeros, dim: &[usize]);
