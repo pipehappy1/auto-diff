@@ -332,7 +332,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
                             outputs.push(*output);
                         }
 
-                        // all the closure
+                        // call the closure
                         closure(&inputs, &outputs, &op_candidate);
 
                         // maintain the list
@@ -354,7 +354,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
                             }
                         }
 
-                        // flag there is sth done.
+                        // flag there is something to be done.
                         made_progress = true;
                     }
             }
