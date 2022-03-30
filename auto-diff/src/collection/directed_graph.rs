@@ -272,15 +272,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         //return Ok(*op);
     }
 
-    ///
-    /// Walk through the graph with a starting set of data nodes.
-    /// Go through backwards if forward is false.
-    /// The closure call provides the side-effect.
-    ///
-    /// This Walk() guarantee the input of visiting op is already visited
-    /// or it's an input.
-    ///
-    pub fn walk<F>(&self, start_set: &[TData],
+    fn syn_walk<F>(&self, start_set: &[TData],
                    forward: bool,
                    closure: F) -> Result<(), BTreeSet<TData>>
     where F: Fn(&[TData], &[TData], &TOp)  {
@@ -369,6 +361,21 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         } else {
             Ok(())
         }
+    }
+
+    ///
+    /// Walk through the graph with a starting set of data nodes.
+    /// Go through backwards if forward is false.
+    /// The closure call provides the side-effect.
+    ///
+    /// This Walk() guarantee the input of visiting op is already visited
+    /// or it's an input.
+    ///
+    pub fn walk<F>(&self, start_set: &[TData],
+                   forward: bool,
+                   closure: F) -> Result<(), BTreeSet<TData>>
+    where F: Fn(&[TData], &[TData], &TOp)  {
+        self.syn_walk(start_set, forward, closure)
     }
 
     /////
