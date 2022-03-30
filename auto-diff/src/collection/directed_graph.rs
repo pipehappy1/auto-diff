@@ -363,6 +363,14 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         }
     }
 
+
+    fn asyn_walk<F>(&self, start_set: &[TData],
+                   forward: bool,
+                   closure: F) -> Result<(), BTreeSet<TData>>
+    where F: Fn(&[TData], &[TData], &TOp)  {
+        unimplemented!();
+    }
+
     ///
     /// Walk through the graph with a starting set of data nodes.
     /// Go through backwards if forward is false.
