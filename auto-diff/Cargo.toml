@@ -41,11 +41,11 @@ openblas-src = "0.10" # or another backend of your choice
 # for examples
 csv = "1.1"
 
-tensorboard-rs = { path = "../tensorboard-rs", version = "0.5.9"}
+#tensorboard-rs = { path = "../tensorboard-rs", version = "0.5.9"}
 
 serde-pickle = {version = "0.6"}
 
-cargo-expand = "1"
+#cargo-expand = "1"
 
 [features]
 

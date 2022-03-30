@@ -565,5 +565,38 @@ mod tests {
         g.add_data(&data1).expect("");
         g.add_data(&data2).expect("");
     }
+
+    #[test]
+    fn test_walk() {
+        let mut g = Graph::new();
+        setup_yy(&mut g);
+
+        let data_a = GenKey::new(0,0);
+        let data_b = GenKey::new(1,0);
+        let data_d = GenKey::new(3,0);
+        let start_set = [data_a, data_b, data_d];
+
+        use std::rc::Rc;
+        use std::cell::RefCell;
+
+        let input_vec = Rc::new(RefCell::new(vec![]));
+        let output_vec = Rc::new(RefCell::new(vec![]));
+        let op_vec = Rc::new(RefCell::new(vec![]));
+        g.walk(&start_set,
+               true,
+               |x, y, z| {
+                   input_vec.borrow_mut().push(x.to_vec());
+                   output_vec.borrow_mut().push(y.to_vec());
+                   op_vec.borrow_mut().push(vec![*z]);
+               }).expect("");
+
+
+        assert_eq!(input_vec.borrow()[0], vec![GenKey::new(0, 0), GenKey::new(1, 0)]);
+        assert_eq!(input_vec.borrow()[1], vec![GenKey::new(2, 0), GenKey::new(3, 0)]);
+        assert_eq!(output_vec.borrow()[0], vec![GenKey::new(2, 0)]);
+        assert_eq!(output_vec.borrow()[1], vec![GenKey::new(4, 0)]);
+        assert_eq!(op_vec.borrow()[0], vec![GenKey::new(0, 0)]);
+        assert_eq!(op_vec.borrow()[1], vec![GenKey::new(1, 0)]);
+    }
 }
 
