@@ -3,7 +3,7 @@ use std::collections::{BTreeSet, BTreeMap};
 use std::fmt;
 
 use crate::collection::generational_index::{GenIndex, GenKey};
-use crate::collection::directed_graph::Graph;
+use crate::collection::directed_graph::{Graph, Direction};
 use tensor_rs::tensor::Tensor;
 use crate::op::Op;
 use crate::err::AutoDiffError;
@@ -19,9 +19,11 @@ pub struct Net {
     data: GenIndex<Tensor>,
     ops: GenIndex<Op>,
     set_mark: BTreeSet<GenKey>,
-    graph: Graph<GenKey, GenKey>,
+    graph: Graph<GenKey, GenKey>, // TData, TOp
     data_grad: BTreeMap<GenKey, Tensor>,
     label2id: BTreeMap<String, GenKey>, // Give some var a name.
+    step_var: BTreeMap<GenKey, GenKey>, // The identity map from the output to input.
+    
 }
 
 impl Net {
@@ -166,7 +168,7 @@ impl Net {
         self.graph
             .walk(
                 starting_node,
-                true,
+                Direction::Forward,
                 |input, output, op| {
                     //println!("op: {}", self.ops.get(op).expect("").get_name());
                     
@@ -240,7 +242,7 @@ impl Net {
         self.graph
             .walk(
                 &output[..],
-                false,
+                Direction::Backward,
                 |output_grads, input_grads, op| {
                     //println!("op, bptt: {}", self.ops.get(op).expect("").get_name());
 

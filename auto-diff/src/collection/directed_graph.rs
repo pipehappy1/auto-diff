@@ -8,6 +8,11 @@ use super::generational_index::GenKey;
 #[cfg(feature = "use-serde")]
 use serde::{Serialize, Deserialize};
 
+pub enum Direction {
+    Forward,
+    Backward,
+}
+
 /// Graph
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 #[derive(Clone)]
@@ -273,18 +278,22 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 
     fn syn_walk<F>(&self, start_set: &[TData],
-                   forward: bool,
+                   forward: Direction,
                    closure: F) -> Result<(), BTreeSet<TData>>
     where F: Fn(&[TData], &[TData], &TOp)  {
         let mut fdo = &self.forward_dt_op;
         let mut fod = &self.forward_op_dt;
         //let mut bdo = &self.backward_dt_op;
         let mut bod = &self.backward_op_dt;
-        if !forward {
-            fdo = &self.backward_dt_op;
-            fod = &self.backward_op_dt;
-            //bdo = &self.forward_dt_op;
-            bod = &self.forward_op_dt;
+        match forward {
+            Direction::Forward => {
+            },
+            Direction::Backward => {
+                fdo = &self.backward_dt_op;
+                fod = &self.backward_op_dt;
+                //bdo = &self.forward_dt_op;
+                bod = &self.forward_op_dt;
+            },
         }
 
         // data id has a value
@@ -380,7 +389,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     /// or it's an input.
     ///
     pub fn walk<F>(&self, start_set: &[TData],
-                   forward: bool,
+                   forward: Direction,
                    closure: F) -> Result<(), BTreeSet<TData>>
     where F: Fn(&[TData], &[TData], &TOp)  {
         self.syn_walk(start_set, forward, closure)
