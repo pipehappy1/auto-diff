@@ -448,7 +448,8 @@ mod tests {
 	net.tag_tick(&d1).unwrap();
 	let p1 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5,5]))))));
 	net.connect(&[d1], p1, &[d1]);
-	net.eval(&[d1], 3);
+	net.eval(&[d1], 3).unwrap_err();
 	println!("{:?}", net.get_tensor(d1).unwrap());
+	assert_eq!(net.get_tensor(d1).unwrap().size(), [4, 5, 5]);
     }
 }
