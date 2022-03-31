@@ -338,7 +338,7 @@ impl VarInner {
         for i in &self.net.borrow().get_input_edge_data() {
             all_input.push(*i);
         }
-        self.net.borrow_mut().eval(&all_input).expect("");
+        self.net.borrow_mut().eval(&all_input, 100).expect("");
         Ok(())
     }
 

@@ -1,6 +1,8 @@
 #![allow(clippy::redundant_closure)]
 use std::collections::{BTreeSet, BTreeMap};
 use std::fmt;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 use crate::collection::generational_index::{GenIndex, GenKey};
 use crate::collection::directed_graph::{Graph, Direction};
@@ -18,12 +20,10 @@ use serde::{Serialize, Deserialize};
 pub struct Net {
     data: GenIndex<Tensor>,
     ops: GenIndex<Op>,
-    set_mark: BTreeSet<GenKey>,
     graph: Graph<GenKey, GenKey>, // TData, TOp
     data_grad: BTreeMap<GenKey, Tensor>,
     label2id: BTreeMap<String, GenKey>, // Give some var a name.
-    step_var: BTreeMap<GenKey, GenKey>, // The identity map from the output to input.
-    
+    tick_data: BTreeSet<GenKey>, // set of data that will be looped.
 }
 
 impl Net {
@@ -31,10 +31,10 @@ impl Net {
         Net {
             data: GenIndex::new(),
             ops: GenIndex::new(),
-            set_mark: BTreeSet::new(),
             graph: Graph::new(),
             data_grad: BTreeMap::new(),
 	    label2id: BTreeMap::new(),
+	    tick_data: BTreeSet::new(),
         }
     }
 
@@ -54,7 +54,7 @@ impl Net {
 
     pub fn add_tensor(&mut self, t: Tensor) -> GenKey {
         let id = self.data.insert(t);
-        self.graph.add_data(&id).expect("");
+        self.graph.add_data(&id).expect("add tensor always works");
         id
     }
 
@@ -83,6 +83,15 @@ impl Net {
             Some(v) => {Ok(v.ref_copy())},
             None => {Err(AutoDiffError::new(&format!("Data {:?} doesn't ahave gradient yet.", id)))}
         }
+    }
+
+    pub fn tag_tick(&mut self, id: &GenKey) -> Result<(), AutoDiffError> {
+	if self.data.contains(id) {
+	    self.tick_data.insert(*id);
+	    Ok(())
+	} else {
+	    Err(AutoDiffError::new("unknown id."))
+	}
     }
 
     pub fn get_input_edge_data(&self) -> BTreeSet<GenKey> {
@@ -148,22 +157,21 @@ impl Net {
     ///
     /// Build input-operator-output relation, with given components.
     ///
-    pub fn connect(&mut self, input: &[GenKey], op: GenKey, output: &[GenKey]) {
-
+    pub fn connect(&mut self, input: &[GenKey],
+		   op: GenKey, output: &[GenKey]) {
+	
         self.graph.connect(input, output, &op).expect("");
     }
 
-
-    /// set the set_mark, set_mark is used to label var with input value with it.
-    pub fn set_mark(&mut self, did: &GenKey) {
-        self.set_mark.insert(*did);
-    }
-    pub fn unset_mark(&mut self, did: &GenKey) {
-        self.set_mark.remove(did);
-    }
-
     /// Forward evaluate the computaiton graph.
-    pub fn eval(&mut self, starting_node: &[GenKey]) -> Result<(), BTreeSet<GenKey>> {
+    pub fn eval(&mut self, starting_node: &[GenKey], max_tick: usize) -> Result<(), BTreeSet<GenKey>> {
+
+	let mut tick = BTreeMap::new();
+	for item in &self.tick_data {
+	    tick.insert(*item, 0);
+	}
+	let tick: Rc<RefCell<BTreeMap<GenKey, usize>>> =
+	    Rc::new(RefCell::new(tick));
         
         self.graph
             .walk(
@@ -174,13 +182,38 @@ impl Net {
                     
                     let mut inputs: Vec<Tensor> = Vec::new();
                     for input_id in input {
-                        let a = self.data.get(input_id).expect("").ref_copy();
+			let a;
+			if self.tick_data.contains(input_id) {
+			    // Assume the ticked data has the time on the leading dimension.
+			    let size = self.data.get(input_id).expect("").size();
+			    let tick_count = tick.borrow()[input_id];
+			    //println!("tick_count {:?}", tick_count);
+			    if tick_count == size[0] || // ticked data is depleted.
+				tick_count >= max_tick { // TODO may return error/warming.
+				return false;
+			    }
+			    let mut range: Vec<_> = size.iter().map(|x| (0, *x)).collect();
+			    range[0] = (tick_count, tick_count+1);
+			    a = self.data.get(input_id).expect("").get_patch(&range, None).squeeze(None);
+			    tick.borrow_mut().insert(*input_id, tick_count+1);
+			} else {
+                            a = self.data.get(input_id).expect("").ref_copy();
+			}
+
                         inputs.push(a);
                     }
 
                     let mut outputs: Vec<Tensor> = Vec::new();
                     for output_id in output {
-                        let a = self.data.get(output_id).expect("").ref_copy();
+			let a;
+			if self.tick_data.contains(output_id) {
+			    let size = self.data.get(output_id).expect("").size();
+			    let new_output = Tensor::zeros(&size[1..]);
+			    a = new_output;
+			} else {
+                            a = self.data.get(output_id).expect("").ref_copy();
+			}
+
                         outputs.push(a);
                     }
 
@@ -188,12 +221,19 @@ impl Net {
                         .get(op)
                         .expect("")
                         .apply(&inputs, &outputs);
+
+		    for (index, output_id) in output.iter().enumerate() {
+			if self.tick_data.contains(output_id) {
+			    let result = outputs[index].unsqueeze(0);
+			    let all = self.data.get(output_id).expect("").cat(&[result], 0);
+			    self.data.get(output_id).expect("").swap(&all);
+			}
+		    }
                     
                     //println!("var.rs: {:?}", outputs[0].size());
-                    
+		    return true;
                 }
             )?;
-
         Ok(())
     }
 
@@ -279,7 +319,8 @@ impl Net {
                         .grad(&inputs, &output_grad, &input_grad);
                     
                     //println!("var.rs: {:?}", 1);
-                    
+
+		    true
                 }
             ).expect("");
     }
@@ -391,3 +432,23 @@ impl Default for Net {
 //}
 //
 //impl Eq for Net {}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::op::View;
+    use std::rc::Rc;
+    use std::cell::RefCell;
+
+    #[test]
+    fn test_loop_connect() {
+	let mut net = Net::new();
+	let d1 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
+	net.tag_tick(&d1).unwrap();
+	let p1 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5,5]))))));
+	net.connect(&[d1], p1, &[d1]);
+	net.eval(&[d1], 3);
+	println!("{:?}", net.get_tensor(d1).unwrap());
+    }
+}

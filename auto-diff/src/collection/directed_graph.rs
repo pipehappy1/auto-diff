@@ -264,23 +264,10 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         }
     }
 
-    /// Auxilary connect, This allows the graph to support loop.
-    pub fn connect_aux(&mut self, input_data: &[TData],
-                       output_data: &[TData],
-                       op: &TOp) -> Result<TOp, &str> {
-        if !self.op.contains(op) ||
-            input_data.iter().any(|x| !self.data.contains(x)) ||
-            output_data.iter().any(|x| !self.data.contains(x)) {
-                return Err("Invalid id!");
-            }
-        unimplemented!();
-        //return Ok(*op);
-    }
-
     fn syn_walk<F>(&self, start_set: &[TData],
                    forward: Direction,
                    closure: F) -> Result<(), BTreeSet<TData>>
-    where F: Fn(&[TData], &[TData], &TOp)  {
+    where F: Fn(&[TData], &[TData], &TOp) -> bool {
         let mut fdo = &self.forward_dt_op;
         let mut fod = &self.forward_op_dt;
         //let mut bdo = &self.backward_dt_op;
@@ -334,7 +321,9 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
                         }
 
                         // call the closure
-                        closure(&inputs, &outputs, &op_candidate);
+                        if !closure(&inputs, &outputs, &op_candidate) {
+			    continue;
+			}
 
                         // maintain the list
                         // the following line should go before the rest.
@@ -376,7 +365,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     fn asyn_walk<F>(&self, start_set: &[TData],
                    forward: bool,
                    closure: F) -> Result<(), BTreeSet<TData>>
-    where F: Fn(&[TData], &[TData], &TOp)  {
+    where F: Fn(&[TData], &[TData], &TOp) -> bool {
         unimplemented!();
     }
 
@@ -388,10 +377,11 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     /// This Walk() guarantee the input of visiting op is already visited
     /// or it's an input.
     ///
+    /// Return Err with if there is data with value but not consumed.
     pub fn walk<F>(&self, start_set: &[TData],
                    forward: Direction,
                    closure: F) -> Result<(), BTreeSet<TData>>
-    where F: Fn(&[TData], &[TData], &TOp)  {
+    where F: Fn(&[TData], &[TData], &TOp) ->bool {
         self.syn_walk(start_set, forward, closure)
     }
 
@@ -405,7 +395,8 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     //    Ok(())
     //}
 
-    /// 
+    /// Move content of other network into self,
+    /// given the map of ids other to self.
     pub fn append(&mut self, other: &Self,
                   data_key_map: BTreeMap<TData, TData>,
                   op_key_map: BTreeMap<TOp, TOp>) -> Result<(), AutoDiffError> {
@@ -607,11 +598,12 @@ mod tests {
         let output_vec = Rc::new(RefCell::new(vec![]));
         let op_vec = Rc::new(RefCell::new(vec![]));
         g.walk(&start_set,
-               true,
+               Direction::Forward,
                |x, y, z| {
                    input_vec.borrow_mut().push(x.to_vec());
                    output_vec.borrow_mut().push(y.to_vec());
                    op_vec.borrow_mut().push(vec![*z]);
+		   true
                }).expect("");
 
 

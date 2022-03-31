@@ -10,6 +10,7 @@ pub trait IndexSlicing where Self: Sized {
     /// except the given dimension, which will be the sum of
     /// the inputs on the given dimension.
     /// Apply cat on [tensor(5, 3, 2), tensor(5, 7, 2), ]
+    /// along index 1 dimension
     /// will get a tensor(5, 10, 2).
     fn cat(&self, tensors: &[Self], dim: usize) -> Self;
     
@@ -42,6 +43,7 @@ pub trait IndexSlicing where Self: Sized {
     fn split(&self, sections: &[usize], dim: usize) -> Vec<Self>;
 
     /// Remove dimension with length of 1.
+    /// Only apply on specific dim if dim is supplied.
     fn squeeze(&self, dim: Option<usize>) -> Self;
 
     /// Stack tensor with the same size along a new dimension
