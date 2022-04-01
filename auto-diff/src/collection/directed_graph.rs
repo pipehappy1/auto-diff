@@ -1,12 +1,12 @@
 //! A directed graph implementation with interleave op node and data node
 //! and all the edges are data node.
+use super::generational_index::GenKey;
+use crate::err::AutoDiffError;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
-use crate::err::AutoDiffError;
-use super::generational_index::GenKey;
 
 #[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 pub enum Direction {
     Forward,
@@ -27,7 +27,7 @@ pub struct Graph<TData: Ord, TOp: Ord> {
 
 impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Default for Graph<TData, TOp> {
     fn default() -> Graph<TData, TOp> {
-        Graph{
+        Graph {
             data: BTreeSet::new(),
             op: BTreeSet::new(),
             forward_dt_op: BTreeMap::new(),
@@ -41,7 +41,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Default for Graph<TData
 impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     /// Create a graph with defaults
     pub fn new() -> Graph<TData, TOp> {
-        Graph{
+        Graph {
             data: BTreeSet::new(),
             op: BTreeSet::new(),
             forward_dt_op: BTreeMap::new(),
@@ -54,13 +54,13 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     /// iterator over data node.
     pub fn iter_data(&self) -> NodeIterator<TData> {
         NodeIterator {
-            iter: self.data.iter()
+            iter: self.data.iter(),
         }
     }
     /// iterator over op node.
     pub fn iter_op(&self) -> NodeIterator<TOp> {
         NodeIterator {
-            iter: self.op.iter()
+            iter: self.op.iter(),
         }
     }
 
@@ -72,7 +72,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             Err("Not a valid variable/data")
         } else {
             Ok(NodeIterator {
-                iter: self.forward_dt_op.get(var).expect("").iter()
+                iter: self.forward_dt_op.get(var).expect("").iter(),
             })
         }
     }
@@ -85,7 +85,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             Err("Not a valid variable/data")
         } else {
             Ok(NodeIterator {
-                iter: self.backward_dt_op.get(var).expect("").iter()
+                iter: self.backward_dt_op.get(var).expect("").iter(),
             })
         }
     }
@@ -98,7 +98,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             Err("Bad func id.")
         } else {
             Ok(NodeIterator {
-                iter: self.backward_op_dt.get(func).expect("").iter()
+                iter: self.backward_op_dt.get(func).expect("").iter(),
             })
         }
     }
@@ -111,7 +111,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             Err("Bad func id.")
         } else {
             Ok(NodeIterator {
-                iter: self.forward_op_dt.get(func).expect("").iter()
+                iter: self.forward_op_dt.get(func).expect("").iter(),
             })
         }
     }
@@ -175,7 +175,6 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         } else {
             Err("op id is not found!")
         }
-
     }
 
     ///
@@ -227,9 +226,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 
     /// Connect input data, output data and operation
-    pub fn connect(&mut self, dti: &[TData],
-                   dto: &[TData],
-                   op: &TOp) -> Result<TOp, &str> {
+    pub fn connect(&mut self, dti: &[TData], dto: &[TData], op: &TOp) -> Result<TOp, &str> {
         let mut valid_ids = true;
 
         // make sure pre-exist
@@ -248,7 +245,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
                 valid_ids = false;
             }
         }
-        
+
         if valid_ids {
             for i in dti {
                 self.forward_dt_op.get_mut(i).expect("").insert(*op);
@@ -264,23 +261,27 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         }
     }
 
-    fn syn_walk<F>(&self, start_set: &[TData],
-                   forward: Direction,
-                   closure: F) -> Result<(), BTreeSet<TData>>
-    where F: Fn(&[TData], &[TData], &TOp) -> bool {
+    fn syn_walk<F>(
+        &self,
+        start_set: &[TData],
+        forward: Direction,
+        closure: F,
+    ) -> Result<(), BTreeSet<TData>>
+    where
+        F: Fn(&[TData], &[TData], &TOp) -> bool,
+    {
         let mut fdo = &self.forward_dt_op;
         let mut fod = &self.forward_op_dt;
         //let mut bdo = &self.backward_dt_op;
         let mut bod = &self.backward_op_dt;
         match forward {
-            Direction::Forward => {
-            },
+            Direction::Forward => {}
             Direction::Backward => {
                 fdo = &self.backward_dt_op;
                 fod = &self.backward_op_dt;
                 //bdo = &self.forward_dt_op;
                 bod = &self.forward_op_dt;
-            },
+            }
         }
 
         // data id has a value
@@ -291,7 +292,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         for index in start_set {
             jobs.insert(*index);
         }
-        
+
         loop {
             let mut made_progress = false;
 
@@ -305,51 +306,46 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
 
             // process op if possible
             for op_candidate in edge_op {
-                if bod[&op_candidate]
-                    .iter()
-                    .all(|dt| jobs.contains(dt)) {
-
-                        // collect input ids.
-                        let mut inputs = Vec::<TData>::new();
-                        for input in bod[&op_candidate].iter() {
-                            inputs.push(*input);
-                        }
-                        // collect output ids.
-                        let mut outputs = Vec::<TData>::new();
-                        for output in fod[&op_candidate].iter() {
-                            outputs.push(*output);
-                        }
-
-                        // call the closure
-                        if !closure(&inputs, &outputs, &op_candidate) {
-			    continue;
-			}
-
-                        // maintain the list
-                        // the following line should go before the rest.
-                        done.insert(op_candidate);
-                        // remove the data from jobs if all its downstream op is done.
-                        for input in bod[&op_candidate].iter() {
-                            if fdo[input]
-                                .iter()
-                                .all(|op| done.contains(op)) {
-                                    jobs.remove(input);
-                                }
-                        }
-                        // add the output back to the jobs.
-                        for output in fod[&op_candidate].iter() {
-                            // don't add to jobs if it's the final data node.
-                            if !fdo[output].is_empty() {
-                                jobs.insert(*output);                                
-                            }
-                        }
-
-                        // flag there is something to be done.
-                        made_progress = true;
+                if bod[&op_candidate].iter().all(|dt| jobs.contains(dt)) {
+                    // collect input ids.
+                    let mut inputs = Vec::<TData>::new();
+                    for input in bod[&op_candidate].iter() {
+                        inputs.push(*input);
                     }
+                    // collect output ids.
+                    let mut outputs = Vec::<TData>::new();
+                    for output in fod[&op_candidate].iter() {
+                        outputs.push(*output);
+                    }
+
+                    // call the closure
+                    if !closure(&inputs, &outputs, &op_candidate) {
+                        continue;
+                    }
+
+                    // maintain the list
+                    // the following line should go before the rest.
+                    done.insert(op_candidate);
+                    // remove the data from jobs if all its downstream op is done.
+                    for input in bod[&op_candidate].iter() {
+                        if fdo[input].iter().all(|op| done.contains(op)) {
+                            jobs.remove(input);
+                        }
+                    }
+                    // add the output back to the jobs.
+                    for output in fod[&op_candidate].iter() {
+                        // don't add to jobs if it's the final data node.
+                        if !fdo[output].is_empty() {
+                            jobs.insert(*output);
+                        }
+                    }
+
+                    // flag there is something to be done.
+                    made_progress = true;
+                }
             }
 
-            if ! made_progress {
+            if !made_progress {
                 break;
             }
         }
@@ -361,11 +357,15 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
         }
     }
 
-
-    fn asyn_walk<F>(&self, start_set: &[TData],
-                   forward: bool,
-                   closure: F) -> Result<(), BTreeSet<TData>>
-    where F: Fn(&[TData], &[TData], &TOp) -> bool {
+    fn asyn_walk<F>(
+        &self,
+        start_set: &[TData],
+        forward: bool,
+        closure: F,
+    ) -> Result<(), BTreeSet<TData>>
+    where
+        F: Fn(&[TData], &[TData], &TOp) -> bool,
+    {
         unimplemented!();
     }
 
@@ -378,10 +378,15 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     /// or it's an input.
     ///
     /// Return Err with if there is data with value but not consumed.
-    pub fn walk<F>(&self, start_set: &[TData],
-                   forward: Direction,
-                   closure: F) -> Result<(), BTreeSet<TData>>
-    where F: Fn(&[TData], &[TData], &TOp) ->bool {
+    pub fn walk<F>(
+        &self,
+        start_set: &[TData],
+        forward: Direction,
+        closure: F,
+    ) -> Result<(), BTreeSet<TData>>
+    where
+        F: Fn(&[TData], &[TData], &TOp) -> bool,
+    {
         self.syn_walk(start_set, forward, closure)
     }
 
@@ -397,10 +402,12 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
 
     /// Move content of other network into self,
     /// given the map of ids other to self.
-    pub fn append(&mut self, other: &Self,
-                  data_key_map: BTreeMap<TData, TData>,
-                  op_key_map: BTreeMap<TOp, TOp>) -> Result<(), AutoDiffError> {
-
+    pub fn append(
+        &mut self,
+        other: &Self,
+        data_key_map: BTreeMap<TData, TData>,
+        op_key_map: BTreeMap<TOp, TOp>,
+    ) -> Result<(), AutoDiffError> {
         for key in other.iter_data() {
             self.data.insert(data_key_map[key]);
         }
@@ -436,7 +443,6 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
             self.backward_op_dt.insert(op_key_map[key], new_set);
         }
 
-        
         Ok(())
     }
 }
@@ -464,23 +470,22 @@ impl fmt::Debug for Graph<GenKey, GenKey> {
 
 impl<T1: Ord, T2: Ord> PartialEq for Graph<T1, T2> {
     fn eq(&self, other: &Self) -> bool {
-	self.data.eq(&other.data) &&
-	    self.op.eq(&other.op) &&
-	    self.forward_dt_op.eq(&other.forward_dt_op) &&
-	    self.forward_op_dt.eq(&other.forward_op_dt) &&
-	    self.backward_dt_op.eq(&other.backward_dt_op) &&
-	    self.backward_op_dt.eq(&other.backward_op_dt)
+        self.data.eq(&other.data)
+            && self.op.eq(&other.op)
+            && self.forward_dt_op.eq(&other.forward_dt_op)
+            && self.forward_op_dt.eq(&other.forward_op_dt)
+            && self.backward_dt_op.eq(&other.backward_dt_op)
+            && self.backward_op_dt.eq(&other.backward_op_dt)
     }
 }
 
 impl<T1: Ord, T2: Ord> Eq for Graph<T1, T2> {}
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::collection::generational_index::{GenKey};
-    
+    use crate::collection::generational_index::GenKey;
+
     #[test]
     fn new() {
         let _g = Graph::<GenKey, GenKey>::new();
@@ -492,17 +497,17 @@ mod tests {
     //   |
     //   C
     fn setup_y(g: &mut Graph<GenKey, GenKey>) {
-        let data_a = GenKey::new(0,0);
-        let data_b = GenKey::new(1,0);
-        let data_c = GenKey::new(2,0);
+        let data_a = GenKey::new(0, 0);
+        let data_b = GenKey::new(1, 0);
+        let data_c = GenKey::new(2, 0);
         g.add_data(&data_a).expect("");
         g.add_data(&data_b).expect("");
         g.add_data(&data_c).expect("");
-        
-        let op_a = GenKey::new(0,0);
+
+        let op_a = GenKey::new(0, 0);
         g.add_op(&op_a).expect("");
 
-        g.connect(&[data_a, data_b], &[data_c,], &op_a).expect("");
+        g.connect(&[data_a, data_b], &[data_c], &op_a).expect("");
     }
 
     // A   B
@@ -515,31 +520,31 @@ mod tests {
     //     |
     //     E
     fn setup_yy(g: &mut Graph<GenKey, GenKey>) {
-        let data_a = GenKey::new(0,0);
-        let data_b = GenKey::new(1,0);
-        let data_c = GenKey::new(2,0);
-        let data_d = GenKey::new(3,0);
-        let data_e = GenKey::new(4,0);
+        let data_a = GenKey::new(0, 0);
+        let data_b = GenKey::new(1, 0);
+        let data_c = GenKey::new(2, 0);
+        let data_d = GenKey::new(3, 0);
+        let data_e = GenKey::new(4, 0);
         g.add_data(&data_a).expect("");
         g.add_data(&data_b).expect("");
         g.add_data(&data_c).expect("");
         g.add_data(&data_d).expect("");
         g.add_data(&data_e).expect("");
-        
-        let op1 = GenKey::new(0,0);
+
+        let op1 = GenKey::new(0, 0);
         g.add_op(&op1).expect("");
-        let op2 = GenKey::new(1,0);
+        let op2 = GenKey::new(1, 0);
         g.add_op(&op2).expect("");
 
-        g.connect(&[data_a, data_b], &[data_c,], &op1).expect("");
-        g.connect(&[data_c, data_d], &[data_e,], &op2).expect("");
+        g.connect(&[data_a, data_b], &[data_c], &op1).expect("");
+        g.connect(&[data_c, data_d], &[data_e], &op2).expect("");
     }
 
     #[test]
     fn iter() {
         let mut g = Graph::new();
         setup_yy(&mut g);
-        
+
         for i in g.iter_data() {
             println!("{:?}", i);
         }
@@ -573,10 +578,9 @@ mod tests {
 
     #[test]
     fn add_data() {
-
         let mut g = Graph::<GenKey, GenKey>::new();
-        let data1 = GenKey::new(0,0);
-        let data2 = GenKey::new(1,0);
+        let data1 = GenKey::new(0, 0);
+        let data2 = GenKey::new(1, 0);
         g.add_data(&data1).expect("");
         g.add_data(&data2).expect("");
     }
@@ -586,33 +590,36 @@ mod tests {
         let mut g = Graph::new();
         setup_yy(&mut g);
 
-        let data_a = GenKey::new(0,0);
-        let data_b = GenKey::new(1,0);
-        let data_d = GenKey::new(3,0);
+        let data_a = GenKey::new(0, 0);
+        let data_b = GenKey::new(1, 0);
+        let data_d = GenKey::new(3, 0);
         let start_set = [data_a, data_b, data_d];
 
-        use std::rc::Rc;
         use std::cell::RefCell;
+        use std::rc::Rc;
 
         let input_vec = Rc::new(RefCell::new(vec![]));
         let output_vec = Rc::new(RefCell::new(vec![]));
         let op_vec = Rc::new(RefCell::new(vec![]));
-        g.walk(&start_set,
-               Direction::Forward,
-               |x, y, z| {
-                   input_vec.borrow_mut().push(x.to_vec());
-                   output_vec.borrow_mut().push(y.to_vec());
-                   op_vec.borrow_mut().push(vec![*z]);
-		   true
-               }).expect("");
+        g.walk(&start_set, Direction::Forward, |x, y, z| {
+            input_vec.borrow_mut().push(x.to_vec());
+            output_vec.borrow_mut().push(y.to_vec());
+            op_vec.borrow_mut().push(vec![*z]);
+            true
+        })
+        .expect("");
 
-
-        assert_eq!(input_vec.borrow()[0], vec![GenKey::new(0, 0), GenKey::new(1, 0)]);
-        assert_eq!(input_vec.borrow()[1], vec![GenKey::new(2, 0), GenKey::new(3, 0)]);
+        assert_eq!(
+            input_vec.borrow()[0],
+            vec![GenKey::new(0, 0), GenKey::new(1, 0)]
+        );
+        assert_eq!(
+            input_vec.borrow()[1],
+            vec![GenKey::new(2, 0), GenKey::new(3, 0)]
+        );
         assert_eq!(output_vec.borrow()[0], vec![GenKey::new(2, 0)]);
         assert_eq!(output_vec.borrow()[1], vec![GenKey::new(4, 0)]);
         assert_eq!(op_vec.borrow()[0], vec![GenKey::new(0, 0)]);
         assert_eq!(op_vec.borrow()[1], vec![GenKey::new(1, 0)]);
     }
 }
-

@@ -5,7 +5,7 @@
 use std::fmt;
 
 #[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::err::AutoDiffError;
 
@@ -16,7 +16,7 @@ pub struct GenKey {
     id: usize,
     gen: usize,
 }
-    
+
 impl GenKey {
     pub fn new(id: usize, gen: usize) -> GenKey {
         GenKey { id, gen }
@@ -70,7 +70,10 @@ impl<T> GenIndex<T> {
         if index.id < self.generation.len() && self.generation[index.id] == index.gen {
             Ok(&self.data[index.id])
         } else {
-            Err(AutoDiffError::new(&format!("GenIndex cannot find the item by key {:?}!", index)))
+            Err(AutoDiffError::new(&format!(
+                "GenIndex cannot find the item by key {:?}!",
+                index
+            )))
         }
     }
 
@@ -114,7 +117,10 @@ impl<T> GenIndex<T> {
             self.available.push(index.id);
             Ok(())
         } else {
-            Err(AutoDiffError::new(&format!("index is not valid! {}", index)))
+            Err(AutoDiffError::new(&format!(
+                "index is not valid! {}",
+                index
+            )))
         }
     }
 
@@ -124,7 +130,10 @@ impl<T> GenIndex<T> {
             self.data[index.id] = val;
             Ok(())
         } else {
-            Err(AutoDiffError::new(&format!("index is not valid! {}", index)))
+            Err(AutoDiffError::new(&format!(
+                "index is not valid! {}",
+                index
+            )))
         }
     }
 
@@ -132,7 +141,6 @@ impl<T> GenIndex<T> {
         GenIndexIter::<T>::new(self)
     }
 }
-
 
 pub struct GenIndexIter<'a, T> {
     index: usize,
@@ -148,8 +156,9 @@ impl<'a, T> GenIndexIter<'a, T> {
 }
 impl<'a, T> Iterator for GenIndexIter<'a, T> {
     type Item = GenKey;
-    
-    fn next(&mut self) -> Option<GenKey> { // TODO: don't return Option<GenKey>, return Option<&GenKey>
+
+    fn next(&mut self) -> Option<GenKey> {
+        // TODO: don't return Option<GenKey>, return Option<&GenKey>
         let ret: GenKey;
         if self.gen_index_ref.data.is_empty() {
             return None;
@@ -158,8 +167,7 @@ impl<'a, T> Iterator for GenIndexIter<'a, T> {
             None
         } else {
             if self.gen_index_ref.available.is_empty() {
-                ret = GenKey::new(self.index,
-                                    self.gen_index_ref.generation[self.index]);
+                ret = GenKey::new(self.index, self.gen_index_ref.generation[self.index]);
             } else {
                 loop {
                     if self.gen_index_ref.data.len() == self.index {
@@ -168,13 +176,12 @@ impl<'a, T> Iterator for GenIndexIter<'a, T> {
                     if self.gen_index_ref.available.contains(&self.index) {
                         self.index += 1;
                     } else {
-                        ret = GenKey::new(self.index,
-                                            self.gen_index_ref.generation[self.index]);
+                        ret = GenKey::new(self.index, self.gen_index_ref.generation[self.index]);
                         break;
                     }
                 }
             }
-            
+
             self.index += 1;
             Some(ret)
         }
@@ -189,18 +196,20 @@ impl<T> Default for GenIndex<T> {
 
 impl<T: PartialEq> PartialEq for GenIndex<T> {
     fn eq(&self, other: &Self) -> bool {
-	if self.len() != other.len() {
-	    false
-	} else {
-	    for (self_key, other_key) in
-		self.iter_key().zip(other.iter_key()) {
-		    if ! self.get(&self_key).expect("GenIndex bad").eq(
-			other.get(&other_key).expect("GenIndex bad")) {
-			return false;
-		    }
-		}
-	    true
-	}
+        if self.len() != other.len() {
+            false
+        } else {
+            for (self_key, other_key) in self.iter_key().zip(other.iter_key()) {
+                if !self
+                    .get(&self_key)
+                    .expect("GenIndex bad")
+                    .eq(other.get(&other_key).expect("GenIndex bad"))
+                {
+                    return false;
+                }
+            }
+            true
+        }
     }
 }
 
@@ -208,13 +217,11 @@ impl<T: Eq> Eq for GenIndex<T> {}
 
 impl<T: fmt::Debug> fmt::Debug for GenIndex<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-	writeln!(f, "generation: {:?}", self.generation)?;
-	writeln!(f, "available: {:?}", self.available)?;
-	writeln!(f, "data: {:?}", self.data)
+        writeln!(f, "generation: {:?}", self.generation)?;
+        writeln!(f, "available: {:?}", self.available)?;
+        writeln!(f, "data: {:?}", self.data)
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -244,24 +251,24 @@ mod tests {
             v: u32,
         }
         let mut a = GenIndex::<A>::new();
-    
+
         let index1 = a.insert(A { v: 10 });
         assert_eq!(index1, GenKey::new(0, 0));
         let index2 = a.insert(A { v: 20 });
         assert_eq!(index2, GenKey::new(1, 0));
-    
+
         let tv1 = a.get(&index1).unwrap().v;
         assert_eq!(tv1, 10);
         let tv2 = a.get(&index2).unwrap().v;
         assert_eq!(tv2, 20);
         //let tv_none = a.get(&GenKey::new(0, 1));
         //assert_eq!(tv_none.unwrap().is_none(), true);
-    
+
         let a2 = a.remove(&index2);
         let tv_none = a.get(&index2);
         //assert_eq!(tv_none.unwrap().is_none(), true);
         assert_eq!(a2.expect(""), ());
-    
+
         let index3 = a.insert(A { v: 30 });
         assert_eq!(index3, GenKey::new(1, 1));
     }
@@ -279,7 +286,10 @@ mod tests {
         let index3 = a.insert(A { v: 30 });
 
         let keys: Vec<GenKey> = a.iter_key().collect();
-        assert_eq!(keys, vec![GenKey::new(0, 0), GenKey::new(1, 0), GenKey::new(2, 0)]);
+        assert_eq!(
+            keys,
+            vec![GenKey::new(0, 0), GenKey::new(1, 0), GenKey::new(2, 0)]
+        );
 
         a.remove(&index2).expect("");
         let keys: Vec<GenKey> = a.iter_key().collect();

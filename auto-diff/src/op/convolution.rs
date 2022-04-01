@@ -1,13 +1,13 @@
 #![allow(clippy::too_many_arguments)]
-use tensor_rs::tensor::{Tensor, PaddingMode};
-use std::cell::{RefCell};
-use std::rc::Rc;
-use super::{OpTrait, OpCall, Op, OpHandle};
-use crate::var::Var;
+use super::{Op, OpCall, OpHandle, OpTrait};
 use crate::err::AutoDiffError;
+use crate::var::Var;
+use std::cell::RefCell;
+use std::rc::Rc;
+use tensor_rs::tensor::{PaddingMode, Tensor};
 
 #[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "use-serde")]
 use std::any::Any;
 
@@ -40,13 +40,11 @@ impl OpTrait for Conv1d {
     fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         unimplemented!();
     }
-    
+
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[Tensor],
-            output_grad: &[Tensor],
-            input_grad: &[Tensor]) {
+    fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
         unimplemented!();
     }
 
@@ -54,15 +52,14 @@ impl OpTrait for Conv1d {
     fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, v: &[Tensor]) {
-    }
+    fn set_values(&self, v: &[Tensor]) {}
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
@@ -79,7 +76,7 @@ pub struct Conv2d {
     groups: usize,
     bias_option: bool,
     padding_mode: PaddingMode,
-    
+
     weight: Tensor,
     bias: Tensor,
     weight_grad: Tensor,
@@ -88,13 +85,15 @@ pub struct Conv2d {
     handle: OpHandle,
 }
 impl Conv2d {
-    pub fn new(in_channels: usize, out_channels: usize,
-               kernel_size: (usize, usize),
-               stride: (usize, usize),
-               padding: (usize, usize),
-               dilation: (usize, usize),
-               bias: bool,
-               padding_mode: PaddingMode
+    pub fn new(
+        in_channels: usize,
+        out_channels: usize,
+        kernel_size: (usize, usize),
+        stride: (usize, usize),
+        padding: (usize, usize),
+        dilation: (usize, usize),
+        bias: bool,
+        padding_mode: PaddingMode,
     ) -> Conv2d {
         Conv2d {
             in_channels,
@@ -106,11 +105,11 @@ impl Conv2d {
             groups: 1,
             bias_option: bias,
             padding_mode,
-            
+
             weight: Tensor::empty(&[out_channels, in_channels, kernel_size.0, kernel_size.1]),
-            bias: Tensor::empty(&[out_channels, ]),
+            bias: Tensor::empty(&[out_channels]),
             weight_grad: Tensor::empty(&[out_channels, in_channels, kernel_size.0, kernel_size.1]),
-            bias_grad: Tensor::empty(&[out_channels, ]),
+            bias_grad: Tensor::empty(&[out_channels]),
 
             handle: OpHandle::new(),
         }
@@ -123,16 +122,16 @@ impl Conv2d {
     pub fn set_weight(&self, var: Var) {
         self.weight.swap(&var.val());
     }
-    
+
     pub fn bias(&self) -> &Tensor {
         &self.bias
     }
-    
+
     pub fn set_bias(&self, var: Var) {
         self.bias.swap(&var.val());
     }
 
-    handle_method!();    
+    handle_method!();
 }
 
 impl OpCall for Conv2d {
@@ -147,7 +146,7 @@ impl OpCall for Conv2d {
             groups: self.groups,
             bias_option: self.bias_option,
             padding_mode: self.padding_mode,
-            
+
             weight: self.weight.ref_copy(),
             bias: self.bias.ref_copy(),
             weight_grad: self.weight_grad.ref_copy(),
@@ -155,9 +154,9 @@ impl OpCall for Conv2d {
 
             handle: OpHandle::new(),
         };
-        
+
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
-        
+
         inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
 }
@@ -177,48 +176,66 @@ impl OpTrait for Conv2d {
         if self.groups > 1 {
             unimplemented!();
         }
-        if self.weight.size()[2] != self.kernel_size.0 || self.weight.size()[3] != self.kernel_size.1 {
+        if self.weight.size()[2] != self.kernel_size.0
+            || self.weight.size()[3] != self.kernel_size.1
+        {
             panic!("this is conv2d");
         }
         let input_size = input[0].size();
         if input_size[1] != self.in_channels {
-            panic!("conv2d expect the same input channel: input: {:?}, config: {:?}", input_size[1], self.in_channels);
+            panic!(
+                "conv2d expect the same input channel: input: {:?}, config: {:?}",
+                input_size[1], self.in_channels
+            );
         }
-        let conv_output = input[0].conv2d(&self.weight, self.stride, self.padding, self.dilation, self.padding_mode);
+        let conv_output = input[0].conv2d(
+            &self.weight,
+            self.stride,
+            self.padding,
+            self.dilation,
+            self.padding_mode,
+        );
         //println!("conv_output: {:?}, {:?}, {:?}, {:?}, {:?}, {:?}", self.weight.size(), self.stride, self.padding, self.dilation, conv_output.size(), input[0].size());
         if conv_output.size()[1] != self.out_channels {
-            panic!("conv2d expect the same input channel {:?}, {:?}", input_size[1], self.in_channels);
+            panic!(
+                "conv2d expect the same input channel {:?}, {:?}",
+                input_size[1], self.in_channels
+            );
         }
 
         if self.bias_option {
             //println!("{:?}, {:?}", self.weight.size(), self.bias.size());
-            let expanded_bias = self.bias
-                .unsqueeze(1)
-                .unsqueeze(2)
-                .repeat(&[1, conv_output.size()[2], conv_output.size()[3]]);
+            let expanded_bias = self.bias.unsqueeze(1).unsqueeze(2).repeat(&[
+                1,
+                conv_output.size()[2],
+                conv_output.size()[3],
+            ]);
             //println!("conv_output: {:?}, expanded_bias.size() {:?}", conv_output.size(), expanded_bias.size());
             let ret = conv_output.add(&expanded_bias);
             output[0].swap(&ret);
         } else {
-            output[0].swap(&conv_output);            
+            output[0].swap(&conv_output);
         }
     }
-    
+
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
     fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
-        let (w_grad, d_grad) = input[0].conv2d_grad(&self.weight,
-                                                    self.stride,
-                                                    self.padding,
-                                                    self.dilation,
-                                                    self.padding_mode,
-                                                    &output_grad[0]);
+        let (w_grad, d_grad) = input[0].conv2d_grad(
+            &self.weight,
+            self.stride,
+            self.padding,
+            self.dilation,
+            self.padding_mode,
+            &output_grad[0],
+        );
         self.weight_grad.swap(&w_grad);
         input_grad[0].swap(&d_grad);
 
         if self.bias_option {
-            self.bias_grad.swap(&output_grad[0].mean(Some(&[0, 2, 3]), false));
+            self.bias_grad
+                .swap(&output_grad[0].mean(Some(&[0, 2, 3]), false));
         }
     }
 
@@ -236,7 +253,7 @@ impl OpTrait for Conv2d {
     }
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 // Conv3d

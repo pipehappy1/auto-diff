@@ -35,7 +35,7 @@ macro_rules! one_to_1_op_with_paras {
             }
         }
         impl OpTrait for $a {
-     
+
             fn get_name(&self) -> &'static str {
                 ($b)
             }
@@ -102,7 +102,7 @@ macro_rules! many_to_1_op_with_paras {
             }
         }
         impl OpTrait for $a {
-     
+
             fn get_name(&self) -> &'static str {
                 ($b)
             }
@@ -169,7 +169,7 @@ macro_rules! one_to_vec_op_with_paras {
             }
         }
         impl OpTrait for $a {
-     
+
             fn get_name(&self) -> &'static str {
                 ($b)
             }
@@ -206,14 +206,14 @@ macro_rules! one_to_vec_op_with_paras {
 
 macro_rules! new_binary_op {
     ($a:ident, $b:expr, $c:tt, $d: tt) => {
-	#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
+        #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
         pub struct $a {
-	    #[cfg_attr(feature = "use-serde", serde(skip))]
+            #[cfg_attr(feature = "use-serde", serde(skip))]
             handle: OpHandle,
         }
         impl $a {
-            pub fn new() -> $a{
-                $a{
+            pub fn new() -> $a {
+                $a {
                     handle: OpHandle::new(),
                 }
             }
@@ -225,7 +225,6 @@ macro_rules! new_binary_op {
             }
         }
         impl OpTrait for $a {
-     
             fn get_name(&self) -> &'static str {
                 ($b)
             }
@@ -247,31 +246,30 @@ macro_rules! new_binary_op {
             fn get_grads(&self) -> Vec<Tensor> {
                 Vec::new()
             }
-            fn set_values(&self, _v: &[Tensor]) {
+            fn set_values(&self, _v: &[Tensor]) {}
+            #[cfg(feature = "use-serde")]
+            fn as_any(&self) -> &dyn Any {
+                self
             }
-	    #[cfg(feature = "use-serde")]
-	    fn as_any(&self) -> &dyn Any {
-		self
-	    }
         }
         impl Default for $a {
             fn default() -> Self {
                 Self::new()
             }
         }
-    }
+    };
 }
 
 macro_rules! new_element_op {
     ($a:ident, $b:expr, $c:ident, $d: tt) => {
-	#[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
+        #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
         pub struct $a {
-	    #[cfg_attr(feature = "use-serde", serde(skip))]
+            #[cfg_attr(feature = "use-serde", serde(skip))]
             handle: OpHandle,
         }
         impl $a {
-            pub fn new() -> $a{
-                $a{
+            pub fn new() -> $a {
+                $a {
                     handle: OpHandle::new(),
                 }
             }
@@ -283,7 +281,6 @@ macro_rules! new_element_op {
             }
         }
         impl OpTrait for $a {
-     
             fn get_name(&self) -> &'static str {
                 ($b)
             }
@@ -305,23 +302,22 @@ macro_rules! new_element_op {
             fn get_grads(&self) -> Vec<Tensor> {
                 Vec::new()
             }
-            fn set_values(&self, _v: &[Tensor]) {
+            fn set_values(&self, _v: &[Tensor]) {}
+            #[cfg(feature = "use-serde")]
+            fn as_any(&self) -> &dyn Any {
+                self
             }
-	    #[cfg(feature = "use-serde")]
-	    fn as_any(&self) -> &dyn Any {
-		self
-	    }
         }
         impl Default for $a {
             fn default() -> Self {
                 Self::new()
             }
         }
-    }
+    };
 }
 
-pub(crate) use one_to_1_op_with_paras;
 pub(crate) use many_to_1_op_with_paras;
-pub(crate) use one_to_vec_op_with_paras;
 pub(crate) use new_binary_op;
 pub(crate) use new_element_op;
+pub(crate) use one_to_1_op_with_paras;
+pub(crate) use one_to_vec_op_with_paras;

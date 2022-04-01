@@ -1,7 +1,5 @@
-use std::collections::{BTreeSet, BTreeMap};
+use std::collections::{BTreeMap, BTreeSet};
 //use crate::err::AutoDiffError;
-
-
 
 /// Graph
 pub struct UnDirectedGraph<TNode, TEdge> {
@@ -11,15 +9,15 @@ pub struct UnDirectedGraph<TNode, TEdge> {
     node2edige: BTreeMap<TNode, BTreeSet<TEdge>>,
 }
 
-impl<TNode:Clone + Copy + Ord,
-     TEdge:Clone + Copy + Ord>
-    Default for UnDirectedGraph<TNode, TEdge> {
+impl<TNode: Clone + Copy + Ord, TEdge: Clone + Copy + Ord> Default
+    for UnDirectedGraph<TNode, TEdge>
+{
     fn default() -> UnDirectedGraph<TNode, TEdge> {
-	UnDirectedGraph {
-	    node: BTreeSet::new(),
-	    edge: BTreeSet::new(),
-	    edge2node: BTreeMap::new(),
-	    node2edige: BTreeMap::new(),
+        UnDirectedGraph {
+            node: BTreeSet::new(),
+            edge: BTreeSet::new(),
+            edge2node: BTreeMap::new(),
+            node2edige: BTreeMap::new(),
         }
     }
 }
@@ -27,10 +25,10 @@ impl<TNode:Clone + Copy + Ord,
 impl<TNode, TEdge> UnDirectedGraph<TNode, TEdge> {
     pub fn new() -> UnDirectedGraph<TNode, TEdge> {
         UnDirectedGraph {
-	    node: BTreeSet::new(),
-	    edge: BTreeSet::new(),
-	    edge2node: BTreeMap::new(),
-	    node2edige: BTreeMap::new(),
+            node: BTreeSet::new(),
+            edge: BTreeSet::new(),
+            edge2node: BTreeMap::new(),
+            node2edige: BTreeMap::new(),
         }
     }
 }
@@ -38,7 +36,7 @@ impl<TNode, TEdge> UnDirectedGraph<TNode, TEdge> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::collection::generational_index::{GenKey};
+    use crate::collection::generational_index::GenKey;
 
     #[test]
     fn new() {

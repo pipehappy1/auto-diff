@@ -1,16 +1,17 @@
-#[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize, Serializer, Deserializer,
-	    ser::SerializeStruct,
-	    de, de::Visitor, de::SeqAccess, de::MapAccess};
 use crate::op::{Op, OpTrait};
+#[cfg(feature = "use-serde")]
+use serde::{
+    de, de::MapAccess, de::SeqAccess, de::Visitor, ser::SerializeStruct, Deserialize, Deserializer,
+    Serialize, Serializer,
+};
 use std::fmt;
 use std::ops::Deref;
 
-
-
 impl Serialize for Box<dyn OpTrait> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer, {
+    where
+        S: Serializer,
+    {
         // 3 is the number of fields in the struct.
         //let mut state = serializer.serialize_struct("OpTrait", 1)?;
         //state.serialize_field("op_name", &self.get_name())?;
@@ -21,24 +22,32 @@ impl Serialize for Box<dyn OpTrait> {
 
 impl Serialize for Op {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer, {
+    where
+        S: Serializer,
+    {
         // 3 is the number of fields in the struct.
         let mut state = serializer.serialize_struct("Op", 2)?;
         state.serialize_field("op_name", &self.get_name())?;
-	state.serialize_field("op_obj", &self.inner().borrow().deref())?;
+        state.serialize_field("op_obj", &self.inner().borrow().deref())?;
         state.end()
     }
 }
 
 impl<'de> Deserialize<'de> for Op {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>, {
+    where
+        D: Deserializer<'de>,
+    {
+        enum Field {
+            OpName,
+            OpObj,
+        }
 
-	enum Field { OpName, OpObj }
-	
         impl<'de> Deserialize<'de> for Field {
             fn deserialize<D>(deserializer: D) -> Result<Field, D::Error>
-            where D: Deserializer<'de>, {
+            where
+                D: Deserializer<'de>,
+            {
                 struct FieldVisitor;
 
                 impl<'de> Visitor<'de> for FieldVisitor {
@@ -49,10 +58,12 @@ impl<'de> Deserialize<'de> for Op {
                     }
 
                     fn visit_str<E>(self, value: &str) -> Result<Field, E>
-                    where E: de::Error, {
+                    where
+                        E: de::Error,
+                    {
                         match value {
                             "op_name" => Ok(Field::OpName),
-			    "op_obj" => Ok(Field::OpObj),
+                            "op_obj" => Ok(Field::OpObj),
                             _ => Err(de::Error::unknown_field(value, &FIELDS)),
                         }
                     }
@@ -61,7 +72,7 @@ impl<'de> Deserialize<'de> for Op {
                 deserializer.deserialize_identifier(FieldVisitor)
             }
         }
-	
+
         struct OpVisitor;
 
         impl<'de> Visitor<'de> for OpVisitor {
@@ -71,9 +82,11 @@ impl<'de> Deserialize<'de> for Op {
                 formatter.write_str("struct Op")
             }
 
-	    fn visit_map<V>(self, mut map: V) -> Result<Op, V::Error>
-            where V: MapAccess<'de>, {
-		let mut op_name = None;
+            fn visit_map<V>(self, mut map: V) -> Result<Op, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut op_name = None;
                 while let Some(key) = map.next_key()? {
                     match key {
                         Field::OpName => {
@@ -81,26 +94,30 @@ impl<'de> Deserialize<'de> for Op {
                                 return Err(de::Error::duplicate_field("op_name"));
                             }
                             op_name = Some(map.next_value()?);
-                        },
-			Field::OpObj => {
+                        }
+                        Field::OpObj => {
                             //if op_obj.is_some() {
                             //    return Err(de::Error::duplicate_field("op_obj"));
                             //}
                             //op_obj = Some(map.next_value()?);
-			    let op_name: String = op_name.ok_or_else(|| de::Error::missing_field("op_name"))?;
+                            let op_name: String =
+                                op_name.ok_or_else(|| de::Error::missing_field("op_name"))?;
 
                             return crate::op::deserialize_map(op_name, map);
                         }
                     }
                 }
-		Err(de::Error::missing_field("op_obj"))
+                Err(de::Error::missing_field("op_obj"))
             }
 
             fn visit_seq<V>(self, mut seq: V) -> Result<Op, V::Error>
-            where V: SeqAccess<'de>, {
-                let op_name: String = seq.next_element()?
+            where
+                V: SeqAccess<'de>,
+            {
+                let op_name: String = seq
+                    .next_element()?
                     .ok_or_else(|| de::Error::invalid_length(0, &self))?;
-		return crate::op::deserialize_seq(op_name, seq);
+                return crate::op::deserialize_seq(op_name, seq);
             }
         }
 
@@ -109,19 +126,18 @@ impl<'de> Deserialize<'de> for Op {
     }
 }
 
-
 #[cfg(all(test, feature = "use-serde"))]
 mod tests {
-    use crate::op::linear::Linear;
     use super::*;
-    use std::rc::Rc;
+    use crate::op::linear::Linear;
     use std::cell::RefCell;
-    
+    use std::rc::Rc;
+
     #[test]
     fn test_serde_op() {
-	let m1 = Linear::new(None, None, true);
-	let m1 = Op::new(Rc::new(RefCell::new(Box::new(m1))));
-	
+        let m1 = Linear::new(None, None, true);
+        let m1 = Op::new(Rc::new(RefCell::new(Box::new(m1))));
+
         let serialized = serde_pickle::to_vec(&m1, true).unwrap();
         let deserialized: Op = serde_pickle::from_slice(&serialized).unwrap();
         //println!("{:?}", deserialized);

@@ -1,8 +1,8 @@
+use super::{OpHandle, OpTrait};
 use tensor_rs::tensor::Tensor;
-use super::{OpTrait, OpHandle};
 
 #[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "use-serde")]
 use std::any::Any;
 
@@ -25,7 +25,6 @@ impl NormalizeUnit {
     }
 }
 impl OpTrait for NormalizeUnit {
-     
     fn get_name(&self) -> &'static str {
         "NormalizeUnit"
     }
@@ -47,11 +46,10 @@ impl OpTrait for NormalizeUnit {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 impl Default for NormalizeUnit {
@@ -59,7 +57,6 @@ impl Default for NormalizeUnit {
         Self::new()
     }
 }
-
 
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Det {
@@ -80,7 +77,6 @@ impl Det {
     }
 }
 impl OpTrait for Det {
-     
     fn get_name(&self) -> &'static str {
         "Det"
     }
@@ -102,11 +98,10 @@ impl OpTrait for Det {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 impl Default for Det {
@@ -134,7 +129,6 @@ impl Inv {
     }
 }
 impl OpTrait for Inv {
-     
     fn get_name(&self) -> &'static str {
         "Inv"
     }
@@ -156,11 +150,10 @@ impl OpTrait for Inv {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 impl Default for Inv {
@@ -188,7 +181,6 @@ impl Tr {
     }
 }
 impl OpTrait for Tr {
-     
     fn get_name(&self) -> &'static str {
         "Tr"
     }
@@ -210,11 +202,10 @@ impl OpTrait for Tr {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 impl Default for Tr {

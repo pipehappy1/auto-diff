@@ -1,14 +1,14 @@
+use super::{Op, OpCall, OpHandle, OpTrait};
 use tensor_rs::tensor::Tensor;
-use super::{OpTrait, OpHandle, OpCall, Op};
 
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::var::{Var};
 use crate::err::AutoDiffError;
+use crate::var::Var;
 
 #[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "use-serde")]
 use std::any::Any;
 
@@ -20,14 +20,13 @@ pub struct GetPatch {
     step: Option<Vec<usize>>,
 }
 impl GetPatch {
-    pub fn new(range: &[(usize, usize)], step: Option<&[usize]>)
-               -> GetPatch{
+    pub fn new(range: &[(usize, usize)], step: Option<&[usize]>) -> GetPatch {
         let new_range = range.to_vec();
         let new_step = step.map(|v| v.to_vec());
         GetPatch {
             handle: OpHandle::new(),
             range: new_range,
-            step: new_step
+            step: new_step,
         }
     }
     fn get_handle(&self) -> &OpHandle {
@@ -38,8 +37,7 @@ impl GetPatch {
     }
 }
 impl OpCall for GetPatch {
-    fn call(&mut self, inputs: &[&Var])
-            -> Result<Vec<Var>, AutoDiffError> {
+    fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
         let new_one = GetPatch {
             handle: OpHandle::new(),
             range: self.range.clone(),
@@ -52,7 +50,6 @@ impl OpCall for GetPatch {
     }
 }
 impl OpTrait for GetPatch {
-
     fn get_name(&self) -> &'static str {
         "GetPatch"
     }
@@ -75,11 +72,10 @@ impl OpTrait for GetPatch {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
@@ -91,15 +87,13 @@ pub struct SetPatch {
     step: Option<Vec<usize>>,
 }
 impl SetPatch {
-    pub fn new(range: &[(usize, usize)],
-               step: Option<&[usize]>)
-               -> SetPatch {
+    pub fn new(range: &[(usize, usize)], step: Option<&[usize]>) -> SetPatch {
         let new_range = range.to_vec();
         let new_step = step.map(|v| v.to_vec());
         SetPatch {
             handle: OpHandle::new(),
             range: new_range,
-            step: new_step
+            step: new_step,
         }
     }
     fn get_handle(&self) -> &OpHandle {
@@ -110,8 +104,7 @@ impl SetPatch {
     }
 }
 impl OpCall for SetPatch {
-    fn call(&mut self, inputs: &[&Var])
-            -> Result<Vec<Var>, AutoDiffError> {
+    fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
         let new_one = SetPatch {
             handle: OpHandle::new(),
             range: self.range.clone(),
@@ -124,7 +117,6 @@ impl OpCall for SetPatch {
     }
 }
 impl OpTrait for SetPatch {
-
     fn get_name(&self) -> &'static str {
         "SetPatch"
     }
@@ -147,12 +139,9 @@ impl OpTrait for SetPatch {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
-
-

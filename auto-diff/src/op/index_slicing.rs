@@ -1,19 +1,18 @@
 #![allow(clippy::redundant_closure_call)]
+use super::{Op, OpCall, OpHandle, OpTrait};
 use tensor_rs::tensor::Tensor;
-use super::{OpTrait, OpCall, Op, OpHandle};
 
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::var::{Var};
+use super::macros::{
+    many_to_1_op_with_paras, new_element_op, one_to_1_op_with_paras, one_to_vec_op_with_paras,
+};
 use crate::err::AutoDiffError;
-use super::macros::{many_to_1_op_with_paras,
-                    one_to_vec_op_with_paras,
-                    new_element_op,
-                    one_to_1_op_with_paras};
+use crate::var::Var;
 
 #[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "use-serde")]
 use std::any::Any;
 
@@ -21,7 +20,7 @@ use std::any::Any;
 pub struct Cat {
     #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
-    dim: usize
+    dim: usize,
 }
 impl Cat {
     pub fn new(dim: usize) -> Cat {
@@ -38,8 +37,7 @@ impl Cat {
     }
 }
 impl OpCall for Cat {
-    fn call(&mut self, inputs: &[&Var])
-            -> Result<Vec<Var>, AutoDiffError> {
+    fn call(&mut self, inputs: &[&Var]) -> Result<Vec<Var>, AutoDiffError> {
         let new_one = Cat {
             handle: OpHandle::new(),
             dim: self.dim,
@@ -51,7 +49,6 @@ impl OpCall for Cat {
     }
 }
 impl OpTrait for Cat {
-
     fn get_name(&self) -> &'static str {
         "Cat"
     }
@@ -84,33 +81,32 @@ impl OpTrait for Cat {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
+one_to_vec_op_with_paras!(
+    Chunk,
+    "Chunk",
+    1,
+    1, // TODO, this is dependent on the number of output.
+    chunk,
+    (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
+        unimplemented!();
+    }),
+    chunks: usize,
+    dim: usize
+);
 
-one_to_vec_op_with_paras!(Chunk,
-                          "Chunk",
-                          1,
-			  1, // TODO, this is dependent on the number of output.
-			  chunk,
-                          (|input: &[Tensor],
-                           output_grad: &[Tensor],
-                           input_grad: &[Tensor]| {
-                               unimplemented!();
-                           }),
-                          chunks: usize, dim: usize);
-                          
 // gather
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Gather {
     #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
-    dim: usize
+    dim: usize,
 }
 impl Gather {
     pub fn new(dim: usize) -> Gather {
@@ -139,7 +135,6 @@ impl OpCall for Gather {
     }
 }
 impl OpTrait for Gather {
-
     fn get_name(&self) -> &'static str {
         "Gather"
     }
@@ -161,11 +156,10 @@ impl OpTrait for Gather {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
@@ -174,7 +168,7 @@ impl OpTrait for Gather {
 pub struct IndexSelect {
     #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
-    dim: usize
+    dim: usize,
 }
 impl IndexSelect {
     pub fn new(dim: usize) -> IndexSelect {
@@ -203,7 +197,6 @@ impl OpCall for IndexSelect {
     }
 }
 impl OpTrait for IndexSelect {
-
     fn get_name(&self) -> &'static str {
         "Index_select"
     }
@@ -225,11 +218,10 @@ impl OpTrait for IndexSelect {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
@@ -238,7 +230,7 @@ impl OpTrait for IndexSelect {
 pub struct IndexExclude {
     #[cfg_attr(feature = "use-serde", serde(skip))]
     handle: OpHandle,
-    dim: usize
+    dim: usize,
 }
 impl IndexExclude {
     pub fn new(dim: usize) -> IndexExclude {
@@ -267,7 +259,6 @@ impl OpCall for IndexExclude {
     }
 }
 impl OpTrait for IndexExclude {
-
     fn get_name(&self) -> &'static str {
         "Index_exclude"
     }
@@ -289,11 +280,10 @@ impl OpTrait for IndexExclude {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
@@ -331,7 +321,6 @@ impl OpCall for Reshape {
     }
 }
 impl OpTrait for Reshape {
-
     fn get_name(&self) -> &'static str {
         "Reshape"
     }
@@ -353,14 +342,12 @@ impl OpTrait for Reshape {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
-
 
 // split
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
@@ -399,7 +386,6 @@ impl OpCall for Split {
     }
 }
 impl OpTrait for Split {
-
     fn get_name(&self) -> &'static str {
         "Split"
     }
@@ -424,48 +410,47 @@ impl OpTrait for Split {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
 // squeeze
-one_to_1_op_with_paras!(Squeeze,
-                        "Squeeze",
-                        1, 1,
-                        squeeze,
-                        (|input: &[Tensor],
-                         output_grad: &[Tensor],
-                         input_grad: &[Tensor]| {
-                             unimplemented!();
-                         }),
-                        dim: Option<usize>);
-
+one_to_1_op_with_paras!(
+    Squeeze,
+    "Squeeze",
+    1,
+    1,
+    squeeze,
+    (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
+        unimplemented!();
+    }),
+    dim: Option<usize>
+);
 
 // stack
-many_to_1_op_with_paras!(Stack,
-                          "Stack",
-                          2, // TODO, this is dependent on the number of input.
-                          1,
-                          stack,
-                          (|input: &[Tensor],
-                           output_grad: &[Tensor],
-                           input_grad: &[Tensor]| {
-                               unimplemented!();
-                           }),
-                          dim: usize);
+many_to_1_op_with_paras!(
+    Stack,
+    "Stack",
+    2, // TODO, this is dependent on the number of input.
+    1,
+    stack,
+    (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
+        unimplemented!();
+    }),
+    dim: usize
+);
 // t
-new_element_op!(T,
-                "T",
-                t,
-                (|input: &[Tensor],
-                 output_grad: &[Tensor],
-                 input_grad: &[Tensor]| {
-                     unimplemented!();
-                 }));
+new_element_op!(
+    T,
+    "T",
+    t,
+    (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
+        unimplemented!();
+    })
+);
 
 // take
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
@@ -501,7 +486,6 @@ impl OpCall for Take {
     }
 }
 impl OpTrait for Take {
-
     fn get_name(&self) -> &'static str {
         "Take"
     }
@@ -523,11 +507,10 @@ impl OpTrait for Take {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
@@ -565,7 +548,6 @@ impl OpCall for Permute {
     }
 }
 impl OpTrait for Permute {
-
     fn get_name(&self) -> &'static str {
         "Permute"
     }
@@ -587,26 +569,25 @@ impl OpTrait for Permute {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
-
 // unsqueeze
-one_to_1_op_with_paras!(Unsqueeze,
-                        "Unsqueeze",
-                        1, 1,
-                        unsqueeze,
-                        (|input: &[Tensor],
-                         output_grad: &[Tensor],
-                         input_grad: &[Tensor]| {
-                             unimplemented!();
-                         }),
-                        dim: usize);
+one_to_1_op_with_paras!(
+    Unsqueeze,
+    "Unsqueeze",
+    1,
+    1,
+    unsqueeze,
+    (|input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]| {
+        unimplemented!();
+    }),
+    dim: usize
+);
 
 // conditional_select
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
@@ -639,7 +620,6 @@ impl OpCall for ConditionalSelect {
     }
 }
 impl OpTrait for ConditionalSelect {
-
     fn get_name(&self) -> &'static str {
         "ConditionalSelect"
     }
@@ -661,11 +641,10 @@ impl OpTrait for ConditionalSelect {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 impl Default for ConditionalSelect {
@@ -673,7 +652,6 @@ impl Default for ConditionalSelect {
         Self::new()
     }
 }
-
 
 // repeat
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
@@ -709,7 +687,6 @@ impl OpCall for Repeat {
     }
 }
 impl OpTrait for Repeat {
-
     fn get_name(&self) -> &'static str {
         "Repeat"
     }
@@ -731,10 +708,9 @@ impl OpTrait for Repeat {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }

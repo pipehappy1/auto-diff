@@ -36,17 +36,16 @@
 //! ------------
 //!
 
-
-pub mod var;
+pub mod err;
 pub mod op;
 pub mod optim;
-pub mod err;
+pub mod var;
 
-pub use var::{Var};
 pub use err::AutoDiffError;
+pub use var::Var;
 
-pub mod compute_graph;
 pub mod collection;
-pub mod var_inner;
+pub mod compute_graph;
 #[cfg(feature = "use-serde")]
 pub mod serde;
+pub mod var_inner;

@@ -1,18 +1,17 @@
 /// Only NCWH format is supported.
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::rc::Rc;
 
-use tensor_rs::tensor::Tensor;
-use crate::var::Var;
-use crate::err::AutoDiffError;
-use crate::collection::generational_index::{GenKey};
+use crate::collection::generational_index::GenKey;
 use crate::compute_graph::Net;
-
+use crate::err::AutoDiffError;
+use crate::var::Var;
+use tensor_rs::tensor::Tensor;
 
 #[cfg(feature = "use-serde")]
-use serde::{Serializer, de, de::MapAccess, de::SeqAccess,};
+use serde::{de, de::MapAccess, de::SeqAccess, Serializer};
 #[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "use-serde")]
 use std::any::Any;
 
@@ -54,14 +53,14 @@ pub trait OpCall {
 }
 
 pub struct OpHandle {
-    id: GenKey,    
+    id: GenKey,
     net: Rc<RefCell<Net>>,
 }
 impl OpHandle {
     pub fn new() -> OpHandle {
         OpHandle {
             id: GenKey::new(0, 0),
-            net: Rc::new(RefCell::new(Net::new()))
+            net: Rc::new(RefCell::new(Net::new())),
         }
     }
 }
@@ -76,13 +75,12 @@ macro_rules! handle_method {
         fn get_handle(&self) -> &OpHandle {
             &self.handle
         }
-    
+
         fn get_handle_mut(&mut self) -> &mut OpHandle {
             &mut self.handle
         }
-    }
+    };
 }
-
 
 ///
 /// Op is the Rc wrapper of typed op trait
@@ -98,7 +96,7 @@ impl Op {
         }
     }
     pub fn inner(&self) -> &Rc<RefCell<Box<dyn OpTrait>>> {
-	&self.inner_op
+        &self.inner_op
     }
 
     pub fn ref_copy(&self) -> Self {
@@ -118,16 +116,12 @@ impl Op {
     }
     /// Read the input, do the calculation and write result to output.
     /// Called by compute_grapyh.
-    pub fn apply(&self, input: &[Tensor],
-                 output: &[Tensor]) {
+    pub fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         self.inner_op.borrow().apply(input, output);
     }
     /// Given input and output_grad, return input_grad (forward view)
     /// Called by compute_grapyh.
-    pub fn grad(&self, input: &[Tensor],
-                output_grad: &[Tensor],
-                input_grad: &[Tensor]) {
-
+    pub fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
         self.inner_op.borrow().grad(input, output_grad, input_grad);
     }
 
@@ -160,8 +154,6 @@ impl Op {
 //    }
 //}
 
-
-
 //pub struct Nop {
 //}
 //impl OpTrait for Nop {
@@ -177,10 +169,10 @@ impl Op {
 //
 //    /// Forward pass
 //    fn apply(&mut self, _input: &[&Tensor], _output: &[&Tensor]) {
-//        
+//
 //    }
 //    fn grad(&self, _input: &[&Tensor], _output_grad: &[&Tensor], _input_grad: &[&Tensor]) {
-//        
+//
 //    }
 //
 //    /// access weight values
@@ -188,15 +180,13 @@ impl Op {
 //        Vec::new()
 //    }
 //    fn set_values(&self, _v: &[Tensor]) {
-//        
+//
 //    }
 //    /// access gradient values
 //    fn get_grads(&self) -> Vec<&Tensor> {
 //        Vec::new()
 //    }
 //}
-
-
 
 ///
 /// Verify the gradient implementation is right.
@@ -209,15 +199,28 @@ impl Op {
 ///
 /// one_input and input_mask should have the same size.
 /// step and tolerance are both scalar.
-pub fn _gradient_checker(op: &mut dyn OpTrait,
-                         one_input: &[Tensor], input_mask: Option<&[bool]>,
-                         step: Option<Tensor>, tolerance: Option<Tensor>)
-			 -> bool {
-
-    let x_mask = if let Some(val) = input_mask {val.to_vec()} else {vec![true; one_input.len()]};
-    let delta = if let Some(val) = step {val.get_scale_f64()} else {0.01};
-    let tol = if let Some(val) = tolerance {val.get_scale_f64()} else {0.01};
-
+pub fn _gradient_checker(
+    op: &mut dyn OpTrait,
+    one_input: &[Tensor],
+    input_mask: Option<&[bool]>,
+    step: Option<Tensor>,
+    tolerance: Option<Tensor>,
+) -> bool {
+    let x_mask = if let Some(val) = input_mask {
+        val.to_vec()
+    } else {
+        vec![true; one_input.len()]
+    };
+    let delta = if let Some(val) = step {
+        val.get_scale_f64()
+    } else {
+        0.01
+    };
+    let tol = if let Some(val) = tolerance {
+        val.get_scale_f64()
+    } else {
+        0.01
+    };
 
     // system output
     let output = Tensor::new();
@@ -245,10 +248,10 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
         if !x_mask[index] {
             continue;
         }
-        
+
         for i in 0..v.numel() {
             let dimpos = v.index2dimpos(i);
-                
+
             let base_value = v.get_f64(&dimpos);
             let right_value = base_value + delta;
             let mut right_tensor = (*v).clone();
@@ -260,13 +263,16 @@ pub fn _gradient_checker(op: &mut dyn OpTrait,
             op.apply(&right_input, &[right_output.ref_copy()]);
             let right_output = right_output.get_scale_f64();
 
-            let scale_gradient = (right_output - output)/delta;
+            let scale_gradient = (right_output - output) / delta;
             numeric_gradient[index].set_f64(&dimpos, scale_gradient);
 
             let system_gradient = input_grad[index].get_f64(&dimpos);
 
-            if (scale_gradient - system_gradient)*(scale_gradient - system_gradient) > tol {
-                println!("input: {:?}, numeric: {:?}, imple: {:?}", one_input[0], scale_gradient, system_gradient);
+            if (scale_gradient - system_gradient) * (scale_gradient - system_gradient) > tol {
+                println!(
+                    "input: {:?}, numeric: {:?}, imple: {:?}",
+                    one_input[0], scale_gradient, system_gradient
+                );
                 good_gradient = false;
             }
         }
@@ -322,22 +328,24 @@ impl OpTrait for View {
 
         let total_numel: usize = self.shape.iter().product();
         if input[0].numel() != total_numel {
-            panic!("view expect tensor has a total elem of {}, get {}", total_numel, input[0].numel());
+            panic!(
+                "view expect tensor has a total elem of {}, get {}",
+                total_numel,
+                input[0].numel()
+            );
         }
 
         output[0].swap(&input[0].reshape(&self.shape));
     }
 
     fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
-        
         input_grad[0].swap(&output_grad[0].reshape(&input[0].size()));
     }
 
     fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
@@ -345,43 +353,49 @@ impl OpTrait for View {
 
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
 pub mod macros;
 
 pub mod local;
-pub use local::{Add, Sub, Mul, Div, Matmul, Outer};
+pub use local::{Add, Div, Matmul, Mul, Outer, Sub};
 
 pub mod linear;
 pub use linear::Linear;
 
 pub mod nonlinear;
-pub use nonlinear::{ELU, ReLU, };
+pub use nonlinear::{ReLU, ELU};
 
 pub mod convolution;
-pub use convolution::{ Conv2d};
+pub use convolution::Conv2d;
 
 pub mod pooling;
 
 pub mod loss;
-pub use loss::{MSELoss, BCEWithLogitsLoss, CrossEntropyLoss};
+pub use loss::{BCEWithLogitsLoss, CrossEntropyLoss, MSELoss};
 
 pub mod element;
-pub use element::{Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt,Sigmoid, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc};
+pub use element::{
+    Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp,
+    Log2, Neg, Reciprocal, Round, Rsqrt, Sigmoid, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
+};
 
 pub mod comparison;
-pub use comparison::{MaxPair, MinPair, ArgSort, EqElem, Equal, Ge, Gt, Le, Lt, Ne};
+pub use comparison::{ArgSort, EqElem, Equal, Ge, Gt, Le, Lt, MaxPair, MinPair, Ne};
 
 pub mod index_slicing;
-pub use index_slicing::{Cat, Chunk, ConditionalSelect, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, Repeat};
+pub use index_slicing::{
+    Cat, Chunk, ConditionalSelect, Gather, IndexExclude, IndexSelect, Permute, Repeat, Reshape,
+    Split, Squeeze, Stack, Take, Unsqueeze, T,
+};
 
 pub mod linalg;
 pub use linalg::{Det, Inv, NormalizeUnit, Tr};
 
 pub mod reduction;
-pub use reduction::{Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min};
+pub use reduction::{Argmax, Argmin, Logsumexp, Max, Mean, Min, Prod, Std, Sum, Variance};
 
 pub mod vision;
 pub use vision::{GetPatch, SetPatch};
@@ -389,17 +403,90 @@ pub use vision::{GetPatch, SetPatch};
 #[cfg(feature = "use-serde")]
 use auto_diff_macros::gen_serde_funcs;
 #[cfg(feature = "use-serde")]
-use serde::{ser};
+use serde::ser;
 #[cfg(feature = "use-serde")]
-gen_serde_funcs!(View,
-                 Add, Sub, Mul, Div, Matmul, Outer,
-                 Linear,
-                 ELU, ReLU,
-                 Conv2d,
-                 MSELoss, BCEWithLogitsLoss, CrossEntropyLoss,
-                 Abs, Acos, Asin, Atan, Ceil, Cos, Cosh, Exp, Expm1, Floor, Frac, Log, Log10, Log1p, Log1pexp, Log2, Neg, Reciprocal, Round, Rsqrt,Sigmoid, Sign, Sin, Sinh, Sqrt, Tan, Tanh, Trunc,
-                 MaxPair, MinPair, ArgSort, EqElem, Equal, Ge, Gt, Le, Lt, Ne,
-                 Cat, Chunk, ConditionalSelect, Gather, IndexSelect, IndexExclude, Reshape, Split, Squeeze, Stack, T, Take, Permute, Unsqueeze, Repeat,
-                 Det, Inv, NormalizeUnit, Tr,
-                 Argmax, Argmin, Logsumexp, Mean, Prod, Std, Sum, Variance, Max, Min,
-                 GetPatch, SetPatch);
+gen_serde_funcs!(
+    View,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Matmul,
+    Outer,
+    Linear,
+    ELU,
+    ReLU,
+    Conv2d,
+    MSELoss,
+    BCEWithLogitsLoss,
+    CrossEntropyLoss,
+    Abs,
+    Acos,
+    Asin,
+    Atan,
+    Ceil,
+    Cos,
+    Cosh,
+    Exp,
+    Expm1,
+    Floor,
+    Frac,
+    Log,
+    Log10,
+    Log1p,
+    Log1pexp,
+    Log2,
+    Neg,
+    Reciprocal,
+    Round,
+    Rsqrt,
+    Sigmoid,
+    Sign,
+    Sin,
+    Sinh,
+    Sqrt,
+    Tan,
+    Tanh,
+    Trunc,
+    MaxPair,
+    MinPair,
+    ArgSort,
+    EqElem,
+    Equal,
+    Ge,
+    Gt,
+    Le,
+    Lt,
+    Ne,
+    Cat,
+    Chunk,
+    ConditionalSelect,
+    Gather,
+    IndexSelect,
+    IndexExclude,
+    Reshape,
+    Split,
+    Squeeze,
+    Stack,
+    T,
+    Take,
+    Permute,
+    Unsqueeze,
+    Repeat,
+    Det,
+    Inv,
+    NormalizeUnit,
+    Tr,
+    Argmax,
+    Argmin,
+    Logsumexp,
+    Mean,
+    Prod,
+    Std,
+    Sum,
+    Variance,
+    Max,
+    Min,
+    GetPatch,
+    SetPatch
+);

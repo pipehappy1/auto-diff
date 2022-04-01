@@ -1,14 +1,14 @@
+use super::{Op, OpCall, OpHandle, OpTrait};
 use tensor_rs::tensor::Tensor;
-use super::{OpTrait, OpCall, Op, OpHandle};
 
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::var::{Var};
 use crate::err::AutoDiffError;
+use crate::var::Var;
 
 #[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "use-serde")]
 use std::any::Any;
 
@@ -25,15 +25,13 @@ pub struct Linear {
     handle: OpHandle,
 }
 impl Linear {
-    pub fn new(in_features: Option<usize>,
-               out_features: Option<usize>,
-               bias: bool) -> Linear {
+    pub fn new(in_features: Option<usize>, out_features: Option<usize>, bias: bool) -> Linear {
         let weight: Tensor;
         let bias_tensor: Tensor;
         match (in_features, out_features) {
             (Some(d1), Some(d2)) => {
                 weight = Tensor::zeros(&[d1, d2]);
-                bias_tensor = Tensor::zeros(&[d2,]);
+                bias_tensor = Tensor::zeros(&[d2]);
                 Linear {
                     in_fea: in_features,
                     out_fea: out_features,
@@ -44,21 +42,18 @@ impl Linear {
                     bias_grad: Tensor::new(),
                     handle: OpHandle::new(),
                 }
-            },
-            _ => {
-                Linear {
-                    in_fea: in_features,
-                    out_fea: out_features,
-                    bias_option: bias,
-                    weight: Tensor::new(),
-                    bias: Tensor::new(),
-                    weight_grad: Tensor::new(),
-                    bias_grad: Tensor::new(),
-                    handle: OpHandle::new(),
-                }
+            }
+            _ => Linear {
+                in_fea: in_features,
+                out_fea: out_features,
+                bias_option: bias,
+                weight: Tensor::new(),
+                bias: Tensor::new(),
+                weight_grad: Tensor::new(),
+                bias_grad: Tensor::new(),
+                handle: OpHandle::new(),
             },
         }
-        
     }
 
     pub fn weight(&self) -> &Tensor {
@@ -68,11 +63,11 @@ impl Linear {
     pub fn set_weight(&self, var: Var) {
         self.weight.swap(&var.val());
     }
-    
+
     pub fn bias(&self) -> &Tensor {
         &self.bias
     }
-    
+
     pub fn set_bias(&self, var: Var) {
         self.bias.swap(&var.val());
     }
@@ -92,19 +87,14 @@ impl OpCall for Linear {
             bias_grad: self.bias_grad.ref_copy(),
             handle: OpHandle::new(), // TODO; change this to None, this shold never be used.
         };
-        
+
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
-        
+
         inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
-
-
 }
 
 impl OpTrait for Linear {
-
-    
-
     fn get_name(&self) -> &'static str {
         "Linear"
     }
@@ -117,14 +107,13 @@ impl OpTrait for Linear {
         1
     }
 
-    fn apply(&self, inputs: &[Tensor],
-             outputs: &[Tensor]) {
+    fn apply(&self, inputs: &[Tensor], outputs: &[Tensor]) {
         // TODO go through condition where dimension is missing somewhere.
         //println!("left sie: {:?}, right size: {:?}", inputs[0], self.weight);
         if inputs.len() != 1 {
             panic!("linear expect one input.");
         }
-        if inputs[0].size()[inputs[0].size().len()-1] != self.weight.size()[0] {
+        if inputs[0].size()[inputs[0].size().len() - 1] != self.weight.size()[0] {
             panic!("dismatched size");
         }
         let ret = inputs[0].matmul(&self.weight);
@@ -136,27 +125,35 @@ impl OpTrait for Linear {
         }
     }
 
-    fn grad(&self, inputs: &[Tensor],
-            output_grad: &[Tensor],
-            input_grad: &[Tensor]) {
+    fn grad(&self, inputs: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
         if inputs.is_empty() {
             panic!("Expect one input tensor");
         }
         if inputs[0].size()[1] != self.weight.size()[0] {
-            panic!("Expect input dimension matches weight dimension {:?}, {:?}",
-                   inputs[0].size(), self.weight.size());
+            panic!(
+                "Expect input dimension matches weight dimension {:?}, {:?}",
+                inputs[0].size(),
+                self.weight.size()
+            );
         }
         if inputs[0].size()[0] != output_grad[0].size()[0] {
-            panic!("Expect input population matches output gradient population {:?}, {:?}",
-                   inputs[0].size(), output_grad[0].size());
+            panic!(
+                "Expect input population matches output gradient population {:?}, {:?}",
+                inputs[0].size(),
+                output_grad[0].size()
+            );
         }
         if output_grad[0].size()[1] != self.weight.size()[1] {
-            panic!("Expect output gradient dimension matches weight dimension {:?}, {:?}",
-                   output_grad[0].size(), self.weight.size());
+            panic!(
+                "Expect output gradient dimension matches weight dimension {:?}, {:?}",
+                output_grad[0].size(),
+                self.weight.size()
+            );
         }
 
-        input_grad[0].swap(&output_grad[0].matmul(&self.weight.permute(&[1,0])));
-        self.weight_grad.swap(&inputs[0].outer(&output_grad[0], Some(true)));
+        input_grad[0].swap(&output_grad[0].matmul(&self.weight.permute(&[1, 0])));
+        self.weight_grad
+            .swap(&inputs[0].outer(&output_grad[0], Some(true)));
         if self.bias_option {
             self.bias_grad.swap(&output_grad[0].mean(Some(&[0]), false));
         }
@@ -186,9 +183,8 @@ impl OpTrait for Linear {
 
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
-    
 }
 
 // Bilinear
@@ -206,10 +202,12 @@ pub struct BiLinear {
     handle: OpHandle,
 }
 impl BiLinear {
-    pub fn new(in1_features: Option<usize>,
-               in2_features: Option<usize>,
-               out_features: Option<usize>,
-               bias: bool) -> BiLinear {
+    pub fn new(
+        in1_features: Option<usize>,
+        in2_features: Option<usize>,
+        out_features: Option<usize>,
+        bias: bool,
+    ) -> BiLinear {
         BiLinear {
             in1_fea: in1_features,
             in2_fea: in2_features,
@@ -230,11 +228,11 @@ impl BiLinear {
     pub fn set_weight(&self, var: Var) {
         self.weight.swap(&var.val());
     }
-    
+
     pub fn bias(&self) -> &Tensor {
         &self.bias
     }
-    
+
     pub fn set_bias(&self, var: Var) {
         self.bias.swap(&var.val());
     }
@@ -255,13 +253,11 @@ impl OpCall for BiLinear {
             bias_grad: self.bias_grad.ref_copy(),
             handle: OpHandle::new(), // TODO; change this to None, this shold never be used.
         };
-        
+
         let op = Op::new(Rc::new(RefCell::new(Box::new(new_one))));
-        
+
         inputs[0].called_with(op, &inputs[1..inputs.len()])
     }
-
-
 }
 
 impl OpTrait for BiLinear {
@@ -277,26 +273,27 @@ impl OpTrait for BiLinear {
         1
     }
 
-    fn apply(&self, inputs: &[Tensor],
-             outputs: &[Tensor]) {
-        
+    fn apply(&self, inputs: &[Tensor], outputs: &[Tensor]) {
         unimplemented!();
-        
     }
 
-    fn grad(&self, inputs: &[Tensor],
-            output_grad: &[Tensor],
-            input_grad: &[Tensor]) {
+    fn grad(&self, inputs: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
         if inputs.is_empty() {
             panic!("Expect one input tensor");
         }
         if inputs[0].size()[1] != self.weight.size()[0] {
-            panic!("Expect input1 dimension matches weight dimension {:?}, {:?}",
-                   inputs[0].size(), self.weight.size());
+            panic!(
+                "Expect input1 dimension matches weight dimension {:?}, {:?}",
+                inputs[0].size(),
+                self.weight.size()
+            );
         }
         if self.weight.size()[1] != inputs[1].size()[0] {
-            panic!("Expect weight dimension matches input2 dimension {:?}, {:?}",
-                   self.weight.size(), inputs[1].size());
+            panic!(
+                "Expect weight dimension matches input2 dimension {:?}, {:?}",
+                self.weight.size(),
+                inputs[1].size()
+            );
         }
 
         unimplemented!();
@@ -326,7 +323,6 @@ impl OpTrait for BiLinear {
 
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
-    
 }

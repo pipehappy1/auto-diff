@@ -1,9 +1,9 @@
 #![allow(clippy::new_without_default)]
+use super::{OpHandle, OpTrait};
 use tensor_rs::tensor::Tensor;
-use super::{OpTrait, OpHandle};
 
 #[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "use-serde")]
 use std::any::Any;
 
@@ -15,7 +15,6 @@ pub struct ELU {
     handle: OpHandle,
 }
 impl ELU {
-
     pub fn new(alpha: Tensor) -> ELU {
         ELU {
             alpha,
@@ -23,7 +22,6 @@ impl ELU {
         }
     }
 
-    
     handle_method!();
 }
 impl OpTrait for ELU {
@@ -40,19 +38,23 @@ impl OpTrait for ELU {
     /// Forward pass
     fn apply(&self, input: &[Tensor], output: &[Tensor]) {
         let positive = input[0].max_pair(&input[0].zeros_like());
-        let negative = input[0].expm1().mul(&Tensor::fill(&input[0].size(), &self.alpha)).min_pair(&input[0].zeros_like());
+        let negative = input[0]
+            .expm1()
+            .mul(&Tensor::fill(&input[0].size(), &self.alpha))
+            .min_pair(&input[0].zeros_like());
         let ret = positive.add(&negative);
         output[0].swap(&ret);
     }
-    
+
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[Tensor],
-            output_grad: &[Tensor],
-            input_grad: &[Tensor]) {
+    fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
         let positive = input[0].ge(&input[0].zeros_like());
-        let negative = input[0].lt(&input[0].zeros_like()).mul(&Tensor::fill(&input[0].size(), &self.alpha)).mul(&input[0].exp());
+        let negative = input[0]
+            .lt(&input[0].zeros_like())
+            .mul(&Tensor::fill(&input[0].size(), &self.alpha))
+            .mul(&input[0].exp());
         let g = positive.add(&negative);
         input_grad[0].swap(&g.mul(&output_grad[0]));
     }
@@ -61,15 +63,14 @@ impl OpTrait for ELU {
     fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
@@ -110,13 +111,11 @@ impl OpTrait for ReLU {
         let ret = input[0].max_pair(&input[0].zeros_like());
         output[0].swap(&ret);
     }
-    
+
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[Tensor],
-            output_grad: &[Tensor],
-            input_grad: &[Tensor]) {
+    fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
         let ret = input[0].ge(&input[0].zeros_like()); // gradient at 0 is 1. thus use right gradient.
         input_grad[0].swap(&ret.mul(&output_grad[0]));
     }
@@ -125,18 +124,16 @@ impl OpTrait for ReLU {
     fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
-
 
 // ReLU6
 // RReLU
@@ -146,7 +143,7 @@ impl OpTrait for ReLU {
 #[cfg_attr(feature = "use-serde", derive(Serialize, Deserialize))]
 pub struct Sigmoid {
     #[cfg_attr(feature = "use-serde", serde(skip))]
-    handle: OpHandle,    
+    handle: OpHandle,
 }
 impl Sigmoid {
     pub fn new() -> Sigmoid {
@@ -157,7 +154,6 @@ impl Sigmoid {
     handle_method!();
 }
 impl OpTrait for Sigmoid {
-    
     fn get_name(&self) -> &'static str {
         "Sigmoid"
     }
@@ -174,13 +170,11 @@ impl OpTrait for Sigmoid {
         }
         output[0].swap(&input[0].sigmoid());
     }
-    
+
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[Tensor],
-            output_grad: &[Tensor],
-            input_grad: &[Tensor]) {
+    fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
         let tmp1 = input[0].sigmoid().mul(&input[0].neg().sigmoid());
         let tmp2 = tmp1.mul(&output_grad[0]);
         input_grad[0].swap(&tmp2);
@@ -190,18 +184,16 @@ impl OpTrait for Sigmoid {
     fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    
-    fn set_values(&self, _v: &[Tensor]) {
-        
-    }
-    
+
+    fn set_values(&self, _v: &[Tensor]) {}
+
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
@@ -239,13 +231,11 @@ impl OpTrait for Sine {
         let ret = input[0].sin();
         output[0].swap(&ret);
     }
-    
+
     /// Given the forward input value and backward output_grad,
     /// Update weight gradient.
     /// return backward input gradeint.
-    fn grad(&self, input: &[Tensor],
-            output_grad: &[Tensor],
-            input_grad: &[Tensor]) {
+    fn grad(&self, input: &[Tensor], output_grad: &[Tensor], input_grad: &[Tensor]) {
         let ret = input[0].cos();
         input_grad[0].swap(&ret.mul(&output_grad[0]));
     }
@@ -254,15 +244,14 @@ impl OpTrait for Sine {
     fn get_values(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     /// access gradient values
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
@@ -271,8 +260,6 @@ impl OpTrait for Sine {
 // Softmax2d
 // LogSoftmax
 // AdaptiveLogSoftmaxWithLoss
-
-
 
 #[cfg(test)]
 mod tests {
@@ -286,10 +273,8 @@ mod tests {
         for i in 0..10 {
             let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
             let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
-            assert_eq!(good_grad, true);                        
+            assert_eq!(good_grad, true);
         }
-
-
     }
 
     #[test]
@@ -299,7 +284,7 @@ mod tests {
         for i in 0..10 {
             let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
             let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
-            assert_eq!(good_grad, true);                        
+            assert_eq!(good_grad, true);
         }
     }
 
@@ -310,7 +295,7 @@ mod tests {
         for i in 0..10 {
             let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
             let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
-            assert_eq!(good_grad, true);                        
+            assert_eq!(good_grad, true);
         }
     }
 
@@ -321,7 +306,7 @@ mod tests {
         for i in 0..10 {
             let zero = Tensor::from_vec_f64(&vec![(i - 5) as f64], &vec![1]);
             let good_grad = _gradient_checker(&mut op, &[zero], None, None, None);
-            assert_eq!(good_grad, true);                        
+            assert_eq!(good_grad, true);
         }
     }
 }

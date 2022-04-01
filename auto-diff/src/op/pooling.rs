@@ -1,8 +1,8 @@
+use super::{OpHandle, OpTrait};
 use tensor_rs::tensor::Tensor;
-use super::{OpTrait, OpHandle};
 
 #[cfg(feature = "use-serde")]
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "use-serde")]
 use std::any::Any;
 
@@ -20,18 +20,28 @@ pub struct MaxPool2d {
     ceil_mode: bool,
 }
 impl MaxPool2d {
-    pub fn new(kernel_size: Option<(usize, usize)>,
-               stride: Option<(usize, usize)>,
-               padding: Option<Tensor>,
-               dilation: Option<(usize, usize)>,
-               return_indices: Option<bool>,
-               ceil_mode: Option<bool>,) -> MaxPool2d {
-        let kernel_size = if let Some(v) = kernel_size {v} else {(2, 2)};
-        let stride = if let Some(v) = stride {v} else {(2, 2)};
-        let padding = if let Some(v) = padding {v} else {Tensor::zeros(&[1])};
-        let dilation = if let Some(v) = dilation {v} else {(2, 2)};
-        let return_indices = if let Some(v) = return_indices {v} else {false};
-        let ceil_mode = if let Some(v) = ceil_mode {v} else {false};
+    pub fn new(
+        kernel_size: Option<(usize, usize)>,
+        stride: Option<(usize, usize)>,
+        padding: Option<Tensor>,
+        dilation: Option<(usize, usize)>,
+        return_indices: Option<bool>,
+        ceil_mode: Option<bool>,
+    ) -> MaxPool2d {
+        let kernel_size = if let Some(v) = kernel_size { v } else { (2, 2) };
+        let stride = if let Some(v) = stride { v } else { (2, 2) };
+        let padding = if let Some(v) = padding {
+            v
+        } else {
+            Tensor::zeros(&[1])
+        };
+        let dilation = if let Some(v) = dilation { v } else { (2, 2) };
+        let return_indices = if let Some(v) = return_indices {
+            v
+        } else {
+            false
+        };
+        let ceil_mode = if let Some(v) = ceil_mode { v } else { false };
         MaxPool2d {
             handle: OpHandle::new(),
             kernel_size,
@@ -50,7 +60,6 @@ impl MaxPool2d {
     }
 }
 impl OpTrait for MaxPool2d {
-     
     fn get_name(&self) -> &'static str {
         "MaxPool2d"
     }
@@ -72,11 +81,10 @@ impl OpTrait for MaxPool2d {
     fn get_grads(&self) -> Vec<Tensor> {
         Vec::new()
     }
-    fn set_values(&self, _v: &[Tensor]) {
-    }
+    fn set_values(&self, _v: &[Tensor]) {}
     #[cfg(feature = "use-serde")]
     fn as_any(&self) -> &dyn Any {
-	self
+        self
     }
 }
 
@@ -96,4 +104,4 @@ impl OpTrait for MaxPool2d {
 // AdaptiveAvgPool1d
 // AdaptiveAvgPool2d
 // AdaptiveAvgPool3d
-// 
+//
