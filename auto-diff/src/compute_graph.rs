@@ -268,14 +268,17 @@ impl Net {
     //        self.bptt(&output_grad);
     //    }
 
+    /// If output_grad contains ticked output,
+    /// then the tensor supplied has leading dimension representing time.
     pub fn bptt(&mut self, output_grad: &BTreeMap<GenKey, Tensor>) {
-        let mut output = Vec::new();
+        
         self.data_grad.clear();
+
+        let mut output = Vec::new();
         for (k, v) in output_grad {
             output.push(*k);
             self.data_grad.insert(*k, v.clone());
         }
-
         for i in self.graph.iter_data() {
             self.data_grad.entry(*i).or_insert_with(Tensor::new);
         }

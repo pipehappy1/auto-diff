@@ -338,8 +338,13 @@ impl VarInner {
         Ok(())
     }
 
-    pub fn rerun(&self) -> Result<(), AutoDiffError> {
-        let mut all_input = Vec::new();
+    /// Specify extra nodes when there is a loop.
+    pub fn rerun(&self, extra: Option<Vec<VarInner>>) -> Result<(), AutoDiffError> {
+        let mut all_input = if let Some(v) = extra {
+            v.iter().map(|x| x.id).collect()
+        } else {
+            Vec::new()
+        };
         for i in &self.net.borrow().get_input_edge_data() {
             all_input.push(*i);
         }

@@ -602,7 +602,7 @@ impl Var {
 
     /// Run the computation graph again.
     pub fn rerun(&self) -> Result<(), AutoDiffError> {
-        self.var.borrow().rerun()
+        self.var.borrow().rerun(None)
     }
 
     /// Extract input and output from the hidden net.
