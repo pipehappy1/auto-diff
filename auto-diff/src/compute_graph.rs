@@ -442,14 +442,40 @@ mod tests {
     use std::cell::RefCell;
 
     #[test]
-    fn test_loop_connect() {
+    fn test_direct_loop() {
 	let mut net = Net::new();
 	let d1 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
 	net.tag_tick(&d1).unwrap();
 	let p1 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5,5]))))));
 	net.connect(&[d1], p1, &[d1]);
-	net.eval(&[d1], 3).unwrap_err();
-	println!("{:?}", net.get_tensor(d1).unwrap());
+	let remaining = net.eval(&[d1], 3).unwrap_err();
+	assert_eq!(remaining.iter().map(|x| *x).collect::<Vec<_>>(), vec![GenKey::new(0, 0)]);
+	//println!("{:?}", net.get_tensor(d1).unwrap());
 	assert_eq!(net.get_tensor(d1).unwrap().size(), [4, 5, 5]);
     }
+
+    #[test]
+    fn test_indirect_loop() {
+	let mut net = Net::new();
+	
+	let d1 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
+	net.tag_tick(&d1).unwrap();
+	let d2 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
+	net.tag_tick(&d2).unwrap();
+	
+	let p1 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5,5]))))));
+	let p2 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5,5]))))));
+	
+	net.connect(&[d1], p1, &[d2]);
+	net.connect(&[d2], p2, &[d1]);
+
+	let remaining = net.eval(&[d1], 3).unwrap_err();
+	//println!("{:?}", remaining);
+	assert_eq!(remaining.iter().map(|x| *x).collect::<Vec<_>>(), vec![GenKey::new(0, 0)]);
+	//println!("{:?}", net.get_tensor(d1).unwrap());
+	//println!("{:?}", net.get_tensor(d2).unwrap());
+	assert_eq!(net.get_tensor(d1).unwrap().size(), [4, 5, 5]);
+	assert_eq!(net.get_tensor(d2).unwrap().size(), [4, 5, 5]);
+    }
+    
 }
