@@ -279,9 +279,17 @@ impl Net {
             output.push(*k);
             self.data_grad.insert(*k, v.clone());
         }
-        for i in self.graph.iter_data() {
+
+	for i in self.graph.iter_data() {
             self.data_grad.entry(*i).or_insert_with(Tensor::new);
         }
+
+	// store the ticked counts.
+	let mut tick = BTreeMap::new();
+        for item in &self.tick_data {
+            tick.insert(*item, self.get_tensor(*item).expect("").size()[0]);
+        }
+        let tick: Rc<RefCell<BTreeMap<GenKey, usize>>> = Rc::new(RefCell::new(tick));
 
         self.graph
             .walk(
@@ -294,7 +302,26 @@ impl Net {
                     let mut inputs: Vec<Tensor> = Vec::new();
                     for input_id in input_grads {
                         //println!("bptt {:?}", input_id);
-                        let a = self.data.get(input_id).expect("").ref_copy();
+			let a;
+			if self.tick_data.contains(input_id) {
+			    let tick_count = tick.borrow()[input_id];
+			    if tick_count < 1 {
+				return false;
+			    }
+			    let size = self.data.get(input_id).expect("").size();
+			    let mut range: Vec<_> = size.iter().map(|x| (0, *x)).collect();
+                            range[0] = (tick_count-1, tick_count);
+                            a = self
+				.data
+				.get(input_id)
+				.expect("")
+				.get_patch(&range, None)
+				.squeeze(None);
+                            tick.borrow_mut().insert(*input_id, tick_count - 1);
+			} else {
+			    a = self.data.get(input_id).expect("").ref_copy();
+			}
+                        
                         inputs.push(a);
                     }
                     //println!("input: size {:?}", inputs.len());
@@ -303,7 +330,20 @@ impl Net {
                     let mut output_grad: Vec<Tensor> = Vec::new();
                     for output_id in output_grads {
                         //println!("bptt 2 {:?}", output_id);
-                        let a = self.data_grad.get(output_id).expect("").ref_copy();
+			let a;
+			if self.tick_data.contains(output_id) {
+			    let size = self.data.get(output_id).expect("").size();
+			    let mut range: Vec<_> = size.iter().map(|x| (0, *x)).collect();
+                            range[0] = (0, 1);
+                            a = self
+				.data_grad
+				.get(output_id)
+				.expect("")
+				.get_patch(&range, None)
+				.squeeze(None);
+			} else {
+                            a = self.data_grad.get(output_id).expect("").ref_copy();			    
+			}
                         output_grad.push(a);
                     }
                     //println!("output grad: size {:?}", output_grad.len());
@@ -312,7 +352,14 @@ impl Net {
                     let mut input_grad: Vec<Tensor> = Vec::new();
                     for input_id in input_grads {
                         //println!("bptt 3 {:?}", input_id);
-                        let a = self.data_grad.get(input_id).expect("").ref_copy();
+			let a;
+			if self.tick_data.contains(input_id) {
+			    let size = self.data_grad.get(input_id).expect("").size();
+                            let new_output = Tensor::zeros(&size[1..]);
+                            a = new_output;
+			} else {
+			    a = self.data_grad.get(input_id).expect("").ref_copy();
+			}
                         input_grad.push(a);
                     }
                     //println!("input grad: size {:?}", input_grad.len());
@@ -323,6 +370,13 @@ impl Net {
                         .grad(&inputs, &output_grad, &input_grad);
 
                     //println!("var.rs: {:?}", 1);
+		    for (index, input_id) in input_grads.iter().enumerate() {
+			if self.tick_data.contains(input_id) {
+                            let result = input_grad[index].unsqueeze(0);
+                            let all = result.cat(&[self.data_grad.get(input_id).expect("").ref_copy()], 0);
+                            self.data_grad.get(input_id).expect("").swap(&all);
+			}
+                    }
 
                     true
                 },
