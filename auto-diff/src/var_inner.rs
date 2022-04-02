@@ -333,7 +333,18 @@ impl VarInner {
         for i in &self.net.borrow().get_input_edge_data() {
             all_input.push(*i);
         }
-        self.net.borrow_mut().eval(&all_input).expect(""); // TODO
+        let remaining = self.net.borrow_mut().eval(&all_input);
+
+	match remaining {
+	    Err(v) => {
+		for item in v {
+		    if !self.net.borrow().is_tick(&item).expect("bad id") {
+			println!("warning: non-tick data in remaining.");
+		    }
+		}
+	    }
+	    _ => {}
+	}
 	
         Ok(())
     }
@@ -349,7 +360,17 @@ impl VarInner {
 	    BTreeMap::new()
         };
         job.insert(self.id, Tensor::ones_like(&self.val()));
-        self.net.borrow_mut().bptt(&job).unwrap(); // TODO
+        let remaining = self.net.borrow_mut().bptt(&job);
+	match remaining {
+	    Err(v) => {
+		for item in v {
+		    if !self.net.borrow().is_tick(&item).expect("bad id") {
+			println!("warning: non-tick data in remaining.");
+		    }
+		}		
+	    }
+	    _ => {}
+	}
 
         Ok(())
     }

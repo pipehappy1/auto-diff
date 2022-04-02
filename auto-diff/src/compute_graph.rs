@@ -99,22 +99,25 @@ impl Net {
     pub fn get_max_bptt_tick(&self) -> usize {
 	self.max_bptt_tick
     }
-    pub fn set_max_bptt_tick(&mut self, v: usize) {
+    pub fn set_max_bptt_tick(&mut self, v: usize) -> &mut Self {
 	self.max_bptt_tick = v;
+	self
     }
 
     pub fn get_max_eval_tick(&self) -> usize {
 	self.max_eval_tick	
     }
-    pub fn set_max_eval_tick(&mut self, v: usize) {
-	self.max_eval_tick = v;	
+    pub fn set_max_eval_tick(&mut self, v: usize) -> &mut Self {
+	self.max_eval_tick = v;
+	self
     }
 
     pub fn get_max_connection(&self) -> usize {
 	self.max_connection
     }
-    pub fn set_max_connection(&mut self, v: usize) {
+    pub fn set_max_connection(&mut self, v: usize) -> &mut Self {
 	self.max_connection = v;
+	self
     }
 
     /// Tag the variable will be expand across time.
@@ -125,6 +128,17 @@ impl Net {
         } else {
             Err(AutoDiffError::new("unknown id."))
         }
+    }
+    pub fn is_tick(&self, id: &GenKey) -> Result<bool, AutoDiffError> {
+	if self.data.contains(id) {
+	    if self.tick_data.contains(id) {
+		Ok(true)
+	    } else {
+		Ok(false)
+	    }
+	} else {
+	    Err(AutoDiffError::new("unknown id."))
+	}
     }
 
     pub fn get_input_edge_data(&self) -> BTreeSet<GenKey> {
@@ -579,11 +593,12 @@ mod tests {
     #[test]
     fn test_direct_loop() {
         let mut net = Net::new();
+	net.set_max_eval_tick(3);
         let d1 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
         net.tag_tick(&d1).unwrap();
         let p1 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5, 5]))))));
         net.connect(&[d1], p1, &[d1]);
-        let remaining = net.eval(&[d1], 3).unwrap_err();
+        let remaining = net.eval(&[d1]).unwrap_err();
         assert_eq!(
             remaining.iter().map(|x| *x).collect::<Vec<_>>(),
             vec![GenKey::new(0, 0)]
@@ -595,7 +610,7 @@ mod tests {
     #[test]
     fn test_indirect_loop() {
         let mut net = Net::new();
-
+	net.set_max_eval_tick(3);
         let d1 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
         net.tag_tick(&d1).unwrap();
         let d2 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
@@ -607,7 +622,7 @@ mod tests {
         net.connect(&[d1], p1, &[d2]);
         net.connect(&[d2], p2, &[d1]);
 
-        let remaining = net.eval(&[d1], 3).unwrap_err();
+        let remaining = net.eval(&[d1]).unwrap_err();
         //println!("{:?}", remaining);
         assert_eq!(
             remaining.iter().map(|x| *x).collect::<Vec<_>>(),
@@ -622,7 +637,7 @@ mod tests {
     #[test]
     fn test_indirect_loop_bp() {
         let mut net = Net::new();
-
+	net.set_max_eval_tick(3);
         let d1 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
         net.tag_tick(&d1).unwrap();
         let d2 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
@@ -634,16 +649,18 @@ mod tests {
         net.connect(&[d1], p1, &[d2]);
         net.connect(&[d2], p2, &[d1]);
 
-        let remaining = net.eval(&[d1], 3).unwrap_err();
+        let remaining = net.eval(&[d1]).unwrap_err();
 
 	let mut m = BTreeMap::new();
 	m.insert(d1, Tensor::ones(&[1, 5, 5]));
-	let bp_remain = net.bptt(&m, 100).unwrap_err();
+	net.set_max_bptt_tick(100);	
+	let bp_remain = net.bptt(&m).unwrap_err();
 	assert_eq!(bp_remain.iter().map(|x| *x).collect::<Vec<_>>(), vec![d1]);
 	assert_eq!(net.data_grad[&d1].size(), [5, 5, 5]);
 	assert_eq!(net.data_grad[&d2].size(), [4, 5, 5]);
 
-	let bp_remain = net.bptt(&m, 1).unwrap_err();
+	net.set_max_bptt_tick(1);
+	let bp_remain = net.bptt(&m).unwrap_err();
 	assert_eq!(bp_remain.iter().map(|x| *x).collect::<Vec<_>>(), vec![d1]);
 	assert_eq!(net.data_grad[&d1].size(), [2, 5, 5]);
 	assert_eq!(net.data_grad[&d2].size(), [1, 5, 5]);
