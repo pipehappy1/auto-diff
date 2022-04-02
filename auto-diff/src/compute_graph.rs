@@ -270,7 +270,9 @@ impl Net {
 
     /// If output_grad contains ticked output,
     /// then the tensor supplied has leading dimension representing time.
-    pub fn bptt(&mut self, output_grad: &BTreeMap<GenKey, Tensor>) {
+    pub fn bptt(&mut self,
+		output_grad: &BTreeMap<GenKey, Tensor>
+    ) -> Result<(), BTreeSet<GenKey>> {
         
         self.data_grad.clear();
 
@@ -296,7 +298,7 @@ impl Net {
                 &output[..],
                 Direction::Backward,
                 |output_grads, input_grads, op| {
-                    //println!("op, bptt: {}", self.ops.get(op).expect("").get_name());
+                    //println!("op, bptt: {}", op);
 
                     // collect input tensor.
                     let mut inputs: Vec<Tensor> = Vec::new();
@@ -324,7 +326,7 @@ impl Net {
                         
                         inputs.push(a);
                     }
-                    //println!("input: size {:?}", inputs.len());
+                    //println!("input: {:?}", inputs);
 
                     // collect the output tensor gradient (forward view).
                     let mut output_grad: Vec<Tensor> = Vec::new();
@@ -346,7 +348,7 @@ impl Net {
 			}
                         output_grad.push(a);
                     }
-                    //println!("output grad: size {:?}", output_grad.len());
+                    //println!("output grad: {:?}", output_grad);
 
                     // collect the input tensor gradient (forward view).
                     let mut input_grad: Vec<Tensor> = Vec::new();
@@ -354,7 +356,7 @@ impl Net {
                         //println!("bptt 3 {:?}", input_id);
 			let a;
 			if self.tick_data.contains(input_id) {
-			    let size = self.data_grad.get(input_id).expect("").size();
+			    let size = self.data.get(input_id).expect("").size();
                             let new_output = Tensor::zeros(&size[1..]);
                             a = new_output;
 			} else {
@@ -362,7 +364,7 @@ impl Net {
 			}
                         input_grad.push(a);
                     }
-                    //println!("input grad: size {:?}", input_grad.len());
+                    //println!("input grad:{:?}", input_grad);
 
                     self.ops
                         .get(op)
@@ -373,15 +375,23 @@ impl Net {
 		    for (index, input_id) in input_grads.iter().enumerate() {
 			if self.tick_data.contains(input_id) {
                             let result = input_grad[index].unsqueeze(0);
-                            let all = result.cat(&[self.data_grad.get(input_id).expect("").ref_copy()], 0);
+			    let all;
+			    if self.data_grad.get(input_id).expect("").size().len() > 0 {
+				all = result.cat(&[self.data_grad.get(input_id).expect("").ref_copy()], 0);
+			    } else {
+				all = result;
+			    }
+			    //println!("{:?}, {:?}", result.size(), self.data_grad.get(input_id).expect("").size());
+
                             self.data_grad.get(input_id).expect("").swap(&all);
 			}
                     }
 
                     true
                 },
-            )
-            .expect("");
+            )?;
+
+	Ok(())
     }
 
     /// Iterate over all ops, no order guarantee
@@ -553,5 +563,28 @@ mod tests {
         //println!("{:?}", net.get_tensor(d2).unwrap());
         assert_eq!(net.get_tensor(d1).unwrap().size(), [4, 5, 5]);
         assert_eq!(net.get_tensor(d2).unwrap().size(), [4, 5, 5]);
+    }
+
+    #[test]
+    fn test_indirect_loop_bp() {
+        let mut net = Net::new();
+
+        let d1 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
+        net.tag_tick(&d1).unwrap();
+        let d2 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
+        net.tag_tick(&d2).unwrap();
+
+        let p1 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5, 5]))))));
+        let p2 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5, 5]))))));
+
+        net.connect(&[d1], p1, &[d2]);
+        net.connect(&[d2], p2, &[d1]);
+
+        let remaining = net.eval(&[d1], 3).unwrap_err();
+
+	let mut m = BTreeMap::new();
+	m.insert(d1, Tensor::ones(&[1, 5, 5]));
+	let bp_remain = net.bptt(&m).unwrap_err();
+	println!("{:?}", bp_remain);
     }
 }
