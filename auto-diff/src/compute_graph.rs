@@ -589,7 +589,7 @@ mod tests {
 
 	let mut m = BTreeMap::new();
 	m.insert(d1, Tensor::ones(&[1, 5, 5]));
-	let bp_remain = net.bptt(&m).unwrap_err();
+	let bp_remain = net.bptt(&m, 100).unwrap_err();
 	println!("{:?}", bp_remain);
     }
 }
