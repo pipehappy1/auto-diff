@@ -212,7 +212,6 @@ impl Net {
     pub fn eval(
         &mut self,
         starting_node: &[GenKey],
-
     ) -> Result<(), BTreeSet<GenKey>> {
 	let max_tick: usize = self.max_eval_tick;
 	

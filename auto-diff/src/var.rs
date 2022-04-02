@@ -591,7 +591,7 @@ impl Var {
 
     /// Apply back propagation to get numerical gradient.
     pub fn bp(&self) -> Result<(), AutoDiffError> {
-        self.var.borrow().bp()?;
+        self.var.borrow().bp(None)?; // TODO
 
         Ok(())
     }

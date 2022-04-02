@@ -333,13 +333,21 @@ impl VarInner {
         for i in &self.net.borrow().get_input_edge_data() {
             all_input.push(*i);
         }
-        self.net.borrow_mut().eval(&all_input).expect("");
+        self.net.borrow_mut().eval(&all_input).expect(""); // TODO
+	
         Ok(())
     }
 
     /// backward pass.
-    pub fn bp(&self) -> Result<(), AutoDiffError> {
-        let mut job = BTreeMap::new();
+    pub fn bp(&self, extra: Option<Vec<VarInner>>) -> Result<(), AutoDiffError> {
+	let mut job: BTreeMap<_, _> = if let Some(v) = extra {
+            v.iter()
+		.map(|x| (x.id,
+			      Tensor::ones_like(&self.net.borrow().get_tensor(x.id).expect(""))))
+		.collect()
+        } else {
+	    BTreeMap::new()
+        };
         job.insert(self.id, Tensor::ones_like(&self.val()));
         self.net.borrow_mut().bptt(&job).unwrap(); // TODO
 
