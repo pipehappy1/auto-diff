@@ -327,7 +327,7 @@ impl VarInner {
     pub fn bp(&self) -> Result<(), AutoDiffError> {
         let mut job = BTreeMap::new();
         job.insert(self.id, Tensor::ones_like(&self.val()));
-        self.net.borrow_mut().bptt(&job).unwrap(); // TODO
+        self.net.borrow_mut().bptt(&job, 100).unwrap(); // TODO
 
         Ok(())
     }

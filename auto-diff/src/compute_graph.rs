@@ -271,7 +271,8 @@ impl Net {
     /// If output_grad contains ticked output,
     /// then the tensor supplied has leading dimension representing time.
     pub fn bptt(&mut self,
-		output_grad: &BTreeMap<GenKey, Tensor>
+		output_grad: &BTreeMap<GenKey, Tensor>,
+		max_tick: usize
     ) -> Result<(), BTreeSet<GenKey>> {
         
         self.data_grad.clear();
@@ -293,6 +294,9 @@ impl Net {
         }
         let tick: Rc<RefCell<BTreeMap<GenKey, usize>>> = Rc::new(RefCell::new(tick));
 
+	let max_tick: BTreeMap<GenKey, usize> = self.tick_data.iter().map(|x| (*x, max_tick)).collect();
+	let max_tick: Rc<RefCell<BTreeMap<GenKey, usize>>> = Rc::new(RefCell::new(max_tick));
+
         self.graph
             .walk(
                 &output[..],
@@ -307,7 +311,7 @@ impl Net {
 			let a;
 			if self.tick_data.contains(input_id) {
 			    let tick_count = tick.borrow()[input_id];
-			    if tick_count < 1 {
+			    if tick_count < 1 || max_tick.borrow()[input_id] == 0 {
 				return false;
 			    }
 			    let size = self.data.get(input_id).expect("").size();
@@ -320,6 +324,7 @@ impl Net {
 				.get_patch(&range, None)
 				.squeeze(None);
                             tick.borrow_mut().insert(*input_id, tick_count - 1);
+			    *max_tick.borrow_mut().get_mut(input_id).unwrap() -= 1;
 			} else {
 			    a = self.data.get(input_id).expect("").ref_copy();
 			}
