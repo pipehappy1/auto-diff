@@ -226,7 +226,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     }
 
     /// Connect input data, output data and operation
-    pub fn connect(&mut self, dti: &[TData], dto: &[TData], op: &TOp) -> Result<TOp, &str> {
+    pub fn connect(&mut self, dti: &[TData], dto: &[TData], op: &TOp) -> Result<(), AutoDiffError> {
         let mut valid_ids = true;
 
         // make sure pre-exist
@@ -255,9 +255,9 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
                 self.forward_op_dt.get_mut(op).expect("").insert(*i);
                 self.backward_dt_op.get_mut(i).expect("").insert(*op);
             }
-            Ok(*op)
+            Ok(())
         } else {
-            Err("Invalid id!")
+            Err(AutoDiffError::new("Invalid id!"))
         }
     }
 

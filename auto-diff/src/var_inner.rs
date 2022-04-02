@@ -323,6 +323,20 @@ impl VarInner {
         Ok(VarInner::new_tensor(self.net.borrow().get_grad(self.id)?))
     }
 
+    /// Specify extra nodes when there is a loop.
+    pub fn rerun(&self, extra: Option<Vec<VarInner>>) -> Result<(), AutoDiffError> {
+        let mut all_input = if let Some(v) = extra {
+            v.iter().map(|x| x.id).collect()
+        } else {
+            Vec::new()
+        };
+        for i in &self.net.borrow().get_input_edge_data() {
+            all_input.push(*i);
+        }
+        self.net.borrow_mut().eval(&all_input).expect("");
+        Ok(())
+    }
+
     /// backward pass.
     pub fn bp(&self) -> Result<(), AutoDiffError> {
         let mut job = BTreeMap::new();
@@ -335,20 +349,6 @@ impl VarInner {
     /// Update,
     pub fn step(&self, opt: &mut dyn Optimizer) -> Result<(), AutoDiffError> {
         opt.step(self.net.clone());
-        Ok(())
-    }
-
-    /// Specify extra nodes when there is a loop.
-    pub fn rerun(&self, extra: Option<Vec<VarInner>>) -> Result<(), AutoDiffError> {
-        let mut all_input = if let Some(v) = extra {
-            v.iter().map(|x| x.id).collect()
-        } else {
-            Vec::new()
-        };
-        for i in &self.net.borrow().get_input_edge_data() {
-            all_input.push(*i);
-        }
-        self.net.borrow_mut().eval(&all_input, 100).expect("");
         Ok(())
     }
 
@@ -460,7 +460,7 @@ impl VarInner {
             op.apply(&inputs, &outputs);
             let opid = self.net.borrow_mut().add_op(op);
 
-            self.net.borrow_mut().connect(&input_id, opid, &output_id);
+            self.net.borrow_mut().connect(&input_id, opid, &output_id).expect("connect error");
 
             Ok(ret)
         } else {

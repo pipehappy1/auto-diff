@@ -24,7 +24,10 @@ pub struct Net {
     data_grad: BTreeMap<GenKey, Tensor>,
     label2id: BTreeMap<String, GenKey>, // Give some var a name.
     tick_data: BTreeSet<GenKey>,        // set of data that will be looped.
+    
     max_bptt_tick: usize,
+    max_eval_tick: usize,
+    max_connection: usize,
 }
 
 impl Net {
@@ -36,7 +39,10 @@ impl Net {
             data_grad: BTreeMap::new(),
             label2id: BTreeMap::new(),
             tick_data: BTreeSet::new(),
+	    
 	    max_bptt_tick: 128,
+	    max_eval_tick: 128,
+	    max_connection: 128,
         }
     }
 
@@ -95,6 +101,20 @@ impl Net {
     }
     pub fn set_max_bptt_tick(&mut self, v: usize) {
 	self.max_bptt_tick = v;
+    }
+
+    pub fn get_max_eval_tick(&self) -> usize {
+	self.max_eval_tick	
+    }
+    pub fn set_max_eval_tick(&mut self, v: usize) {
+	self.max_eval_tick = v;	
+    }
+
+    pub fn get_max_connection(&self) -> usize {
+	self.max_connection
+    }
+    pub fn set_max_connection(&mut self, v: usize) {
+	self.max_connection = v;
     }
 
     /// Tag the variable will be expand across time.
@@ -167,16 +187,35 @@ impl Net {
     ///
     /// Build input-operator-output relation, with given components.
     ///
-    pub fn connect(&mut self, input: &[GenKey], op: GenKey, output: &[GenKey]) {
-        self.graph.connect(input, output, &op).expect("");
+    pub fn connect(&mut self, input: &[GenKey], op: GenKey, output: &[GenKey]) -> Result<(), AutoDiffError> {
+	for input_key in input {
+	    if self.graph.iter_op_given_input(input_key).expect("").count() > self.max_connection {
+		return Err(AutoDiffError::new(&format!("too many op for input {}\n", input_key)));
+	    }
+	}
+	for output_key in input {
+	    if self.graph.iter_op_given_output(output_key).expect("").count() > self.max_connection {
+		return Err(AutoDiffError::new(&format!("too many op for output {}\n", output_key)));
+	    }
+	}
+	if self.graph.iter_input_given_op(&op).expect("").count() > self.max_connection {
+	    return Err(AutoDiffError::new(&format!("op {} has too many input.\n", op)));
+	}
+	if self.graph.iter_output_given_op(&op).expect("").count() > self.max_connection {
+	    return Err(AutoDiffError::new(&format!("op {} has too many output.\n", op)));
+	}
+	
+        self.graph.connect(input, output, &op)
     }
 
     /// Forward evaluate the computaiton graph.
     pub fn eval(
         &mut self,
         starting_node: &[GenKey],
-        max_tick: usize,
+
     ) -> Result<(), BTreeSet<GenKey>> {
+	let max_tick: usize = self.max_eval_tick;
+	
         let mut tick = BTreeMap::new();
         for item in &self.tick_data {
             tick.insert(*item, 0);
