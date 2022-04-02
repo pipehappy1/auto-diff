@@ -209,6 +209,8 @@ impl Net {
     }
 
     /// Forward evaluate the computaiton graph.
+    /// Return remaining var with data but cannot be used
+    /// due to missing other value of downstreaming op in Err.
     pub fn eval(
         &mut self,
         starting_node: &[GenKey],

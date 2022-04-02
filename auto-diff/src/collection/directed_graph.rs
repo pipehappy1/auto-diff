@@ -366,7 +366,7 @@ impl<TData: Clone + Copy + Ord, TOp: Clone + Copy + Ord> Graph<TData, TOp> {
     where
         F: Fn(&[TData], &[TData], &TOp) -> bool,
     {
-        unimplemented!();
+        unimplemented!(); // TODO
     }
 
     ///
