@@ -24,6 +24,7 @@ pub struct Net {
     data_grad: BTreeMap<GenKey, Tensor>,
     label2id: BTreeMap<String, GenKey>, // Give some var a name.
     tick_data: BTreeSet<GenKey>,        // set of data that will be looped.
+    max_bptt_tick: usize,
 }
 
 impl Net {
@@ -35,6 +36,7 @@ impl Net {
             data_grad: BTreeMap::new(),
             label2id: BTreeMap::new(),
             tick_data: BTreeSet::new(),
+	    max_bptt_tick: 128,
         }
     }
 
@@ -86,6 +88,13 @@ impl Net {
                 id
             ))),
         }
+    }
+
+    pub fn get_max_bptt_tick(&self) -> usize {
+	self.max_bptt_tick
+    }
+    pub fn set_max_bptt_tick(&mut self, v: usize) {
+	self.max_bptt_tick = v;
     }
 
     /// Tag the variable will be expand across time.
@@ -272,8 +281,8 @@ impl Net {
     /// then the tensor supplied has leading dimension representing time.
     pub fn bptt(&mut self,
 		output_grad: &BTreeMap<GenKey, Tensor>,
-		max_tick: usize
     ) -> Result<(), BTreeSet<GenKey>> {
+	let max_tick = self.max_bptt_tick;
         
         self.data_grad.clear();
 
