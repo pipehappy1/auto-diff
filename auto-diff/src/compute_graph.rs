@@ -590,6 +590,13 @@ mod tests {
 	let mut m = BTreeMap::new();
 	m.insert(d1, Tensor::ones(&[1, 5, 5]));
 	let bp_remain = net.bptt(&m, 100).unwrap_err();
-	println!("{:?}", bp_remain);
+	assert_eq!(bp_remain.iter().map(|x| *x).collect::<Vec<_>>(), vec![d1]);
+	assert_eq!(net.data_grad[&d1].size(), [5, 5, 5]);
+	assert_eq!(net.data_grad[&d2].size(), [4, 5, 5]);
+
+	let bp_remain = net.bptt(&m, 1).unwrap_err();
+	assert_eq!(bp_remain.iter().map(|x| *x).collect::<Vec<_>>(), vec![d1]);
+	assert_eq!(net.data_grad[&d1].size(), [2, 5, 5]);
+	assert_eq!(net.data_grad[&d2].size(), [1, 5, 5]);
     }
 }
