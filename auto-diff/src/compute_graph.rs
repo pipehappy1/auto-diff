@@ -597,7 +597,7 @@ mod tests {
         let d1 = net.add_tensor(Tensor::ones(&[1, 5, 5]));
         net.tag_tick(&d1).unwrap();
         let p1 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5, 5]))))));
-        net.connect(&[d1], p1, &[d1]);
+        net.connect(&[d1], p1, &[d1]).unwrap();
         let remaining = net.eval(&[d1]).unwrap_err();
         assert_eq!(
             remaining.iter().map(|x| *x).collect::<Vec<_>>(),
@@ -619,8 +619,8 @@ mod tests {
         let p1 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5, 5]))))));
         let p2 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5, 5]))))));
 
-        net.connect(&[d1], p1, &[d2]);
-        net.connect(&[d2], p2, &[d1]);
+        net.connect(&[d1], p1, &[d2]).unwrap();
+        net.connect(&[d2], p2, &[d1]).unwrap();
 
         let remaining = net.eval(&[d1]).unwrap_err();
         //println!("{:?}", remaining);
@@ -646,8 +646,8 @@ mod tests {
         let p1 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5, 5]))))));
         let p2 = net.add_op(Op::new(Rc::new(RefCell::new(Box::new(View::new(&[5, 5]))))));
 
-        net.connect(&[d1], p1, &[d2]);
-        net.connect(&[d2], p2, &[d1]);
+        net.connect(&[d1], p1, &[d2]).unwrap();
+        net.connect(&[d2], p2, &[d1]).unwrap();
 
         let remaining = net.eval(&[d1]).unwrap_err();
 
