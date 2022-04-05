@@ -349,8 +349,12 @@ impl VarInner {
         Ok(())
     }
 
+    pub fn bp(&self) -> Result<(), AutoDiffError> {
+        self.bptt(None)
+    }
+
     /// backward pass.
-    pub fn bp(&self, extra: Option<Vec<VarInner>>) -> Result<(), AutoDiffError> {
+    pub fn bptt(&self, extra: Option<Vec<VarInner>>) -> Result<(), AutoDiffError> {
 	let mut job: BTreeMap<_, _> = if let Some(v) = extra {
             v.iter()
 		.map(|x| (x.id,

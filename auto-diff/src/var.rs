@@ -591,9 +591,7 @@ impl Var {
 
     /// Apply back propagation to get numerical gradient.
     pub fn bp(&self) -> Result<(), AutoDiffError> {
-        self.var.borrow().bp(None)?; // TODO
-
-        Ok(())
+        self.var.borrow().bp()
     }
 
     pub fn step(&self, opt: &mut dyn Optimizer) -> Result<(), AutoDiffError> {
@@ -604,6 +602,15 @@ impl Var {
     pub fn rerun(&self) -> Result<(), AutoDiffError> {
         self.var.borrow().rerun(None)
     }
+
+    /// Used to loop back
+    pub fn assign_to(&self, to: &Var) {}
+
+    /// Used to remove tick tag
+    pub fn over_tick(&self) -> Var {unimplemented!()}
+
+    /// Used to remove tick tag
+    pub fn at_tick(&self, tick: i32) -> Var {unimplemented!()}
 
     /// Extract input and output from the hidden net.
     pub fn get_io_var(&self) -> Result<(Vec<Var>, Vec<Var>), AutoDiffError> {
