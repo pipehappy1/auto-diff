@@ -140,6 +140,14 @@ impl Net {
 	    Err(AutoDiffError::new("unknown id."))
 	}
     }
+    pub fn untag_tick(&mut self, id: &GenKey) -> Result<(), AutoDiffError> {
+	if self.data.contains(id) {
+	    self.tick_data.remove(id);
+	    Ok(())
+	} else {
+	    Err(AutoDiffError::new("unknown id."))
+	}
+    }
 
     pub fn get_input_edge_data(&self) -> BTreeSet<GenKey> {
         self.graph.get_input_edge_data()
@@ -463,6 +471,7 @@ impl Net {
     }
 
     /// Iterate over all ops, no order guarantee
+    /// Used for optimizer.
     pub fn visit_op<F>(&mut self, closure: F, allow: Option<Vec<GenKey>>, skip: Option<Vec<GenKey>>)
     where
         F: Fn(&Op),
