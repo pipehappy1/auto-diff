@@ -471,6 +471,7 @@ impl Net {
     }
 
     /// Iterate over all ops, no order guarantee
+    /// Used for optimizer.
     pub fn visit_op<F>(&mut self, closure: F, allow: Option<Vec<GenKey>>, skip: Option<Vec<GenKey>>)
     where
         F: Fn(&Op),
