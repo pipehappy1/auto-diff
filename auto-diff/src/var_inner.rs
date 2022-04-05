@@ -418,10 +418,13 @@ impl VarInner {
         self.net.borrow_mut().set_label(label, &self.id)
     }
 
+    /// Set the var will use grad or not.
+    /// The property will propagate through new connect/op.
     pub(crate) fn set_grad(&mut self, use_gradient: bool) {
         self.need_grad = use_gradient;
     }
 
+    /// Cut the shared link between vars.
     pub(crate) fn reset_net(&mut self) {
         let value = self.val();
         let mut net = Net::new();
@@ -430,7 +433,10 @@ impl VarInner {
         self.net = Rc::new(RefCell::new(net));
     }
 
-    /// used in OpCall trait implementation.
+    ///
+    //pub(crate) fn 
+
+    /// Used with OpCall trait implementation.
     pub(crate) fn called_with(
         &self,
         op: Op,
